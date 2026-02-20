@@ -127,7 +127,7 @@ export function Sidebar() {
     <>
       {/* Logo */}
       <div className={cn(
-        "flex items-center justify-between border-b border-border px-3",
+        "shrink-0 flex items-center justify-between border-b border-border px-3",
         isCyber ? "h-20 bg-[#1A1A1E]" : isSage ? "h-20 bg-[#2D2D2D]" : "h-[72px]"
       )}>
         {(!collapsed || mobileOpen) ? (
@@ -195,8 +195,8 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex flex-col gap-1 p-3 overflow-y-auto flex-1">
+      {/* Navigation — scrollable, shrinks to fit */}
+      <nav className="flex flex-col gap-1 p-3 overflow-y-auto flex-1 min-h-0">
         {navigation.map((item) => {
           const isActive = item.href === "/"
             ? pathname === "/"
@@ -259,8 +259,8 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Bottom section: user, theme, logout, collapse */}
-      <div className="border-t border-border px-3 py-3 space-y-2">
+      {/* Bottom section: user, theme, logout, collapse — always visible */}
+      <div className="shrink-0 border-t border-border px-3 py-3 space-y-2">
         {/* User info */}
         {(!collapsed || mobileOpen) && session?.user && (
           <div className="flex items-center gap-2 px-1 mb-2">
