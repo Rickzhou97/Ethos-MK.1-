@@ -350,8 +350,9 @@ function SwimLane({
       {/* Cards — horizontal scroll */}
       <div className="flex gap-3 p-3 overflow-x-auto min-h-[140px]">
         {tasks.length === 0 && (
-          <div className={cn("flex items-center justify-center w-full text-xs", styles.emptyText)}>
-            No tasks
+          <div className={cn("flex flex-col items-center justify-center w-full gap-2", styles.emptyText)}>
+            <span className="text-lg font-semibold italic opacity-40">Health, Wealth and Success!</span>
+            <span className="text-xs">No tasks</span>
           </div>
         )}
         {tasks.map((task) => (
