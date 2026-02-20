@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Users, Truck, Hash, FolderKanban, Package, PoundSterling } from "lucide-react"
+import { Users, Truck, Hash, FolderKanban, Package, PoundSterling, Boxes, ListTree, Cog, Wrench } from "lucide-react"
 import { CSVImporter, FieldMapping } from "@/components/import/csv-importer"
 
 const importTypes = [
@@ -104,6 +104,83 @@ const importTypes = [
       { key: "notes", label: "Notes", required: false },
     ] as FieldMapping[],
   },
+  {
+    key: "sage-stock-items",
+    label: "Sage Stock Items",
+    icon: Boxes,
+    description: "Import full stock item records from Sage 200 — raw materials, components, and finished goods",
+    fields: [
+      { key: "stockCode", label: "Stock Code", required: true, description: "Unique stock item code e.g. FD-0003-FP" },
+      { key: "name", label: "Name", required: true, description: "Stock item name / description" },
+      { key: "description", label: "Description", required: false, description: "Extended description" },
+      { key: "productGroup", label: "Product Group", required: false, description: "e.g. FG-FD, RM-LP, RM-PP" },
+      { key: "productFamily", label: "Product Family", required: false, description: "e.g. Flood Doors, Penstock Penstocks" },
+      { key: "itemSetType", label: "Item Set Type", required: false, description: "Analysis field from Sage" },
+      { key: "operationType", label: "Operation Type", required: false },
+      { key: "materialComposition", label: "Material", required: false, description: "e.g. Mild Steel, Stainless, Aluminium" },
+      { key: "bomItemType", label: "BOM Item Type", required: false, description: "0=Non-stock, 1=Stock, 2=Phantom" },
+      { key: "defaultMake", label: "Default Make", required: false, description: "true/false — is this a manufactured item?" },
+      { key: "supplierRef", label: "Supplier Ref", required: false },
+      { key: "supplierLeadTime", label: "Lead Time (days)", required: false },
+      { key: "supplierLeadTimeUnit", label: "Lead Time Unit", required: false, description: "Days, Weeks, etc." },
+      { key: "unitOfMeasure", label: "UoM", required: false, description: "EA, MM, M, KG, etc." },
+      { key: "averageBuyingPrice", label: "Avg Buying Price", required: false, description: "£ cost" },
+    ] as FieldMapping[],
+  },
+  {
+    key: "sage-bom-headers",
+    label: "Sage BOM Headers",
+    icon: ListTree,
+    description: "Import Bill of Materials headers from Sage 200 Manufacturing — one per finished good",
+    fields: [
+      { key: "headerRef", label: "Header Ref", required: true, description: "Stock code of the finished good (must exist in Stock Items)" },
+      { key: "description", label: "Description", required: false },
+      { key: "manufacturingInstructions", label: "Manufacturing Instructions", required: false },
+      { key: "qualityStandard", label: "Quality Standard", required: false },
+      { key: "revision", label: "Revision", required: false, description: "BOM revision / version" },
+      { key: "defaultCostQty", label: "Default Cost Qty", required: false, description: "Defaults to 1" },
+      { key: "defaultBuildQty", label: "Default Build Qty", required: false, description: "Defaults to 1" },
+    ] as FieldMapping[],
+  },
+  {
+    key: "sage-bom-components",
+    label: "Sage BOM Components",
+    icon: Cog,
+    description: "Import BOM component lines — the raw materials and sub-assemblies that make up each finished good",
+    fields: [
+      { key: "headerRef", label: "Header Ref", required: true, description: "Stock code of the parent finished good" },
+      { key: "stockCode", label: "Component Stock Code", required: true, description: "Stock code of the component material" },
+      { key: "description", label: "Description", required: false },
+      { key: "sequenceNo", label: "Sequence No", required: false, description: "Order within the BOM — auto-numbered if blank" },
+      { key: "quantity", label: "Quantity", required: false, description: "Defaults to 1" },
+      { key: "unitOfMeasure", label: "UoM", required: false, description: "EA, MM, M, KG, etc." },
+      { key: "fixedQuantity", label: "Fixed Quantity", required: false, description: "true/false — does qty scale with build qty?" },
+      { key: "notes", label: "Notes", required: false },
+    ] as FieldMapping[],
+  },
+  {
+    key: "sage-bom-operations",
+    label: "Sage BOM Operations",
+    icon: Wrench,
+    description: "Import manufacturing operations — cutting, welding, painting, etc. with time and labour data",
+    fields: [
+      { key: "headerRef", label: "Header Ref", required: true, description: "Stock code of the parent finished good" },
+      { key: "operationRef", label: "Operation Ref", required: true, description: "Operation code e.g. CUT, WELD, PAINT" },
+      { key: "operationDescription", label: "Description", required: false, description: "e.g. Laser Cutting, MIG Welding" },
+      { key: "sequenceNo", label: "Sequence No", required: false, description: "Order of operations — auto-numbered if blank" },
+      { key: "labourRef", label: "Labour Ref", required: false, description: "Labour code from Sage" },
+      { key: "labourDescription", label: "Labour Description", required: false },
+      { key: "totalRunTimeMinutes", label: "Run Time (mins)", required: false, description: "Total run time in minutes" },
+      { key: "totalLabourMinutes", label: "Labour Time (mins)", required: false, description: "Total labour time in minutes" },
+      { key: "runTimeHours", label: "Run Hours", required: false, description: "Alternative: hours component of run time" },
+      { key: "runTimeMinutes", label: "Run Minutes", required: false, description: "Alternative: minutes component" },
+      { key: "runTimeSeconds", label: "Run Seconds", required: false, description: "Alternative: seconds component" },
+      { key: "labourHours", label: "Labour Hours", required: false },
+      { key: "labourMinutes", label: "Labour Minutes", required: false },
+      { key: "labourSeconds", label: "Labour Seconds", required: false },
+      { key: "isSubcontract", label: "Subcontract", required: false, description: "true/false" },
+    ] as FieldMapping[],
+  },
 ]
 
 export default function ImportPage() {
@@ -192,6 +269,7 @@ export default function ImportPage() {
             <ul className="text-xs text-gray-500 space-y-1">
               <li>Import <strong>customers and suppliers first</strong>, then projects (so project imports can match customer names).</li>
               <li>Import <strong>projects before products</strong> — products need to link to existing project numbers.</li>
+              <li>For <strong>BOM Library</strong>: Import in order — Stock Items first, then BOM Headers, then Components and Operations.</li>
               <li>From <strong>Sage</strong>: Export your Chart of Accounts as CSV for nominal codes, Customer List for customers, Supplier List for suppliers.</li>
               <li>From <strong>Excel</strong>: Select your rows including the header, copy (Ctrl+C), then paste into the import tool.</li>
               <li>Values like <strong>£125,000.00</strong> are handled automatically — £ signs and commas are stripped.</li>

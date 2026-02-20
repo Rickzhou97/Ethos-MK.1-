@@ -244,6 +244,196 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  else if (type === "sage-stock-items") {
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i]
+      const stockCode = (r.stockCode || "").trim()
+      if (!stockCode) { errors.push(`Row ${i + 1}: Stock code is required`); continue }
+      const name = (r.name || "").trim()
+      if (!name) { errors.push(`Row ${i + 1}: Name is required`); continue }
+
+      try {
+        await prisma.sageStockItem.upsert({
+          where: { stockCode },
+          update: {
+            name,
+            description: r.description || null,
+            productGroup: r.productGroup || null,
+            productFamily: r.productFamily || null,
+            itemSetType: r.itemSetType || null,
+            operationType: r.operationType || null,
+            materialComposition: r.materialComposition || null,
+            bomItemType: r.bomItemType ? parseInt(r.bomItemType, 10) || null : null,
+            defaultMake: r.defaultMake ? r.defaultMake.toLowerCase() === "true" || r.defaultMake === "1" : null,
+            supplierRef: r.supplierRef || null,
+            supplierLeadTime: r.supplierLeadTime ? parseInt(r.supplierLeadTime, 10) || null : null,
+            supplierLeadTimeUnit: r.supplierLeadTimeUnit || null,
+            unitOfMeasure: r.unitOfMeasure || null,
+            averageBuyingPrice: r.averageBuyingPrice ? parseFloat(r.averageBuyingPrice.replace(/[£,\s]/g, "")) || null : null,
+          },
+          create: {
+            stockCode,
+            name,
+            description: r.description || null,
+            productGroup: r.productGroup || null,
+            productFamily: r.productFamily || null,
+            itemSetType: r.itemSetType || null,
+            operationType: r.operationType || null,
+            materialComposition: r.materialComposition || null,
+            bomItemType: r.bomItemType ? parseInt(r.bomItemType, 10) || null : null,
+            defaultMake: r.defaultMake ? r.defaultMake.toLowerCase() === "true" || r.defaultMake === "1" : null,
+            supplierRef: r.supplierRef || null,
+            supplierLeadTime: r.supplierLeadTime ? parseInt(r.supplierLeadTime, 10) || null : null,
+            supplierLeadTimeUnit: r.supplierLeadTimeUnit || null,
+            unitOfMeasure: r.unitOfMeasure || null,
+            averageBuyingPrice: r.averageBuyingPrice ? parseFloat(r.averageBuyingPrice.replace(/[£,\s]/g, "")) || null : null,
+          },
+        })
+        success++
+      } catch (e: unknown) {
+        errors.push(`Row ${i + 1} (${stockCode}): ${e instanceof Error ? e.message : "Unknown error"}`)
+      }
+    }
+  }
+
+  else if (type === "sage-bom-headers") {
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i]
+      const headerRef = (r.headerRef || "").trim()
+      if (!headerRef) { errors.push(`Row ${i + 1}: Header Ref (stock code) is required`); continue }
+
+      // Ensure the stock item exists
+      const stockItem = await prisma.sageStockItem.findUnique({ where: { stockCode: headerRef } })
+      if (!stockItem) { errors.push(`Row ${i + 1} (${headerRef}): Stock item not found — import stock items first`); continue }
+
+      try {
+        await prisma.sageBomHeader.upsert({
+          where: { headerRef },
+          update: {
+            description: r.description || null,
+            manufacturingInstructions: r.manufacturingInstructions || null,
+            qualityStandard: r.qualityStandard || null,
+            revision: r.revision || null,
+            defaultCostQty: r.defaultCostQty ? parseInt(r.defaultCostQty, 10) || 1 : 1,
+            defaultBuildQty: r.defaultBuildQty ? parseInt(r.defaultBuildQty, 10) || 1 : 1,
+          },
+          create: {
+            headerRef,
+            description: r.description || null,
+            manufacturingInstructions: r.manufacturingInstructions || null,
+            qualityStandard: r.qualityStandard || null,
+            revision: r.revision || null,
+            defaultCostQty: r.defaultCostQty ? parseInt(r.defaultCostQty, 10) || 1 : 1,
+            defaultBuildQty: r.defaultBuildQty ? parseInt(r.defaultBuildQty, 10) || 1 : 1,
+          },
+        })
+        success++
+      } catch (e: unknown) {
+        errors.push(`Row ${i + 1} (${headerRef}): ${e instanceof Error ? e.message : "Unknown error"}`)
+      }
+    }
+  }
+
+  else if (type === "sage-bom-components") {
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i]
+      const headerRef = (r.headerRef || "").trim()
+      const stockCode = (r.stockCode || "").trim()
+      if (!headerRef) { errors.push(`Row ${i + 1}: Header Ref is required`); continue }
+      if (!stockCode) { errors.push(`Row ${i + 1}: Stock Code is required`); continue }
+
+      // Ensure parent BOM header exists
+      const header = await prisma.sageBomHeader.findUnique({ where: { headerRef } })
+      if (!header) { errors.push(`Row ${i + 1} (${headerRef}): BOM header not found — import BOM headers first`); continue }
+
+      // Ensure component stock item exists — auto-create a stub if not
+      const existing = await prisma.sageStockItem.findUnique({ where: { stockCode } })
+      if (!existing) {
+        await prisma.sageStockItem.create({
+          data: { stockCode, name: r.description || stockCode },
+        })
+      }
+
+      const seqNo = r.sequenceNo ? parseInt(r.sequenceNo, 10) || (i + 1) : (i + 1)
+      const qty = r.quantity ? parseFloat(r.quantity.replace(/,/g, "")) || 1 : 1
+
+      try {
+        await prisma.sageBomComponent.create({
+          data: {
+            headerRef,
+            stockCode,
+            description: r.description || null,
+            sequenceNo: seqNo,
+            quantity: qty,
+            unitOfMeasure: r.unitOfMeasure || null,
+            fixedQuantity: r.fixedQuantity ? r.fixedQuantity.toLowerCase() === "true" || r.fixedQuantity === "1" : false,
+            notes: r.notes || null,
+          },
+        })
+        success++
+      } catch (e: unknown) {
+        errors.push(`Row ${i + 1} (${headerRef}/${stockCode}): ${e instanceof Error ? e.message : "Unknown error"}`)
+      }
+    }
+  }
+
+  else if (type === "sage-bom-operations") {
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i]
+      const headerRef = (r.headerRef || "").trim()
+      const operationRef = (r.operationRef || "").trim()
+      if (!headerRef) { errors.push(`Row ${i + 1}: Header Ref is required`); continue }
+      if (!operationRef) { errors.push(`Row ${i + 1}: Operation Ref is required`); continue }
+
+      // Ensure parent BOM header exists
+      const header = await prisma.sageBomHeader.findUnique({ where: { headerRef } })
+      if (!header) { errors.push(`Row ${i + 1} (${headerRef}): BOM header not found — import BOM headers first`); continue }
+
+      const seqNo = r.sequenceNo ? parseInt(r.sequenceNo, 10) || (i + 1) : (i + 1)
+
+      // Parse time fields — accept total minutes or individual h/m/s
+      const runH = r.runTimeHours ? parseInt(r.runTimeHours, 10) || 0 : 0
+      const runM = r.runTimeMinutes ? parseInt(r.runTimeMinutes, 10) || 0 : 0
+      const runS = r.runTimeSeconds ? parseInt(r.runTimeSeconds, 10) || 0 : 0
+      const labH = r.labourHours ? parseInt(r.labourHours, 10) || 0 : 0
+      const labM = r.labourMinutes ? parseInt(r.labourMinutes, 10) || 0 : 0
+      const labS = r.labourSeconds ? parseInt(r.labourSeconds, 10) || 0 : 0
+
+      const totalRunMins = r.totalRunTimeMinutes
+        ? parseFloat(r.totalRunTimeMinutes) || 0
+        : runH * 60 + runM + runS / 60
+      const totalLabourMins = r.totalLabourMinutes
+        ? parseFloat(r.totalLabourMinutes) || 0
+        : labH * 60 + labM + labS / 60
+
+      try {
+        await prisma.sageBomOperation.create({
+          data: {
+            headerRef,
+            stockCode: headerRef,
+            sequenceNo: seqNo,
+            operationRef,
+            operationDescription: r.operationDescription || null,
+            labourRef: r.labourRef || null,
+            labourDescription: r.labourDescription || null,
+            isSubcontract: r.isSubcontract ? r.isSubcontract.toLowerCase() === "true" || r.isSubcontract === "1" : false,
+            runTimeHours: runH,
+            runTimeMinutes: runM,
+            runTimeSeconds: runS,
+            labourHours: labH,
+            labourMinutes: labM,
+            labourSeconds: labS,
+            totalRunTimeMinutes: totalRunMins,
+            totalLabourMinutes: totalLabourMins,
+          },
+        })
+        success++
+      } catch (e: unknown) {
+        errors.push(`Row ${i + 1} (${headerRef}/${operationRef}): ${e instanceof Error ? e.message : "Unknown error"}`)
+      }
+    }
+  }
+
   else {
     return NextResponse.json({ error: `Unknown import type: ${type}` }, { status: 400 })
   }
