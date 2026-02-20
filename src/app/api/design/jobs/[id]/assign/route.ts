@@ -52,9 +52,15 @@ export async function POST(
   })
 
   // Always update the design card's assigned designer to keep workload board in sync
+  // If card is QUEUED, transition to IN_PROGRESS (designer assigned = work started)
+  const designCardUpdate: Record<string, unknown> = { assignedDesignerId: designerId }
+  if (jobCard.designCard.status === "QUEUED") {
+    designCardUpdate.status = "IN_PROGRESS"
+    designCardUpdate.actualStartDate = new Date()
+  }
   await prisma.productDesignCard.update({
     where: { id: jobCard.designCardId },
-    data: { assignedDesignerId: designerId },
+    data: designCardUpdate,
   })
 
   await logAudit({
@@ -68,6 +74,7 @@ export async function POST(
       designerName: designer.name,
       jobType: jobCard.jobType,
       designCardId: jobCard.designCardId,
+      statusChange: jobCard.designCard.status === "QUEUED" ? "QUEUED -> IN_PROGRESS" : null,
     }),
   })
 
