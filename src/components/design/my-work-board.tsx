@@ -1,10 +1,8 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { JOB_TYPE_LABELS } from "@/lib/design-utils"
 import { TaskActionButtons } from "./task-action-buttons"
-import { BomEditorDialog } from "./bom-editor-dialog"
 
 type JobCard = {
   id: string
@@ -120,8 +118,6 @@ export function MyWorkBoard({ cards }: { cards: DesignCard[] }) {
 }
 
 function ProductWorkCard({ card }: { card: DesignCard }) {
-  const [bomOpen, setBomOpen] = useState(false)
-
   // Find the current active job card for action buttons
   const activeJob = card.jobCards.find(
     (j) => j.status === "IN_PROGRESS" || j.status === "SUBMITTED" || j.status === "REJECTED" || j.status === "READY" || j.status === "APPROVED"
@@ -138,15 +134,15 @@ function ProductWorkCard({ card }: { card: DesignCard }) {
               {card.product.productJobNumber || card.product.partCode}
             </div>
           </div>
-          <button
-            onClick={() => setBomOpen(true)}
+          <Link
+            href={`/design/bom/${card.id}`}
             className="p-1 text-gray-400 hover:text-amber-600 transition-colors shrink-0"
             title="Edit BOM"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
-          </button>
+          </Link>
         </div>
 
         {/* Small project ref */}
@@ -215,13 +211,6 @@ function ProductWorkCard({ card }: { card: DesignCard }) {
         )}
       </div>
 
-      <BomEditorDialog
-        open={bomOpen}
-        onOpenChange={setBomOpen}
-        designCardId={card.id}
-        productDescription={card.product.description}
-        productJobNumber={card.product.productJobNumber}
-      />
     </>
   )
 }
