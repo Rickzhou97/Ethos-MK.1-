@@ -307,7 +307,6 @@ export function WorkshopView({
         </span>
         <span className="text-gray-400">|</span>
         <span>{data.stats.completedTodayCount} completed today</span>
-        <span className="text-gray-300 text-[9px] ml-auto">v2</span>
       </div>
 
       {loading && (
