@@ -23,7 +23,12 @@ import { DashboardCharts } from "@/components/dashboard/dashboard-charts"
 import { DashboardTimeline } from "@/components/dashboard/dashboard-timeline"
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs"
 
+export const revalidate = 30
+
 async function getDashboardData() {
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
   const [
     totalProjects,
     activeProjects,
@@ -69,7 +74,16 @@ async function getDashboardData() {
     prisma.project.findMany({
       take: 10,
       orderBy: { updatedAt: "desc" },
-      include: {
+      select: {
+        id: true,
+        projectNumber: true,
+        name: true,
+        projectStatus: true,
+        salesStage: true,
+        ragStatus: true,
+        targetCompletion: true,
+        contractValue: true,
+        estimatedValue: true,
         customer: { select: { name: true } },
         coordinator: { select: { name: true } },
         projectManager: { select: { name: true } },
@@ -111,7 +125,11 @@ async function getDashboardData() {
     prisma.quote.findMany({
       take: 5,
       orderBy: { updatedAt: "desc" },
-      include: {
+      select: {
+        id: true,
+        quoteNumber: true,
+        status: true,
+        totalSell: true,
         customer: { select: { name: true } },
       },
     }),
@@ -119,8 +137,9 @@ async function getDashboardData() {
     prisma.nonConformanceReport.count({
       where: { status: { in: ["OPEN", "INVESTIGATING"] } },
     }),
-    // Monthly project data (last 6 months)
+    // Monthly project data (last 6 months only)
     prisma.project.findMany({
+      where: { createdAt: { gte: sixMonthsAgo } },
       select: { createdAt: true, salesStage: true, projectStatus: true },
     }),
   ])

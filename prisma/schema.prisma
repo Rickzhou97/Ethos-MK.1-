@@ -408,6 +408,7 @@ model Project {
   @@index([isICUFlag])
   @@index([customerId])
   @@index([targetCompletion])
+  @@index([updatedAt])
   @@map("projects")
 }
 
@@ -846,6 +847,7 @@ model Product {
   @@index([currentDepartment])
   @@index([productionStatus])
   @@index([requiredCompletionDate])
+  @@index([projectId, productionStatus])
   @@map("products")
 }
 
@@ -906,6 +908,7 @@ model Quote {
   @@index([customerId])
   @@index([projectId])
   @@index([status])
+  @@index([updatedAt])
   @@map("quotes")
 }
 
@@ -1452,6 +1455,8 @@ model ProductDesignCard {
   @@index([projectId])
   @@index([assignedDesignerId])
   @@index([status])
+  @@index([productId])
+  @@index([updatedAt])
   @@map("product_design_cards")
 }
 

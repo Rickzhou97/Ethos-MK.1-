@@ -4,7 +4,7 @@ import { DesignerWorkloadBoard } from "@/components/design/designer-workload-boa
 import { DesignTimeline } from "@/components/design/design-timeline"
 import { HandoverTrackingPanel } from "@/components/design/handover-tracking-panel"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 30
 
 async function getDesignDashboardData() {
   const [projects, allCards, timelineCards, designers, handovers] = await Promise.all([
