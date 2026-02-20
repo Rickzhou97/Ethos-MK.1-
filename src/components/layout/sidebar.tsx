@@ -28,6 +28,7 @@ import {
   MessageSquare,
   Database,
   CalendarRange,
+  UtensilsCrossed,
   LogOut,
   Zap,
   Leaf,
@@ -58,6 +59,7 @@ const navigation = [
   { name: "Import", href: "/import", icon: Upload },
   { name: "Audit Trail", href: "/settings/audit", icon: History },
   { name: "Suggestions", href: "/suggestions", icon: MessageSquare },
+  { name: "What to Eat", href: "/what-to-eat", icon: UtensilsCrossed },
 ]
 
 type BadgeCounts = {
