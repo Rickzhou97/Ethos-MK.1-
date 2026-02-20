@@ -800,6 +800,14 @@ model Product {
   installEstimatedHours     Decimal? @db.Decimal(8, 1)
   opsEstimatedHours         Decimal? @db.Decimal(8, 1)
 
+  // Per-stage production hours (set by production manager)
+  productionCuttingHours      Decimal? @db.Decimal(8, 1)
+  productionFabricationHours  Decimal? @db.Decimal(8, 1)
+  productionFittingHours      Decimal? @db.Decimal(8, 1)
+  productionShotblastingHours Decimal? @db.Decimal(8, 1)
+  productionPaintingHours     Decimal? @db.Decimal(8, 1)
+  productionPackingHours      Decimal? @db.Decimal(8, 1)
+
   // Ops / Pre-production planning stage
   opsPlannedStart           DateTime?
   opsTargetDate             DateTime?

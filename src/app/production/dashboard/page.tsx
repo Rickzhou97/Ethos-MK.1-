@@ -41,6 +41,12 @@ async function getProductionData() {
             currentDepartment: true,
             designCompletionDate: true,
             designCard: { select: { id: true } },
+            productionCuttingHours: true,
+            productionFabricationHours: true,
+            productionFittingHours: true,
+            productionShotblastingHours: true,
+            productionPaintingHours: true,
+            productionPackingHours: true,
           },
         },
         _count: {

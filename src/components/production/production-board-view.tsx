@@ -72,6 +72,12 @@ type ProducingProject = {
     productionCompletionDate: string | null
     currentDepartment: string | null
     designCard?: { id: string } | null
+    productionCuttingHours?: number | null
+    productionFabricationHours?: number | null
+    productionFittingHours?: number | null
+    productionShotblastingHours?: number | null
+    productionPaintingHours?: number | null
+    productionPackingHours?: number | null
   }>
   _count: { products: number; ncrs: number }
 }

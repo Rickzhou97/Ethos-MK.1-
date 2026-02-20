@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { WORKSHOP_STAGES, STAGE_DISPLAY_NAMES, DEFAULT_STAGE_HOURS } from "@/lib/production-utils"
+import { WORKSHOP_STAGES, STAGE_DISPLAY_NAMES, DEFAULT_STAGE_HOURS, STAGE_HOUR_FIELDS } from "@/lib/production-utils"
 
 type Product = {
   id: string
@@ -13,6 +13,13 @@ type Product = {
   productionPlannedStart?: string | null
   productionTargetDate?: string | null
   designCard?: { id: string } | null
+  // Per-stage hours
+  productionCuttingHours?: number | null
+  productionFabricationHours?: number | null
+  productionFittingHours?: number | null
+  productionShotblastingHours?: number | null
+  productionPaintingHours?: number | null
+  productionPackingHours?: number | null
 }
 
 type Props = {
@@ -39,10 +46,18 @@ function addWorkingDays(start: Date, days: number): Date {
   return d
 }
 
+function getProductHours(product: Product, stage: string): number {
+  const field = STAGE_HOUR_FIELDS[stage] as keyof Product
+  const val = product[field]
+  return val != null ? Number(val) : 0
+}
+
 export function ProjectScheduleDialog({ open, onClose, project }: Props) {
   const [startDate, setStartDate] = useState("")
-  const [stageHours, setStageHours] = useState<Record<string, number>>({})
+  // Per-product, per-stage hours: { [productId]: { [stage]: hours } }
+  const [productHours, setProductHours] = useState<Record<string, Record<string, number>>>({})
   const [saving, setSaving] = useState(false)
+  const [savingHours, setSavingHours] = useState<Record<string, boolean>>({})
 
   // Initialize from product data
   useEffect(() => {
@@ -57,29 +72,50 @@ export function ProjectScheduleDialog({ open, onClose, project }: Props) {
     } else {
       setStartDate("")
     }
-    // Initialize stage hours from defaults
-    const hours: Record<string, number> = {}
-    for (const stage of WORKSHOP_STAGES) {
-      hours[stage] = DEFAULT_STAGE_HOURS[stage] || 0
+    // Initialize per-product stage hours from DB or defaults
+    const hours: Record<string, Record<string, number>> = {}
+    for (const p of project.products) {
+      hours[p.id] = {}
+      for (const stage of WORKSHOP_STAGES) {
+        const dbVal = getProductHours(p, stage)
+        hours[p.id][stage] = dbVal || DEFAULT_STAGE_HOURS[stage] || 0
+      }
     }
-    setStageHours(hours)
+    setProductHours(hours)
   }, [open, project])
 
   if (!open) return null
 
-  const totalHours = WORKSHOP_STAGES.reduce((sum, s) => sum + (stageHours[s] || 0), 0)
-  const totalDays = Math.ceil(totalHours / WORKING_HOURS_PER_DAY)
+  // Calculate totals
+  const productTotals: Record<string, number> = {}
+  let grandTotal = 0
+  for (const p of project.products) {
+    const total = WORKSHOP_STAGES.reduce((sum, s) => sum + (productHours[p.id]?.[s] || 0), 0)
+    productTotals[p.id] = total
+    grandTotal += total
+  }
+  const grandTotalDays = Math.ceil(grandTotal / WORKING_HOURS_PER_DAY)
+
+  // Find max product total for end date estimation (parallel production)
+  const maxProductHours = Math.max(...project.products.map((p) => productTotals[p.id] || 0), 0)
+  const maxProductDays = Math.ceil(maxProductHours / WORKING_HOURS_PER_DAY)
 
   const startObj = startDate ? new Date(startDate) : null
-  const endDate = startObj ? addWorkingDays(startObj, totalDays) : null
+  const endDate = startObj ? addWorkingDays(startObj, maxProductDays) : null
 
   const dateFmt: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }
+
+  function updateProductStageHours(productId: string, stage: string, value: number) {
+    setProductHours((prev) => ({
+      ...prev,
+      [productId]: { ...prev[productId], [stage]: value },
+    }))
+  }
 
   async function handleSaveStartDate() {
     if (!startDate) return
     setSaving(true)
     try {
-      // Save productionPlannedStart on all products
       await Promise.all(
         project.products.map((p) =>
           fetch(`/api/products/${p.id}/status`, {
@@ -94,10 +130,65 @@ export function ProjectScheduleDialog({ open, onClose, project }: Props) {
     }
   }
 
+  async function handleSaveProductHours(productId: string) {
+    const hours = productHours[productId]
+    if (!hours) return
+    setSavingHours((prev) => ({ ...prev, [productId]: true }))
+    try {
+      const body: Record<string, number> = {}
+      for (const stage of WORKSHOP_STAGES) {
+        body[STAGE_HOUR_FIELDS[stage]] = hours[stage] || 0
+      }
+      await fetch(`/api/products/${productId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+    } finally {
+      setSavingHours((prev) => ({ ...prev, [productId]: false }))
+    }
+  }
+
+  async function handleSaveAll() {
+    setSaving(true)
+    try {
+      const promises: Promise<unknown>[] = []
+      if (startDate) {
+        for (const p of project.products) {
+          promises.push(
+            fetch(`/api/products/${p.id}/status`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ productionPlannedStart: startDate }),
+            })
+          )
+        }
+      }
+      for (const p of project.products) {
+        const hours = productHours[p.id]
+        if (!hours) continue
+        const body: Record<string, number> = {}
+        for (const stage of WORKSHOP_STAGES) {
+          body[STAGE_HOUR_FIELDS[stage]] = hours[stage] || 0
+        }
+        promises.push(
+          fetch(`/api/products/${p.id}/status`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          })
+        )
+      }
+      await Promise.all(promises)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto mx-4"
+        className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -113,12 +204,12 @@ export function ProjectScheduleDialog({ open, onClose, project }: Props) {
           </button>
         </div>
 
-        {/* Schedule Section */}
+        {/* Schedule Header */}
         <div className="px-5 py-4 border-b border-gray-100">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Production Schedule</h3>
 
           {/* Start Date + DDL row */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-2 gap-4 mb-3">
             <div>
               <label className="text-xs text-gray-500 font-medium block mb-1">Start Date</label>
               <div className="flex gap-2">
@@ -151,35 +242,9 @@ export function ProjectScheduleDialog({ open, onClose, project }: Props) {
             </div>
           </div>
 
-          {/* Stage hours (editable) */}
-          <div className="space-y-1.5">
-            <div className="text-xs text-gray-500 font-medium">Estimated Time per Stage</div>
-            <div className="grid grid-cols-3 gap-2">
-              {WORKSHOP_STAGES.map((stage) => (
-                <div key={stage} className="flex items-center justify-between bg-gray-50 rounded-md px-2.5 py-1.5 border border-gray-100">
-                  <span className="text-xs text-gray-600">{STAGE_DISPLAY_NAMES[stage]}</span>
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min={0}
-                      value={stageHours[stage] || 0}
-                      onChange={(e) => setStageHours((prev) => ({ ...prev, [stage]: Number(e.target.value) || 0 }))}
-                      className="w-12 text-xs text-right border border-gray-200 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                    />
-                    <span className="text-[10px] text-gray-400">h</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-              <span className="text-xs font-semibold text-gray-600">Total</span>
-              <span className="text-xs font-semibold text-gray-800 font-mono">{totalHours}h ({totalDays} working days)</span>
-            </div>
-          </div>
-
           {/* Estimated End */}
-          <div className="mt-3 flex items-center justify-between bg-blue-50 rounded-md px-3 py-2 border border-blue-200">
-            <span className="text-xs font-medium text-blue-700">Estimated End Date</span>
+          <div className="flex items-center justify-between bg-blue-50 rounded-md px-3 py-2 border border-blue-200">
+            <span className="text-xs font-medium text-blue-700">Estimated End Date (longest product)</span>
             <span className={`text-sm font-bold ${
               endDate && project.targetCompletion && endDate > new Date(project.targetCompletion)
                 ? "text-red-600"
@@ -190,47 +255,126 @@ export function ProjectScheduleDialog({ open, onClose, project }: Props) {
           </div>
         </div>
 
-        {/* Products Section */}
+        {/* Per-Product Time Table */}
         <div className="px-5 py-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">
-            Products ({project.products.length})
-          </h3>
-          <div className="space-y-2">
-            {project.products.map((product) => {
-              const stageName = STAGE_DISPLAY_NAMES[product.productionStatus || ""] || product.productionStatus || "Awaiting"
-              const stageColor =
-                product.productionStatus === "COMPLETED" ? "bg-green-100 text-green-700" :
-                product.productionStatus === "PACKING" ? "bg-cyan-100 text-cyan-700" :
-                product.productionStatus === "PAINTING" ? "bg-teal-100 text-teal-700" :
-                product.productionStatus === "SHOTBLASTING" ? "bg-lime-100 text-lime-700" :
-                product.productionStatus === "FITTING" ? "bg-yellow-100 text-yellow-700" :
-                product.productionStatus === "FABRICATION" ? "bg-amber-100 text-amber-700" :
-                product.productionStatus === "CUTTING" ? "bg-orange-100 text-orange-700" :
-                "bg-gray-100 text-gray-600"
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-700">
+              Product Time Estimates ({project.products.length} products)
+            </h3>
+            <button
+              onClick={handleSaveAll}
+              disabled={saving}
+              className="text-xs px-4 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 font-medium"
+            >
+              {saving ? "Saving..." : "Save All"}
+            </button>
+          </div>
 
-              return (
-                <div key={product.id} className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2.5">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-gray-900 truncate">{product.description}</div>
-                    <div className="text-xs text-gray-400 font-mono">{product.partCode} {product.quantity > 1 ? `x${product.quantity}` : ""}</div>
-                  </div>
-                  <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-medium ${stageColor}`}>
-                    {stageName}
-                  </span>
-                  {product.designCard?.id ? (
-                    <Link
-                      href={`/design/bom/${product.designCard.id}`}
-                      className="shrink-0 text-[10px] font-medium px-2.5 py-1 rounded-md bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      BOM
-                    </Link>
-                  ) : (
-                    <span className="shrink-0 text-[10px] text-gray-300 px-2.5 py-1">No BOM</span>
-                  )}
-                </div>
-              )
-            })}
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 pr-2 text-gray-500 font-semibold min-w-[160px]">Product</th>
+                  <th className="text-left py-2 pr-1 text-gray-500 font-semibold w-[50px]">Stage</th>
+                  {WORKSHOP_STAGES.map((stage) => (
+                    <th key={stage} className="text-center py-2 px-1 text-gray-500 font-semibold w-[65px]">
+                      {STAGE_DISPLAY_NAMES[stage]}
+                    </th>
+                  ))}
+                  <th className="text-right py-2 pl-2 text-gray-600 font-bold w-[60px]">Total</th>
+                  <th className="py-2 pl-2 w-[60px]"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {project.products.map((product) => {
+                  const stageName = STAGE_DISPLAY_NAMES[product.productionStatus || ""] || product.productionStatus || "Awaiting"
+                  const stageColor =
+                    product.productionStatus === "COMPLETED" ? "bg-green-100 text-green-700" :
+                    product.productionStatus === "PACKING" ? "bg-cyan-100 text-cyan-700" :
+                    product.productionStatus === "PAINTING" ? "bg-teal-100 text-teal-700" :
+                    product.productionStatus === "SHOTBLASTING" ? "bg-lime-100 text-lime-700" :
+                    product.productionStatus === "FITTING" ? "bg-yellow-100 text-yellow-700" :
+                    product.productionStatus === "FABRICATION" ? "bg-amber-100 text-amber-700" :
+                    product.productionStatus === "CUTTING" ? "bg-orange-100 text-orange-700" :
+                    "bg-gray-100 text-gray-600"
+                  const totalH = productTotals[product.id] || 0
+                  const totalD = Math.ceil(totalH / WORKING_HOURS_PER_DAY)
+
+                  return (
+                    <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50/50">
+                      <td className="py-2 pr-2">
+                        <div className="flex items-center gap-2">
+                          <div className="min-w-0">
+                            <div className="text-xs font-medium text-gray-900 truncate">{product.description}</div>
+                            <div className="text-[10px] text-gray-400 font-mono">{product.partCode} {product.quantity > 1 ? `x${product.quantity}` : ""}</div>
+                          </div>
+                          {product.designCard?.id && (
+                            <Link
+                              href={`/design/bom/${product.designCard.id}`}
+                              className="shrink-0 text-[9px] font-medium px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              BOM
+                            </Link>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-2 pr-1">
+                        <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-medium ${stageColor}`}>
+                          {stageName}
+                        </span>
+                      </td>
+                      {WORKSHOP_STAGES.map((stage) => (
+                        <td key={stage} className="py-1.5 px-0.5">
+                          <input
+                            type="number"
+                            min={0}
+                            step={0.5}
+                            value={productHours[product.id]?.[stage] ?? 0}
+                            onChange={(e) => updateProductStageHours(product.id, stage, Number(e.target.value) || 0)}
+                            className="w-full text-xs text-center border border-gray-200 rounded px-1 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+                          />
+                        </td>
+                      ))}
+                      <td className="py-2 pl-2 text-right">
+                        <span className="text-xs font-semibold text-gray-800 font-mono">{totalH}h</span>
+                        <div className="text-[9px] text-gray-400">{totalD}d</div>
+                      </td>
+                      <td className="py-2 pl-2">
+                        <button
+                          onClick={() => handleSaveProductHours(product.id)}
+                          disabled={savingHours[product.id]}
+                          className="text-[10px] px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:opacity-50 font-medium"
+                        >
+                          {savingHours[product.id] ? "..." : "Save"}
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+              {/* Totals row */}
+              <tfoot>
+                <tr className="border-t-2 border-gray-300">
+                  <td colSpan={2} className="py-2 pr-2 text-xs font-bold text-gray-700">Project Total</td>
+                  {WORKSHOP_STAGES.map((stage) => {
+                    const stageTotal = project.products.reduce(
+                      (sum, p) => sum + (productHours[p.id]?.[stage] || 0), 0
+                    )
+                    return (
+                      <td key={stage} className="py-2 px-0.5 text-center text-xs font-semibold text-gray-600 font-mono">
+                        {stageTotal}h
+                      </td>
+                    )
+                  })}
+                  <td className="py-2 pl-2 text-right">
+                    <span className="text-xs font-bold text-gray-900 font-mono">{grandTotal}h</span>
+                    <div className="text-[9px] text-gray-500">{grandTotalDays}d</div>
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
         </div>
       </div>

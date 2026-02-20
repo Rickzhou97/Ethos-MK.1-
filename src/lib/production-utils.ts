@@ -242,6 +242,16 @@ export const STATION_LABELS: Record<string, string[]> = {
   PACKING: ["K1", "K2"],
 }
 
+// Mapping from workshop stage to the Product database field name
+export const STAGE_HOUR_FIELDS: Record<string, string> = {
+  CUTTING: "productionCuttingHours",
+  FABRICATION: "productionFabricationHours",
+  FITTING: "productionFittingHours",
+  SHOTBLASTING: "productionShotblastingHours",
+  PAINTING: "productionPaintingHours",
+  PACKING: "productionPackingHours",
+}
+
 // Default stage durations in working HOURS (allows multiple products per day)
 export const DEFAULT_STAGE_HOURS: Record<string, number> = {
   DESIGN: 40,          // 5 days

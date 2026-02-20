@@ -15,6 +15,9 @@ const DATE_FIELDS = new Set([
 const DECIMAL_FIELDS = new Set([
   "designEstimatedHours", "productionEstimatedHours",
   "installEstimatedHours", "opsEstimatedHours",
+  "productionCuttingHours", "productionFabricationHours",
+  "productionFittingHours", "productionShotblastingHours",
+  "productionPaintingHours", "productionPackingHours",
 ])
 
 // String fields that can be set directly
