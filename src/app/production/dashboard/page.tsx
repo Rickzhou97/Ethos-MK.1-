@@ -35,6 +35,7 @@ async function getProductionData() {
             description: true,
             quantity: true,
             productionStatus: true,
+            productionPlannedStart: true,
             productionTargetDate: true,
             productionCompletionDate: true,
             currentDepartment: true,
