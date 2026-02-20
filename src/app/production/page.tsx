@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/db"
 import { ProductionBoardView } from "@/components/production/production-board-view"
 
+export const dynamic = "force-dynamic"
+
 async function getBoardData() {
-  const [pendingHandovers, producingProjects, completeProjects] = await Promise.all([
+  const [pendingHandovers, designFreezeProjects, producingProjects, completeProjects] = await Promise.all([
     // Pending handovers (SUBMITTED status — awaiting acceptance)
     prisma.designHandover.findMany({
       where: { status: "SUBMITTED" },
@@ -31,6 +33,40 @@ async function getBoardData() {
         initiatedBy: { select: { id: true, name: true } },
       },
       orderBy: { initiatedAt: "asc" },
+    }),
+
+    // DESIGN_FREEZE projects without an ACKNOWLEDGED handover — ready for production
+    prisma.project.findMany({
+      where: {
+        projectStatus: "DESIGN_FREEZE",
+        OR: [
+          { designHandover: null },
+          { designHandover: { status: { not: "ACKNOWLEDGED" } } },
+        ],
+      },
+      orderBy: [{ priority: "asc" }, { targetCompletion: "asc" }],
+      select: {
+        id: true,
+        projectNumber: true,
+        name: true,
+        targetCompletion: true,
+        priority: true,
+        isICUFlag: true,
+        customer: { select: { name: true } },
+        products: {
+          select: { id: true, partCode: true, description: true, quantity: true },
+        },
+        designCards: {
+          select: {
+            id: true,
+            status: true,
+            product: { select: { id: true, description: true, partCode: true } },
+          },
+        },
+        designHandover: {
+          select: { id: true, status: true },
+        },
+      },
     }),
 
     // Active production projects (MANUFACTURE + DESIGN_FREEZE with acknowledged handovers)
@@ -95,15 +131,16 @@ async function getBoardData() {
     }),
   ])
 
-  return { pendingHandovers, producingProjects, completeProjects }
+  return { pendingHandovers, designFreezeProjects, producingProjects, completeProjects }
 }
 
 export default async function ProductionPage() {
-  const { pendingHandovers, producingProjects, completeProjects } = await getBoardData()
+  const { pendingHandovers, designFreezeProjects, producingProjects, completeProjects } = await getBoardData()
 
   return (
     <ProductionBoardView
       pendingHandovers={JSON.parse(JSON.stringify(pendingHandovers))}
+      designFreezeProjects={JSON.parse(JSON.stringify(designFreezeProjects))}
       producingProjects={JSON.parse(JSON.stringify(producingProjects))}
       completeProjects={JSON.parse(JSON.stringify(completeProjects))}
     />

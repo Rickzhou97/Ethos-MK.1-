@@ -2,6 +2,7 @@
 
 import { useState, memo } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { STAGE_DISPLAY_NAMES } from "@/lib/production-utils"
 
@@ -26,6 +27,23 @@ type PendingHandover = {
       product: { id: string; description: string; partCode: string }
     }>
   }
+}
+
+type DesignFreezeProject = {
+  id: string
+  projectNumber: string
+  name: string
+  targetCompletion: string | null
+  priority: string
+  isICUFlag: boolean
+  customer: { name: string } | null
+  products: Array<{ id: string; partCode: string; description: string; quantity: number }>
+  designCards: Array<{
+    id: string
+    status: string
+    product: { id: string; description: string; partCode: string }
+  }>
+  designHandover: { id: string; status: string } | null
 }
 
 type ProducingProject = {
@@ -76,18 +94,32 @@ type CompleteProject = {
 
 type Props = {
   pendingHandovers: PendingHandover[]
+  designFreezeProjects?: DesignFreezeProject[]
   producingProjects: ProducingProject[]
   completeProjects: CompleteProject[]
 }
 
-export function ProductionBoardView({ pendingHandovers, producingProjects, completeProjects }: Props) {
+export function ProductionBoardView({ pendingHandovers, designFreezeProjects = [], producingProjects, completeProjects }: Props) {
   const [localHandovers, setLocalHandovers] = useState(pendingHandovers)
+  const [localDesignFreeze, setLocalDesignFreeze] = useState(designFreezeProjects)
   const [localProducing, setLocalProducing] = useState(producingProjects)
+
+  // Exclude DESIGN_FREEZE projects that already have SUBMITTED handovers (shown in handover section)
+  const handoverProjectIds = new Set(localHandovers.map(h => h.projectId))
+  const filteredDesignFreeze = localDesignFreeze.filter(p => !handoverProjectIds.has(p.id))
+
+  const totalPending = localHandovers.length + filteredDesignFreeze.length
 
   return (
     <div className="flex gap-4 overflow-x-auto pb-4 items-start">
       {/* Column 1: Pending Handover */}
-      <PendingHandoverColumn handovers={localHandovers} onHandoverAction={(id) => setLocalHandovers(prev => prev.filter(h => h.id !== id))} />
+      <PendingHandoverColumn
+        handovers={localHandovers}
+        designFreezeProjects={filteredDesignFreeze}
+        totalCount={totalPending}
+        onHandoverAction={(id) => setLocalHandovers(prev => prev.filter(h => h.id !== id))}
+        onDesignFreezeAction={(id) => setLocalDesignFreeze(prev => prev.filter(p => p.id !== id))}
+      />
 
       {/* Column 2: Producing */}
       <ProducingColumn projects={localProducing} onComplete={(id) => setLocalProducing(prev => prev.filter(p => p.id !== id))} />
@@ -100,8 +132,21 @@ export function ProductionBoardView({ pendingHandovers, producingProjects, compl
 
 // ─── Pending Handover Column ───
 
-function PendingHandoverColumn({ handovers, onHandoverAction }: { handovers: PendingHandover[]; onHandoverAction: (id: string) => void }) {
+function PendingHandoverColumn({
+  handovers,
+  designFreezeProjects,
+  totalCount,
+  onHandoverAction,
+  onDesignFreezeAction,
+}: {
+  handovers: PendingHandover[]
+  designFreezeProjects: DesignFreezeProject[]
+  totalCount: number
+  onHandoverAction: (id: string) => void
+  onDesignFreezeAction: (id: string) => void
+}) {
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
+  const router = useRouter()
 
   async function handleAcknowledge(handover: PendingHandover) {
     setLoadingAction(handover.id + "-ack")
@@ -115,7 +160,10 @@ function PendingHandoverColumn({ handovers, onHandoverAction }: { handovers: Pen
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receivedById: userId }),
       })
-      if (res.ok) onHandoverAction(handover.id)
+      if (res.ok) {
+        onHandoverAction(handover.id)
+        router.refresh()
+      }
     } finally {
       setLoadingAction(null)
     }
@@ -132,7 +180,50 @@ function PendingHandoverColumn({ handovers, onHandoverAction }: { handovers: Pen
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rejectionReason: reason }),
       })
-      if (res.ok) onHandoverAction(handover.id)
+      if (res.ok) {
+        onHandoverAction(handover.id)
+        router.refresh()
+      }
+    } finally {
+      setLoadingAction(null)
+    }
+  }
+
+  async function handleAcceptDesignFreeze(project: DesignFreezeProject) {
+    setLoadingAction(project.id + "-accept")
+    try {
+      const sessionRes = await fetch("/api/auth/session")
+      const session = sessionRes.ok ? await sessionRes.json() : null
+      const userId = session?.user?.id || null
+
+      // First submit the handover (if no handover exists or status is DRAFT/REJECTED)
+      const submitRes = await fetch(`/api/design/handover/${project.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          includedProductIds: project.products.map(p => p.id),
+          initiatedById: userId,
+        }),
+      })
+      if (!submitRes.ok) {
+        const data = await submitRes.json().catch(() => ({}))
+        alert(data.error || "Failed to submit handover")
+        return
+      }
+
+      // Then acknowledge it
+      const ackRes = await fetch(`/api/design/handover/${project.id}/acknowledge`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ receivedById: userId }),
+      })
+      if (ackRes.ok) {
+        onDesignFreezeAction(project.id)
+        router.refresh()
+      } else {
+        const data = await ackRes.json().catch(() => ({}))
+        alert(data.error || "Failed to acknowledge handover")
+      }
     } finally {
       setLoadingAction(null)
     }
@@ -149,17 +240,18 @@ function PendingHandoverColumn({ handovers, onHandoverAction }: { handovers: Pen
             <span className="text-sm font-semibold text-amber-800">Pending Handover</span>
           </div>
           <span className="flex items-center justify-center h-5 min-w-5 rounded-full bg-amber-200 px-1.5 text-[10px] font-semibold text-amber-700">
-            {handovers.length}
+            {totalCount}
           </span>
         </div>
         <p className="text-[10px] text-amber-500 mt-0.5">From design — review and accept</p>
       </div>
 
       <div className="flex flex-col gap-2.5 p-2.5 overflow-y-auto max-h-[calc(100vh-220px)] min-h-[120px]">
-        {handovers.length === 0 && (
+        {totalCount === 0 && (
           <div className="py-8 text-center text-xs text-amber-400">No pending handovers</div>
         )}
 
+        {/* Formally submitted handovers */}
         {handovers.map((handover) => {
           const isAcking = loadingAction === handover.id + "-ack"
           const isRejecting = loadingAction === handover.id + "-rej"
@@ -222,6 +314,64 @@ function PendingHandoverColumn({ handovers, onHandoverAction }: { handovers: Pen
                   className="inline-flex items-center justify-center rounded-md border border-red-300 bg-white px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
                 >
                   {isRejecting ? "..." : "Return"}
+                </button>
+              </div>
+            </div>
+          )
+        })}
+
+        {/* DESIGN_FREEZE projects — design complete, ready for production to accept */}
+        {designFreezeProjects.map((project) => {
+          const isAccepting = loadingAction === project.id + "-accept"
+          const completeCards = project.designCards.filter(c => c.status === "COMPLETE").length
+          const totalCards = project.designCards.length
+
+          return (
+            <div key={project.id} className="rounded-lg border border-amber-200 bg-white p-3 shadow-sm">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="text-[10px] font-semibold text-amber-600">Design complete — ready for production</span>
+              </div>
+
+              <Link href={`/projects/${project.id}`}>
+                <div className="text-[10px] font-mono text-gray-400">{project.projectNumber}</div>
+                <div className="text-sm font-medium text-gray-900 truncate hover:text-blue-600">{project.name}</div>
+                <div className="text-xs text-gray-500 truncate">{project.customer?.name}</div>
+              </Link>
+
+              {totalCards > 0 && (
+                <div className="mt-1.5 text-[10px] text-gray-500">
+                  {completeCards}/{totalCards} design cards complete
+                </div>
+              )}
+
+              {/* Products */}
+              <div className="mt-2 space-y-0.5">
+                {project.products.slice(0, 5).map((product) => (
+                  <div key={product.id} className="flex items-center gap-1.5 text-[10px]">
+                    <svg className="w-3 h-3 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-gray-700 truncate">{product.description || product.partCode}</span>
+                    {product.quantity > 1 && (
+                      <span className="text-gray-400">x{product.quantity}</span>
+                    )}
+                  </div>
+                ))}
+                {project.products.length > 5 && (
+                  <div className="text-[10px] text-gray-400 pl-4">
+                    +{project.products.length - 5} more
+                  </div>
+                )}
+              </div>
+
+              {/* Accept action */}
+              <div className="mt-3">
+                <button
+                  onClick={() => handleAcceptDesignFreeze(project)}
+                  disabled={!!loadingAction}
+                  className="w-full inline-flex items-center justify-center rounded-md bg-green-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                >
+                  {isAccepting ? "Accepting..." : "Accept into Production"}
                 </button>
               </div>
             </div>
