@@ -78,19 +78,19 @@ export default function LoginPage() {
         </div>
 
         {/* ETHOS logo — pure CSS text */}
-        <div className="text-center space-y-2">
-          <div className="mx-auto w-64 h-px bg-gradient-to-r from-transparent via-amber-600/50 to-transparent" />
-          <h1 className="text-5xl font-extralight tracking-[0.35em] text-white pt-2">
+        <div className="text-center space-y-3">
+          <div className="mx-auto w-72 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+          <h1 className="text-6xl font-light tracking-[0.4em] text-white pt-2 drop-shadow-lg">
             ETHOS
           </h1>
-          <p className="text-amber-500 text-sm font-light tracking-[0.4em]">
+          <p className="text-amber-400 text-base font-normal tracking-[0.5em] drop-shadow-md">
             MK.1
           </p>
-          <div className="mx-auto w-48 h-px bg-gradient-to-r from-transparent via-amber-600/30 to-transparent" />
-          <p className="text-white/40 text-[9px] tracking-[0.25em] font-light pt-1">
+          <div className="mx-auto w-56 h-[1.5px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
+          <p className="text-white/70 text-[10px] tracking-[0.3em] font-light pt-1">
             ENGINEER-TO-ORDER HUB OPERATION SYSTEM
           </p>
-          <div className="mx-auto w-64 h-px bg-gradient-to-r from-transparent via-amber-600/50 to-transparent" />
+          <div className="mx-auto w-72 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
         </div>
 
         {/* Glass card */}
