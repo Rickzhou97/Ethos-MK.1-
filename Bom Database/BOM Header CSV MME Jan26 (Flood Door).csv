@@ -1,0 +1,21 @@
+Header Reference,Description,Manufacturing Instructions,Quality Standard,Effective From,Effective To,Default Cost Quantity,Use Only in BOM Module,Revision,Default Build Quantity,Change Reference,Component Traceability
+DFD-0001,Double Flood Door,,,,,1,FALSE,,1,,FALSE
+DFDC5-0001,Double Security Flood Door,,,,,1,FALSE,,1,,FALSE
+DFDC5F-0001,Double Security Fire Flood Door,,,,,1,FALSE,,1,,FALSE
+DFDDA-0001,Double Dual-Access Flood Door,,,,,1,FALSE,,1,,FALSE
+DFDDAC5-0001,Double Dual-Access Security Flood Door,,,,,1,FALSE,,1,,FALSE
+DFDDAC5F-0001,Double Dual-Access Security Fire Flood Door,,,,,1,FALSE,,1,,FALSE
+DFDDAF-0001,Double Dual-Access Fire Flood Door,,,,,1,FALSE,,1,,FALSE
+DFDDAS-0001,Double Dual-Access Security  Flood Door (Non-Certified),,,,,1,FALSE,,1,,FALSE
+DFDF-0001,Double Fire Flood Door,,,,,1,FALSE,,1,,FALSE
+DFDS-0001,Double Security Flood Door (Non-Certified),,,,,1,FALSE,,1,,FALSE
+SFD-0001,Single Flood Door,,,,,1,FALSE,,1,,FALSE
+SFDC5-0001,Single Security Flood Door,,,,,1,FALSE,,1,,FALSE
+SFDC5F-0001,Single Security Fire Flood Door,,,,,1,FALSE,,1,,FALSE
+SFDDA-0001,Single Dual-Access Flood Door,,,,,1,FALSE,,1,,FALSE
+SFDDAC5-0001,Single Dual-Access Security Flood Door,,,,,1,FALSE,,1,,FALSE
+SFDDAC5F-0001,Single Dual-Access Security Fire Flood Door,,,,,1,FALSE,,1,,FALSE
+SFDDAF-0001,Single Dual-Access Fire Flood Door,,,,,1,FALSE,,1,,FALSE
+SFDDAS-0001,Single Dual-Access Security Flood Door (Non-Certified),,,,,1,FALSE,,1,,FALSE
+SFDF-0001,Single Fire Flood Door,,,,,1,FALSE,,1,,FALSE
+SFDS-0001,Single Security Flood Door (Non-Certified),,,,,1,FALSE,,1,,FALSE

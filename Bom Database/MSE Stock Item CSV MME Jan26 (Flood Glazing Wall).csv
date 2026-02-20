@@ -1,0 +1,7 @@
+StockCode,AggregateDays,WOBatchMinQty,WOBatchMaxQty,CanCancelWO,CanCancelPO,MRPReplenishmentRulesTypeID,MRPReplenishmentMultipleValue,Linked,UseDemandWarehouse,UseWOCompletionWarehouse,ApplyReorderLevelAfterMaximum,ReplenishmentHorizonDays,BuiltBoughtDefaultMake,BulkIssue,BomItemType,DefaultWOWarehouse,ScrapPercent,CostHeadingName
+FGW-0001,0,1,1,FALSE,FALSE,4,1,FALSE,TRUE,FALSE,FALSE,0,TRUE,FALSE,3,HOME,0,Materials
+ASSY-0000-00-01-FGW_End_Post,0,1,1,FALSE,FALSE,4,1,FALSE,TRUE,FALSE,FALSE,0,TRUE,FALSE,3,HOME,0,Materials
+ASSY-0000-00-01-FGW_Mid_Post,0,1,1,FALSE,FALSE,4,1,FALSE,TRUE,FALSE,FALSE,0,TRUE,FALSE,3,HOME,0,Materials
+ASSY-0000-00-01-FGW_Ang_Post,0,1,1,FALSE,FALSE,4,1,FALSE,TRUE,FALSE,FALSE,0,TRUE,FALSE,3,HOME,0,Materials
+ASSY-0000-00-01-FGW_Cor_Post,0,1,1,FALSE,FALSE,4,1,FALSE,TRUE,FALSE,FALSE,0,TRUE,FALSE,3,HOME,0,Materials
+ASSY-0000-00-01-FGW_Panel,0,1,1,FALSE,FALSE,4,1,FALSE,TRUE,FALSE,FALSE,0,TRUE,FALSE,3,HOME,0,Materials

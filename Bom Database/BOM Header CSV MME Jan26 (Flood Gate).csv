@@ -1,0 +1,53 @@
+Header Reference,Description,Manufacturing Instructions,Quality Standard,Effective From,Effective To,Default Cost Quantity,Use Only in BOM Module,Revision,Default Build Quantity,Change Reference,Component Traceability
+DBG-0001,Double Bund Gate,,,,,,,,,,
+DBGEXC3-0001,Double Bund Gate - EXC3,,,,,,,,,,
+DBGFF-0001,Double Bund Gate - Face Fixed,,,,,,,,,,
+DBGFFEXC3-0001,Double Bund Gate - Face Fixed - EXC3,,,,,,,,,,
+DFG-0001,Double Flood Gate,,,,,1,FALSE,,1,,FALSE
+DFGEXC3-0001,Double Flood Gate - EXC3,,,,,1,FALSE,,1,,FALSE
+DFGFF-0001,Double Flood Gate - Face Fixed,,,,,1,FALSE,,1,,FALSE
+DFGFFEXC3-0001,Double Flood Gate - Face Fixed - EXC3,,,,,1,FALSE,,1,,FALSE
+PFG-0001,Pedestrian Flood Gate,,,,,1,FALSE,,1,,FALSE
+PFGEXC3-0001,Pedestrian Flood Gate - EXC3,,,,,1,FALSE,,1,,FALSE
+SBG-0001,Single Bund Gate,,,,,1,FALSE,,1,,FALSE
+SBGEXC3-0001,Single Bund Gate - EXC3,,,,,1,FALSE,,1,,FALSE
+SBGFF-0001,Single Bund Gate - Face-Fixed,,,,,1,FALSE,,1,,FALSE
+SBGFFEXC3-0001,Single Bund Gate - Face-Fixed - EXC3,,,,,1,FALSE,,1,,FALSE
+SFG-0001,Single Flood Gate,,,,,1,FALSE,,1,,FALSE
+SFGEXC3-0001,Single Flood Gate - EXC3,,,,,1,FALSE,,1,,FALSE
+SFGFF-0001,Single Flood Gate - Face Fixed,,,,,1,FALSE,,1,,FALSE
+SFGFFEXC3-0001,Single Flood Gate - Face Fixed - EXC3,,,,,1,FALSE,,1,,FALSE
+ASSY-0000-00-DFG_Leaf_RH,Double Flood Gate Leaf (RH),,,,,1,FALSE,,1,,FALSE
+ASSY-0000-00-DFG_Leaf_LH,Double Flood Gate Leaf (LH),,,,,1,FALSE,,1,,FALSE
+ASSY-0000-00-DFG_Frame,Double Flood Gate Frame,,,,,1,FALSE,,1,,FALSE
+ASSY-0000-00-Ped_Leaf,Pedestrian Flood Gate Leaf,,,,,1,FALSE,,1,,FALSE
+ASSY-0000-00-Ped_Frame,Pedestrian Flood Gate Frame,,,,,1,FALSE,,1,,FALSE
+ASSY-0000-00-SFG_Leaf,Single Flood Gate Leaf,,,,,1,FALSE,,1,,FALSE
+ASSY-0000-00-SFG_Frame,Single Flood Gate Frame,,,,,1,FALSE,,1,,FALSE
+SA-FG-0001,100mm Single Flood Gate Hinge,,,,,1,FALSE,,1,,FALSE
+SA-FG-0002,100mm Single Flood Gate Hinge to Jamb,,,,,1,FALSE,,1,,FALSE
+SA-FG-0003,100mm Single Flood Gate Hinge to Leaf,,,,,1,FALSE,,1,,FALSE
+SA-FG-0004,100mm Single Gate Locking Mechanism,,,,,1,FALSE,,1,,FALSE
+SA-FG-0005,100mm Single Gate Pivot Block (Locking Mechanism),,,,,1,FALSE,,1,,FALSE
+SA-FG-0006,100mm Single Gate Nut (Locking Mechanism),,,,,1,FALSE,,1,,FALSE
+SA-FG-0007,100mm Single Gate Clevis Bracket (Locking Mechanism),,,,,1,FALSE,,1,,FALSE
+SA-FG-0008,100mm Single Gate Face Fixed Lock Mechanism,,,,,1,FALSE,,1,,FALSE
+SA-FG-0009,100mm Single Gate Face Fixed Pivot Bracket,,,,,1,FALSE,,1,,FALSE
+SA-FG-0010,100mm Single Gate Face Fixed Receiver,,,,,1,FALSE,,1,,FALSE
+SA-FG-0011,100mm Single Gate Locking Mechanism Cover,,,,,1,FALSE,,1,,FALSE
+SA-FG-0012,70mm Pedestrian Flood Gate Hinge,,,,,1,FALSE,,1,,FALSE
+SA-FG-0013,70mm Pedestrian Flood Gate Hinge to Jamb,,,,,1,FALSE,,1,,FALSE
+SA-FG-0014,70mm Pedestrian Flood Gate Hinge to Leaf,,,,,1,FALSE,,1,,FALSE
+SA-FG-0015,70mm Pedestrian Flood Gate Lock Mechanism,,,,,1,FALSE,,1,,FALSE
+SA-FG-0016,70mm Pedestrian Flood Gate Internal Handle Assembly,,,,,1,FALSE,,1,,FALSE
+SA-FG-0017,70mm Pedestrian Flood Gate External Handle Assembly,,,,,1,FALSE,,1,,FALSE
+SA-FG-0018,70mm Pedestrian Flood Gate Housing Stop,,,,,1,FALSE,,1,,FALSE
+SA-FG-0020,100mm Double Gate Locking Mechanism,,,,,1,FALSE,,1,,FALSE
+SA-FG-0021,100mm Double Gate Pivot Bracket (Locking Mechanism),,,,,1,FALSE,,1,,FALSE
+SA-FG-0022,100mm Double Gate Pivot Block (Locking Mechanism),,,,,1,FALSE,,1,,FALSE
+SA-FG-0023,100mm Double Gate Nut (Locking Mechanism),,,,,1,FALSE,,1,,FALSE
+SA-FG-0024,100mm Double Gate Receiver (Locking Mechanism),,,,,1,FALSE,,1,,FALSE
+SA-FG-0025,100mm Double Gate Cover (Locking Mechanism),,,,,1,FALSE,,1,,FALSE
+SA-FG-0026,100mm Double Flood Gate Hinge,,,,,1,FALSE,,1,,FALSE
+SA-FG-0027,100mm Double Flood Gate Hinge to Jamb,,,,,1,FALSE,,1,,FALSE
+SA-FG-0028,100mm Double Flood Gate Hinge to Leaf,,,,,1,FALSE,,1,,FALSE

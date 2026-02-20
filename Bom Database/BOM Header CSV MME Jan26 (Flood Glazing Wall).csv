@@ -1,0 +1,7 @@
+Header Reference,Description,Manufacturing Instructions,Quality Standard,Effective From,Effective To,Default Cost Quantity,Use Only in BOM Module,Revision,Default Build Quantity,Change Reference,Component Traceability
+FGW-0001,Glazing Wall,,,,,1,FALSE,,1,,FALSE
+ASSY-0000-00-01-FGW_End_Post,Glazing End Post - XXXXmm,,,,,1,FALSE,,1,,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,Glazing Mid Post - XXXXmm,,,,,1,FALSE,,1,,FALSE
+ASSY-0000-00-01-FGW_Ang_Post,Glazing Angled Post - XXXdeg - XXXXmm,,,,,1,FALSE,,1,,FALSE
+ASSY-0000-00-01-FGW_Cor_Post,Glazing Corner Post - XXXXmm,,,,,1,FALSE,,1,,FALSE
+ASSY-0000-00-01-FGW_Panel,Glazing Panel - XXXX x XXXXmm,,,,,1,FALSE,,1,,FALSE

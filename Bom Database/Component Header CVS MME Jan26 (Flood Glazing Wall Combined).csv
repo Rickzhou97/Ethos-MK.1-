@@ -1,0 +1,49 @@
+Header Reference (BOM Reference),Stock Code,Description,Notes,Sequence Number,Quantity,Instruction,Unit of MEachsure,Scrap Percentage,Fixed Quantity,Use Only in BOM Module
+ASSY-0000-00-01-FGW_Ang_Post,DXF-0000-00-01-FGW_Angled_Post,Flood Glazing Angled Post DXF Pack,,10,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Ang_Post,RAW-MILLSTOCK-XXXX,Angled Mid Post - XXX deg,,20,1,,Metres,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Ang_Post,FGW-0004-FP,Finplate Dry - 10mm,,30,2,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Ang_Post,FGW-0003-FP,Finplate Wet - 10mm,,40,2,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Ang_Post,RAW-SEAL-0010,Self Adhesive Closed Cell Seal  - 35x12mm,,50,4,,Metres,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Ang_Post,PP-FIX-M6-0021,M6 Washer - A4,,60,6,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Ang_Post,PP-FIX-M6-0018,M6 x 8 Torx Button Head Bolt - A4,,70,6,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_End_Post,DXF-0000-00-FGW_End_Post,Flood Glazing End Post DXF Pack,,10,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_End_Post,FGW-0003-FP,Finplate Wet - 10mm,,20,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_End_Post,FGW-0004-FP,Finplate Dry - 10mm,,30,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_End_Post,FGW-0008-FP,Capping Fixing Strip (End Post) - 6mm,,40,2,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_End_Post,FGW-0007-FP,End Post Cap - 1.5mm,,50,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_End_Post,PP-FIX-M6-0021,M6 Washer - A4,,60,4,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_End_Post,PP-FIX-M6-0018,M6 x 8 Torx Button Head Bolt - A4,,70,4,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_End_Post,RAW-SEAL-0010,Self Adhesive Closed Cell Seal - 35x12mm,,80,2,,Metres,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_End_Post,FGW-0010-FP,Baseplate End Post - 20 mm,,90,2,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_End_Post,BASE-FGW-0009-FP,Base Seal End Post - 5mm,,100,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,DXF-0000-00-01-FGW_Mid_Post,Flood Glazing Mid Post DXF Pack,,10,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,RAW-MILLSTOCK-0001,H-Section Mid Post - 120x76mm,,20,1,,Metres,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,FGW-0002-FP,Baseplate Dry - 20mm,,30,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,FGW-0001-FP,Baseplate Wet - 20mm,,40,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,FGW-0003-FP,Finplate Wet - 10mm,,50,2,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,FGW-0004-FP,Finplate Dry - 10mm,,60,2,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,FGW-0005-FP,Capping Fixing Strip - 6mm,,70,2,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,FGW-0006-FP,Mid Post Cap - 1.5mm,,80,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,PP-FIX-M6-0021,M6 Washer - A4,,90,4,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,PP-FIX-M6-0018,M6 x 8 Torx Button Head Bolt - A4,,100,4,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,RAW-SEAL-0010,Self Adhesive Closed Cell Seal  - 35x12mm,,110,4,,Metres,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Mid_Post,FGW-0012-FP,Base Seal Mid Post - 5mm,,120,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Panel,DXF-0000-00-01-FGW_Panel,Flood Glazing Panel DXF Pack,,10,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Panel,PP-GLASS-0001,GFW-3PLY-SGP-Glass - XXXX x XXXX mm,,20,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Panel,RAW-SEAL-0010,Self Adhesive Closed Cell Seal - 35x12mm,,30,2,,Metres,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Panel,RAW-SEAL-0045,Self Adhesive Closed Cell Seal - 40x30mm,,40,4,,Metres,0,FALSE,FALSE
+FGW-0001,DXF-0000-00-FGW,Flood Glazing DXF Pack,,10,1,,Each,0,FALSE,FALSE
+FGW-0001,ASSY-0000-00-01-FGW_End_Post,Glazing End Post - XXXXmm,,20,1,,Each,0,FALSE,FALSE
+FGW-0001,ASSY-0000-00-01-FGW_Mid_Post,Glazing Mid Post - XXXXmm,,30,1,,Each,0,FALSE,FALSE
+FGW-0001,ASSY-0000-00-01-FGW_Ang_Post,Glazing Angled Post - XXXdeg - XXXXmm,,40,1,,Each,0,FALSE,FALSE
+FGW-0001,ASSY-0000-00-01-FGW_Cor_Post,Glazing Corner Post - XXXXmm,,50,1,,Each,0,FALSE,FALSE
+FGW-0001,ASSY-0000-00-01-FGW_Panel,Glazing Panel - XXXX x XXXXmm,,60,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Cor_Post,DXF-0000-00-01-FGW_Corner_Post,Flood Glazing Corner Post DXF Pack,,10,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Cor_Post,RAW-MILLSTOCK-0004,Corner Post - 90 deg,,20,1,,Metres,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Cor_Post,FGW-0013-FP,Baseplate Corner-01 - 20 mm ,,30,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Cor_Post,FGW-0014-FP,Baseplate Corner-02 - 20 mm,,40,1,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Cor_Post,FGW-0003-FP,Finplate Wet - 10mm,,50,2,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Cor_Post,RAW-SEAL-0010,Self Adhesive Closed Cell Seal  - 35x12mm,,60,4,,Metres,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Cor_Post,PP-FIX-M6-0021,M6 Washer - A4,,70,6,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Cor_Post,PP-FIX-M6-0018,M6 x 8 Torx Button Head Bolt - A4,,80,6,,Each,0,FALSE,FALSE
+ASSY-0000-00-01-FGW_Cor_Post,BASE-FGW-0011-FP,Corner Post Base Seal - 5mm,,90,1,,Each,0,FALSE,FALSE

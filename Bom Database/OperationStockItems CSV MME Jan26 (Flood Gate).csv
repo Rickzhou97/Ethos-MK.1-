@@ -1,0 +1,145 @@
+Header Reference (BOM Reference),Sequence Number,Operation Reference,Operation Description,Subcontract,Nonprinting,Shrinkage,Overlap Percentage,Run-Time Hours,Run-Time Minutes,Run-Time Seconds,Quantity Per Run,Delay Hours,Delay Minutes,Delay Seconds,Notes,Setup Hours,Setup Minutes,Setup Seconds,Setup Rate,Labour Reference,Labour Description,Labour Notes,Labour Rate,Labour Hours,Labour Minutes,Labour Seconds,Setup Labour Resource Reference,Setup Labour Resource Description,Machine Reference,Machine Description,Machine Notes,Machine Rate,Machine Hours,Machine Minutes,Machine Seconds,Setup Machine Resource Reference,Setup Machine Resource Description,Tooling Resource Reference,Tooling Resource Description,Tooling Cost,Tooling Quantity,Supplier Account Reference,Order Reference,Order Details,Lead Time,Saturday,Sunday,Subcontract Quantity Break From 1,Subcontract Quantity Break To 1,Subcontract Quantity Break Cost 1,Subcontract Quantity Break Rate per Item 1,Subcontract Quantity Break Hours Offsite 1,Subcontract Quantity Break From 2,Subcontract Quantity Break To 2,Subcontract Quantity Break Cost 2,Subcontract Quantity Break Rate per Item 2,Subcontract Quantity Break Hours Offsite 2,Subcontract Quantity Break From 3,Subcontract Quantity Break To 3,Subcontract Quantity Break Cost 3,Subcontract Quantity Break Rate per Item 3,Subcontract Quantity Break Hours Offsite 3,Subcontract Quantity Break From 4,Subcontract Quantity Break To 4,Subcontract Quantity Break Cost 4,Subcontract Quantity Break Rate per Item 4,Subcontract Quantity Break Hours Offsite 4,Subcontract Quantity Break From 5,Subcontract Quantity Break To 5,Subcontract Quantity Break Cost 5,Subcontract Quantity Break Rate per Item 5,Subcontract Quantity Break Hours Offsite 5,LabourIsResourceGroup,MachineIsResourceGroup
+ASSY-0000-00-DFG_Frame,10,CUTTING,Cutting & Kitting,FALSE,,,100,5,30,,1,0,30,,,,,,,Cutter,Cutter,,,5,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-DFG_Frame,20,WELDING,Fabrication & Welding,FALSE,,,100,16,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-DFG_Leaf_RH,10,CUTTING,Cutting & Kitting,FALSE,,,100,6,30,,1,0,30,,,,,,,Cutter,Cutter,,,6,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-DFG_Leaf_RH,20,WELDING,Fabrication & Welding,FALSE,,,100,24,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,24,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-DFG_Leaf_RH,10,CUTTING,Cutting & Kitting,FALSE,,,100,8,30,,1,0,30,,,,,,,Cutter,Cutter,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-DFG_Leaf_RH,20,WELDING,Fabrication & Welding,FALSE,,,100,24,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,24,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-Ped_Frame,10,CUTTING,Cutting & Kitting,FALSE,,,100,2,0,,1,0,30,,,,,,,Cutter,Cutter,,,1,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-Ped_Frame,20,WELDING,Fabrication & Welding,FALSE,,,100,11,0,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,10,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-Ped_Leaf,10,CUTTING,Cutting & Kitting,FALSE,,,100,3,0,,1,0,30,,,,,,,Cutter,Cutter,,,2,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-Ped_Leaf,20,WELDING,Fabrication & Welding,FALSE,,,100,20,0,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,19,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-SFG_Frame,10,CUTTING,Cutting & Kitting,FALSE,,,100,2,30,,1,0,30,,,,,,,Cutter,Cutter,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-SFG_Frame,20,WELDING,Fabrication & Welding,FALSE,,,100,8,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-SFG_Leaf,10,CUTTING,Cutting & Kitting,FALSE,,,100,6,30,,1,0,30,,,,,,,Cutter,Cutter,,,6,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+ASSY-0000-00-SFG_Leaf,20,WELDING,Fabrication & Welding,FALSE,,,100,24,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,24,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBG-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,16,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBG-0001,20,SHOTBLAST,Shot Blasting,FALSE,,,100,22,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,22,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBG-0001,30,PAINTING,Painting,FALSE,,,100,16,30,,1,0,30,,,,,,,Painting,Painting,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBG-0001,40,ASSEMBLY,Assembly,FALSE,,,100,12,30,,1,0,30,,,,,,,Assembly,Assembly,,,12,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBG-0001,50,PACKING,Packing,FALSE,,,100,4,30,,1,0,30,,,,,,,Assembly,Assembly,,,4,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGEXC3-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,16,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGEXC3-0001,20,NDT-SUB,Non-Destructive Testing (Subcontract),TRUE,,,100,1,0,,1,0,30,,,,,,,,,,,1,0,,,,,,,,,,,,,,,,,,,,1,FALSE,FALSE,1,1.00E+21,0,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGEXC3-0001,30,SHOTBLAST,Shot Blasting,FALSE,,,100,22,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,22,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGEXC3-0001,40,PAINTING,Painting,FALSE,,,100,16,30,,1,0,30,,,,,,,Painting,Painting,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGEXC3-0001,50,ASSEMBLY,Assembly,FALSE,,,100,12,30,,1,0,30,,,,,,,Assembly,Assembly,,,12,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGEXC3-0001,60,PACKING,Packing,FALSE,,,100,4,30,,1,0,30,,,,,,,Assembly,Assembly,,,4,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGFF-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,16,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGFF-0001,20,SHOTBLAST,Shot Blasting,FALSE,,,100,22,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,22,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGFF-0001,30,PAINTING,Painting,FALSE,,,100,16,30,,1,0,30,,,,,,,Painting,Painting,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGFF-0001,40,ASSEMBLY,Assembly,FALSE,,,100,12,30,,1,0,30,,,,,,,Assembly,Assembly,,,12,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGFF-0001,50,PACKING,Packing,FALSE,,,100,4,30,,1,0,30,,,,,,,Assembly,Assembly,,,4,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGFFEXC3-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,16,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGFFEXC3-0001,20,NDT-SUB,Non-Destructive Testing (Subcontract),TRUE,,,100,1,0,,1,0,30,,,,,,,,,,,1,0,,,,,,,,,,,,,,,,,,,,1,FALSE,FALSE,1,1.00E+21,0,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGFFEXC3-0001,30,SHOTBLAST,Shot Blasting,FALSE,,,100,22,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,22,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGFFEXC3-0001,40,PAINTING,Painting,FALSE,,,100,16,30,,1,0,30,,,,,,,Painting,Painting,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGFFEXC3-0001,50,ASSEMBLY,Assembly,FALSE,,,100,12,30,,1,0,30,,,,,,,Assembly,Assembly,,,12,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DBGFFEXC3-0001,60,PACKING,Packing,FALSE,,,100,4,30,,1,0,30,,,,,,,Assembly,Assembly,,,4,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFG-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,16,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFG-0001,20,SHOTBLAST,Shot Blasting,FALSE,,,100,22,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,22,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFG-0001,30,PAINTING,Painting,FALSE,,,100,16,30,,1,0,30,,,,,,,Painting,Painting,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFG-0001,40,ASSEMBLY,Assembly,FALSE,,,100,12,30,,1,0,30,,,,,,,Assembly,Assembly,,,12,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFG-0001,50,PACKING,Packing,FALSE,,,100,4,30,,1,0,30,,,,,,,Assembly,Assembly,,,4,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGEXC3-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,16,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGEXC3-0001,20,NDT-SUB,Non-Destructive Testing (Subcontract),TRUE,,,100,1,0,,1,0,30,,,,,,,,,,,1,0,,,,,,,,,,,,,,,,,,,,1,FALSE,FALSE,1,1.00E+21,0,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGEXC3-0001,30,SHOTBLAST,Shot Blasting,FALSE,,,100,22,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,22,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGEXC3-0001,40,PAINTING,Painting,FALSE,,,100,16,30,,1,0,30,,,,,,,Painting,Painting,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGEXC3-0001,50,ASSEMBLY,Assembly,FALSE,,,100,12,30,,1,0,30,,,,,,,Assembly,Assembly,,,12,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGEXC3-0001,60,PACKING,Packing,FALSE,,,100,4,30,,1,0,30,,,,,,,Assembly,Assembly,,,4,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGFF-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,16,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGFF-0001,20,SHOTBLAST,Shot Blasting,FALSE,,,100,22,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,22,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGFF-0001,30,PAINTING,Painting,FALSE,,,100,16,30,,1,0,30,,,,,,,Painting,Painting,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGFF-0001,40,ASSEMBLY,Assembly,FALSE,,,100,12,30,,1,0,30,,,,,,,Assembly,Assembly,,,12,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGFF-0001,50,PACKING,Packing,FALSE,,,100,4,30,,1,0,30,,,,,,,Assembly,Assembly,,,4,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGFFEXC3-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,16,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGFFEXC3-0001,20,NDT-SUB,Non-Destructive Testing (Subcontract),TRUE,,,100,1,0,,1,0,30,,,,,,,,,,,1,0,,,,,,,,,,,,,,,,,,,,1,FALSE,FALSE,1,1.00E+21,0,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGFFEXC3-0001,30,SHOTBLAST,Shot Blasting,FALSE,,,100,22,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,22,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGFFEXC3-0001,40,PAINTING,Painting,FALSE,,,100,16,30,,1,0,30,,,,,,,Painting,Painting,,,16,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGFFEXC3-0001,50,ASSEMBLY,Assembly,FALSE,,,100,12,30,,1,0,30,,,,,,,Assembly,Assembly,,,12,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFGFFEXC3-0001,60,PACKING,Packing,FALSE,,,100,4,30,,1,0,30,,,,,,,Assembly,Assembly,,,4,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+PFG-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,2,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+PFG-0001,20,SHOTBLAST,Shot Blasting,FALSE,,,100,4,0,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+PFG-0001,30,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+PFG-0001,40,ASSEMBLY,Assembly,FALSE,,,100,6,30,,1,0,30,,,,,,,Assembly,Assembly,,,6,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+PFG-0001,50,PACKING,Packing,FALSE,,,100,2,30,,1,0,30,,,,,,,Assembly,Assembly,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+PFGEXC3-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,2,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+PFGEXC3-0001,20,NDT-SUB,Non-Destructive Testing (Subcontract),TRUE,,,100,0,30,,1,0,30,,,,,,,,,,,0,0,,,,,,,,,,,,,,,,,,,,1,FALSE,FALSE,1,1.00E+21,0,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+PFGEXC3-0001,30,SHOTBLAST,Shot Blasting,FALSE,,,100,4,0,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+PFGEXC3-0001,40,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+PFGEXC3-0001,50,ASSEMBLY,Assembly,FALSE,,,100,6,30,,1,0,30,,,,,,,Assembly,Assembly,,,6,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+PFGEXC3-0001,60,PACKING,Packing,FALSE,,,100,2,30,,1,0,30,,,,,,,Assembly,Assembly,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGFF-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,8,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGFF-0001,20,SHOTBLAST,Shot Blasting,FALSE,,,100,11,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGFF-0001,30,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGFF-0001,40,ASSEMBLY,Assembly,FALSE,,,100,6,30,,1,0,30,,,,,,,Assembly,Assembly,,,6,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGFF-0001,50,PACKING,Packing,FALSE,,,100,2,30,,1,0,30,,,,,,,Assembly,Assembly,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGFFEXC3-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,8,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGFFEXC3-0001,20,NDT-SUB,Non-Destructive Testing (Subcontract),TRUE,,,100,0,30,,1,0,30,,,,,,,,,,,0,0,,,,,,,,,,,,,,,,,,,,1,FALSE,FALSE,1,1.00E+21,0,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGFFEXC3-0001,30,SHOTBLAST,Shot Blasting,FALSE,,,100,11,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGFFEXC3-0001,40,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGFFEXC3-0001,50,ASSEMBLY,Assembly,FALSE,,,100,6,30,,1,0,30,,,,,,,Assembly,Assembly,,,6,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGFFEXC3-0001,60,PACKING,Packing,FALSE,,,100,2,30,,1,0,30,,,,,,,Assembly,Assembly,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGFF-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,8,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGFF-0001,20,SHOTBLAST,Shot Blasting,FALSE,,,100,11,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGFF-0001,30,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGFF-0001,40,ASSEMBLY,Assembly,FALSE,,,100,6,30,,1,0,30,,,,,,,Assembly,Assembly,,,6,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGFF-0001,50,PACKING,Packing,FALSE,,,100,2,30,,1,0,30,,,,,,,Assembly,Assembly,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGFFEXC3-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,8,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGFFEXC3-0001,20,NDT-SUB,Non-Destructive Testing (Subcontract),TRUE,,,100,0,30,,1,0,30,,,,,,,,,,,0,0,,,,,,,,,,,,,,,,,,,,1,FALSE,FALSE,1,1.00E+21,0,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGFFEXC3-0001,30,SHOTBLAST,Shot Blasting,FALSE,,,100,11,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGFFEXC3-0001,40,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGFFEXC3-0001,50,ASSEMBLY,Assembly,FALSE,,,100,6,30,,1,0,30,,,,,,,Assembly,Assembly,,,6,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGFFEXC3-0001,60,PACKING,Packing,FALSE,,,100,2,30,,1,0,30,,,,,,,Assembly,Assembly,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBG-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,8,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBG-0001,20,SHOTBLAST,Shot Blasting,FALSE,,,100,11,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBG-0001,30,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBG-0001,40,ASSEMBLY,Assembly,FALSE,,,100,6,30,,1,0,30,,,,,,,Assembly,Assembly,,,6,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBG-0001,50,PACKING,Packing,FALSE,,,100,2,30,,1,0,30,,,,,,,Assembly,Assembly,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGEXC3-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,8,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGEXC3-0001,20,NDT-SUB,Non-Destructive Testing (Subcontract),TRUE,,,100,0,30,,1,0,30,,,,,,,,,,,0,0,,,,,,,,,,,,,,,,,,,,1,FALSE,FALSE,1,1.00E+21,0,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGEXC3-0001,30,SHOTBLAST,Shot Blasting,FALSE,,,100,11,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGEXC3-0001,40,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGEXC3-0001,50,ASSEMBLY,Assembly,FALSE,,,100,6,30,,1,0,30,,,,,,,Assembly,Assembly,,,6,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SBGEXC3-0001,60,PACKING,Packing,FALSE,,,100,2,30,,1,0,30,,,,,,,Assembly,Assembly,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFG-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,8,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFG-0001,20,SHOTBLAST,Shot Blasting,FALSE,,,100,11,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFG-0001,30,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFG-0001,40,ASSEMBLY,Assembly,FALSE,,,100,6,30,,1,0,30,,,,,,,Assembly,Assembly,,,6,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFG-0001,50,PACKING,Packing,FALSE,,,100,2,30,,1,0,30,,,,,,,Assembly,Assembly,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGEXC3-0001,10,WELDING,Fabrication & Welding,FALSE,,,100,8,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGEXC3-0001,20,NDT-SUB,Non-Destructive Testing (Subcontract),TRUE,,,100,0,30,,1,0,30,,,,,,,,,,,0,0,,,,,,,,,,,,,,,,,,,,1,FALSE,FALSE,1,1.00E+21,0,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGEXC3-0001,30,SHOTBLAST,Shot Blasting,FALSE,,,100,11,30,,1,0,30,,,,,,,Shot Blast,Shot Blast,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGEXC3-0001,40,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGEXC3-0001,50,ASSEMBLY,Assembly,FALSE,,,100,6,30,,1,0,30,,,,,,,Assembly,Assembly,,,6,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFGEXC3-0001,60,PACKING,Packing,FALSE,,,100,2,30,,1,0,30,,,,,,,Assembly,Assembly,,,2,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0001,10,ASSEMBLY,Assembly,FALSE,,,100,0,45,,1,0,30,,,,,,,Assembly,Assembly,,,0,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0002,10,WELDING,Fabrication & Welding,FALSE,,,100,0,45,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,45,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0003,10,WELDING,Fabrication & Welding,FALSE,,,100,1,0,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,1,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0004,10,ASSEMBLY,Assembly,FALSE,,,100,0,15,,1,0,0,,,,,,,Assembly,Assembly,,,0,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0005,10,ASSEMBLY,Assembly,FALSE,,,100,0,15,,1,0,0,,,,,,,Assembly,Assembly,,,0,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0006,10,ASSEMBLY,Assembly,FALSE,,,100,0,15,,1,0,0,,,,,,,Assembly,Assembly,,,0,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0007,10,WELDING,Fabrication & Welding,FALSE,,,100,0,30,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0008,10,ASSEMBLY,Assembly,FALSE,,,100,0,15,,1,0,0,,,,,,,Assembly,Assembly,,,0,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0009,10,WELDING,Fabrication & Welding,FALSE,,,100,0,30,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0010,10,WELDING,Fabrication & Welding,FALSE,,,100,0,45,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,45,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0011,10,CUTTING,Cutting & Kitting,FALSE,,,100,0,10,,1,0,0,,,,,,,Cutter,Cutter,,,0,10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0011,20,WELDING,Fabrication & Welding,FALSE,,,100,0,30,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0012,10,ASSEMBLY,Assembly,FALSE,,,100,0,15,,1,0,0,,,,,,,Assembly,Assembly,,,0,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0013,10,WELDING,Fabrication & Welding,FALSE,,,100,0,45,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,45,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0014,10,WELDING,Fabrication & Welding,FALSE,,,100,1,0,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,1,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0015,10,ASSEMBLY,Assembly,FALSE,,,100,0,15,,1,0,0,,,,,,,Assembly,Assembly,,,0,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0016,10,WELDING,Fabrication & Welding,FALSE,,,100,0,30,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0017,10,WELDING,Fabrication & Welding,FALSE,,,100,0,30,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0018,10,CUTTING,Cutting & Kitting,FALSE,,,100,0,10,,1,0,0,,,,,,,Cutter,Cutter,,,0,10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0018,20,WELDING,Fabrication & Welding,FALSE,,,100,0,15,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0020,10,ASSEMBLY,Assembly,FALSE,,,100,0,15,,1,0,0,,,,,,,Assembly,Assembly,,,0,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0021,10,WELDING,Fabrication & Welding,FALSE,,,100,0,30,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0022,10,ASSEMBLY,Assembly,FALSE,,,100,0,15,,1,0,0,,,,,,,Assembly,Assembly,,,0,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0023,10,ASSEMBLY,Assembly,FALSE,,,100,0,15,,1,0,0,,,,,,,Assembly,Assembly,,,0,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0024,10,WELDING,Fabrication & Welding,FALSE,,,100,0,45,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,45,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0025,10,CUTTING,Cutting & Kitting,FALSE,,,100,0,10,,1,0,0,,,,,,,Cutter,Cutter,,,0,10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0025,20,WELDING,Fabrication & Welding,FALSE,,,100,0,45,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,45,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0025,30,ASSEMBLY,Assembly,FALSE,,,100,0,10,,1,0,0,,,,,,,Assembly,Assembly,,,0,10,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0026,10,ASSEMBLY,Assembly,FALSE,,,100,0,45,,1,0,30,,,,,,,Assembly,Assembly,,,0,15,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0027,10,WELDING,Fabrication & Welding,FALSE,,,100,0,45,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,0,45,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SA-FG-0028,10,WELDING,Fabrication & Welding,FALSE,,,100,1,0,,1,0,0,,,,,,,WELDER_1,Fabrication & Welding,,,1,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE

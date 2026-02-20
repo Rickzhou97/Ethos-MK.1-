@@ -1,0 +1,121 @@
+Header Reference (BOM Reference),Sequence Number,Operation Reference,Operation Description,Subcontract,Nonprinting,Shrinkage,Overlap Percentage,Run-Time Hours,Run-Time Minutes,Run-Time Seconds,Quantity Per Run,Delay Hours,Delay Minutes,Delay Seconds,Notes,Setup Hours,Setup Minutes,Setup Seconds,Setup Rate,Labour Reference,Labour Description,Labour Notes,Labour Rate,Labour Hours,Labour Minutes,Labour Seconds,Setup Labour Resource Reference,Setup Labour Resource Description,Machine Reference,Machine Description,Machine Notes,Machine Rate,Machine Hours,Machine Minutes,Machine Seconds,Setup Machine Resource Reference,Setup Machine Resource Description,Tooling Resource Reference,Tooling Resource Description,Tooling Cost,Tooling Quantity,Supplier Account Reference,Order Reference,Order Details,Lead Time,Saturday,Sunday,Subcontract Quantity Break From 1,Subcontract Quantity Break To 1,Subcontract Quantity Break Cost 1,Subcontract Quantity Break Rate per Item 1,Subcontract Quantity Break Hours Offsite 1,Subcontract Quantity Break From 2,Subcontract Quantity Break To 2,Subcontract Quantity Break Cost 2,Subcontract Quantity Break Rate per Item 2,Subcontract Quantity Break Hours Offsite 2,Subcontract Quantity Break From 3,Subcontract Quantity Break To 3,Subcontract Quantity Break Cost 3,Subcontract Quantity Break Rate per Item 3,Subcontract Quantity Break Hours Offsite 3,Subcontract Quantity Break From 4,Subcontract Quantity Break To 4,Subcontract Quantity Break Cost 4,Subcontract Quantity Break Rate per Item 4,Subcontract Quantity Break Hours Offsite 4,Subcontract Quantity Break From 5,Subcontract Quantity Break To 5,Subcontract Quantity Break Cost 5,Subcontract Quantity Break Rate per Item 5,Subcontract Quantity Break Hours Offsite 5,LabourIsResourceGroup,MachineIsResourceGroup
+DFD-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,4,0,,1,0,30,,,,,,,Cutter,Cutter,,,3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFD-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,28,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,28,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFD-0001,30,ASSEMBLY,Assembly,FALSE,,,100,11,30,,1,0,30,,,,,,,Assembly,Assembly,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFD-0001,40,PREPARATION,Preparation,FALSE,,,100,10,30,,1,0,30,,,,,,,Painting,Painting,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFD-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFD-0001,60,PACKING,Packing,FALSE,,,100,8,30,,1,0,30,,,,,,,Assembly,Assembly,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDC5-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,4,0,,1,0,30,,,,,,,Cutter,Cutter,,,3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDC5-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,32,0,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,31,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDC5-0001,30,ASSEMBLY,Assembly,FALSE,,,100,11,30,,1,0,30,,,,,,,Assembly,Assembly,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDC5-0001,40,PREPARATION,Preparation,FALSE,,,100,10,30,,1,0,30,,,,,,,Painting,Painting,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDC5-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDC5-0001,60,PACKING,Packing,FALSE,,,100,8,30,,1,0,30,,,,,,,Assembly,Assembly,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDC5F-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,4,0,,1,0,30,,,,,,,Cutter,Cutter,,,3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDC5F-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,32,0,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,31,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDC5F-0001,30,ASSEMBLY,Assembly,FALSE,,,100,11,30,,1,0,30,,,,,,,Assembly,Assembly,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDC5F-0001,40,PREPARATION,Preparation,FALSE,,,100,10,30,,1,0,30,,,,,,,Painting,Painting,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDC5F-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDC5F-0001,60,PACKING,Packing,FALSE,,,100,8,30,,1,0,30,,,,,,,Assembly,Assembly,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDA-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,4,0,,1,0,30,,,,,,,Cutter,Cutter,,,3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDA-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,44,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,44,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDA-0001,30,ASSEMBLY,Assembly,FALSE,,,100,14,30,,1,0,30,,,,,,,Assembly,Assembly,,,14,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDA-0001,40,PREPARATION,Preparation,FALSE,,,100,10,30,,1,0,30,,,,,,,Painting,Painting,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDA-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDA-0001,60,PACKING,Packing,FALSE,,,100,10,30,,1,0,30,,,,,,,Assembly,Assembly,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAC5-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,4,0,,1,0,30,,,,,,,Cutter,Cutter,,,3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAC5-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,52,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,52,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAC5-0001,30,ASSEMBLY,Assembly,FALSE,,,100,14,30,,1,0,30,,,,,,,Assembly,Assembly,,,14,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAC5-0001,40,PREPARATION,Preparation,FALSE,,,100,10,30,,1,0,30,,,,,,,Painting,Painting,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAC5-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAC5-0001,60,PACKING,Packing,FALSE,,,100,10,30,,1,0,30,,,,,,,Assembly,Assembly,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAC5F-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,4,0,,1,0,30,,,,,,,Cutter,Cutter,,,3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAC5F-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,52,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,52,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAC5F-0001,30,ASSEMBLY,Assembly,FALSE,,,100,14,30,,1,0,30,,,,,,,Assembly,Assembly,,,14,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAC5F-0001,40,PREPARATION,Preparation,FALSE,,,100,10,30,,1,0,30,,,,,,,Painting,Painting,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAC5F-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAC5F-0001,60,PACKING,Packing,FALSE,,,100,10,30,,1,0,30,,,,,,,Assembly,Assembly,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAF-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,4,0,,1,0,30,,,,,,,Cutter,Cutter,,,3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAF-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,44,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,44,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAF-0001,30,ASSEMBLY,Assembly,FALSE,,,100,14,30,,1,0,30,,,,,,,Assembly,Assembly,,,14,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAF-0001,40,PREPARATION,Preparation,FALSE,,,100,10,30,,1,0,30,,,,,,,Painting,Painting,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAF-0001,50,PAINTING,Painting,FALSE,,,100,9,30,,1,0,30,,,,,,,Painting,Painting,,,9,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAF-0001,60,PACKING,Packing,FALSE,,,100,10,30,,1,0,30,,,,,,,Assembly,Assembly,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAS-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,4,0,,1,0,30,,,,,,,Cutter,Cutter,,,3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAS-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,52,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,52,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAS-0001,30,ASSEMBLY,Assembly,FALSE,,,100,14,30,,1,0,30,,,,,,,Assembly,Assembly,,,14,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAS-0001,40,PREPARATION,Preparation,FALSE,,,100,10,30,,1,0,30,,,,,,,Painting,Painting,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAS-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDDAS-0001,60,PACKING,Packing,FALSE,,,100,10,30,,1,0,30,,,,,,,Assembly,Assembly,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDF-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,4,0,,1,0,30,,,,,,,Cutter,Cutter,,,3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDF-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,28,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,28,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDF-0001,30,ASSEMBLY,Assembly,FALSE,,,100,11,30,,1,0,30,,,,,,,Assembly,Assembly,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDF-0001,40,PREPARATION,Preparation,FALSE,,,100,10,30,,1,0,30,,,,,,,Painting,Painting,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDF-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDF-0001,60,PACKING,Packing,FALSE,,,100,8,30,,1,0,30,,,,,,,Assembly,Assembly,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDS-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,4,0,,1,0,30,,,,,,,Cutter,Cutter,,,3,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDS-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,32,0,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,31,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDS-0001,30,ASSEMBLY,Assembly,FALSE,,,100,11,30,,1,0,30,,,,,,,Assembly,Assembly,,,11,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDS-0001,40,PREPARATION,Preparation,FALSE,,,100,10,30,,1,0,30,,,,,,,Painting,Painting,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDS-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+DFDS-0001,60,PACKING,Packing,FALSE,,,100,8,30,,1,0,30,,,,,,,Assembly,Assembly,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFD-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,3,0,,1,0,30,,,,,,,Cutter,Cutter,,,2,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFD-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,18,0,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,17,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFD-0001,30,ASSEMBLY,Assembly,FALSE,,,100,7,30,,1,0,30,,,,,,,Assembly,Assembly,,,7,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFD-0001,40,PREPARATION,Preparation,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFD-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFD-0001,60,PACKING,Packing,FALSE,,,100,5,30,,1,0,30,,,,,,,Assembly,Assembly,,,5,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDC5-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,3,0,,1,0,30,,,,,,,Cutter,Cutter,,,2,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDC5-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,21,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,21,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDC5-0001,30,ASSEMBLY,Assembly,FALSE,,,100,7,30,,1,0,30,,,,,,,Assembly,Assembly,,,7,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDC5-0001,40,PREPARATION,Preparation,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDC5-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDC5-0001,60,PACKING,Packing,FALSE,,,100,5,30,,1,0,30,,,,,,,Assembly,Assembly,,,5,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDC5F-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,3,0,,1,0,30,,,,,,,Cutter,Cutter,,,2,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDC5F-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,21,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,21,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDC5F-0001,30,ASSEMBLY,Assembly,FALSE,,,100,7,30,,1,0,30,,,,,,,Assembly,Assembly,,,7,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDC5F-0001,40,PREPARATION,Preparation,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDC5F-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDC5F-0001,60,PACKING,Packing,FALSE,,,100,5,30,,1,0,30,,,,,,,Assembly,Assembly,,,5,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDA-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,3,0,,1,0,30,,,,,,,Cutter,Cutter,,,2,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDA-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,27,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,27,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDA-0001,30,ASSEMBLY,Assembly,FALSE,,,100,10,30,,1,0,30,,,,,,,Assembly,Assembly,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDA-0001,40,PREPARATION,Preparation,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDA-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDA-0001,60,PACKING,Packing,FALSE,,,100,7,0,,1,0,30,,,,,,,Assembly,Assembly,,,6,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAC5-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,3,0,,1,0,30,,,,,,,Cutter,Cutter,,,2,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAC5-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,37,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,37,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAC5-0001,30,ASSEMBLY,Assembly,FALSE,,,100,10,30,,1,0,30,,,,,,,Assembly,Assembly,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAC5-0001,40,PREPARATION,Preparation,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAC5-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAC5-0001,60,PACKING,Packing,FALSE,,,100,7,0,,1,0,30,,,,,,,Assembly,Assembly,,,6,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAC5F-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,3,0,,1,0,30,,,,,,,Cutter,Cutter,,,2,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAC5F-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,37,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,37,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAC5F-0001,30,ASSEMBLY,Assembly,FALSE,,,100,10,30,,1,0,30,,,,,,,Assembly,Assembly,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAC5F-0001,40,PREPARATION,Preparation,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAC5F-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAC5F-0001,60,PACKING,Packing,FALSE,,,100,7,0,,1,0,30,,,,,,,Assembly,Assembly,,,6,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAF-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,3,0,,1,0,30,,,,,,,Cutter,Cutter,,,2,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAF-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,27,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,27,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAF-0001,30,ASSEMBLY,Assembly,FALSE,,,100,10,30,,1,0,30,,,,,,,Assembly,Assembly,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAF-0001,40,PREPARATION,Preparation,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAF-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAF-0001,60,PACKING,Packing,FALSE,,,100,7,0,,1,0,30,,,,,,,Assembly,Assembly,,,6,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAS-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,3,0,,1,0,30,,,,,,,Cutter,Cutter,,,2,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAS-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,37,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,37,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAS-0001,30,ASSEMBLY,Assembly,FALSE,,,100,10,30,,1,0,30,,,,,,,Assembly,Assembly,,,10,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAS-0001,40,PREPARATION,Preparation,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAS-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDDAS-0001,60,PACKING,Packing,FALSE,,,100,7,0,,1,0,30,,,,,,,Assembly,Assembly,,,6,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDF-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,3,0,,1,0,30,,,,,,,Cutter,Cutter,,,2,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDF-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,18,0,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,17,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDF-0001,30,ASSEMBLY,Assembly,FALSE,,,100,7,30,,1,0,30,,,,,,,Assembly,Assembly,,,7,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDF-0001,40,PREPARATION,Preparation,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDF-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDF-0001,60,PACKING,Packing,FALSE,,,100,5,30,,1,0,30,,,,,,,Assembly,Assembly,,,5,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDS-0001,10,CUTTING,Cutting & Kitting,FALSE,,,100,3,0,,1,0,30,,,,,,,Cutter,Cutter,,,2,30,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDS-0001,20,WELDING,Fabrication & Welding,FALSE,,,100,21,30,,1,0,30,,,,,,,WELDER_1,Fabrication & Welding,,,21,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDS-0001,30,ASSEMBLY,Assembly,FALSE,,,100,7,30,,1,0,30,,,,,,,Assembly,Assembly,,,7,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDS-0001,40,PREPARATION,Preparation,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDS-0001,50,PAINTING,Painting,FALSE,,,100,8,30,,1,0,30,,,,,,,Painting,Painting,,,8,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
+SFDS-0001,60,PACKING,Packing,FALSE,,,100,5,30,,1,0,30,,,,,,,Assembly,Assembly,,,5,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,FALSE,FALSE
