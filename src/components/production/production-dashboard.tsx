@@ -17,6 +17,7 @@ import { SubContractSection } from "./sub-contract-section"
 import { ProductLaneRow } from "./product-lane"
 import type { FlatProduct } from "./production-product-card"
 import { Badge } from "@/components/ui/badge"
+import { ProductActionRow } from "./product-action-row"
 
 export type ProductionProject = {
   id: string
@@ -618,6 +619,7 @@ function ActiveProjectsSection({ projects, onComplete }: { projects: ProductionP
 
 const ActiveProjectCard = memo(function ActiveProjectCard({ project, onComplete }: { project: ProductionProject; onComplete: (id: string) => void }) {
   const [completing, setCompleting] = useState(false)
+  const [expanded, setExpanded] = useState(false)
 
   const completedProducts = project.products.filter(
     (p) => FINISHED_STAGES.includes(p.productionStatus || "") || p.productionCompletionDate
@@ -700,9 +702,54 @@ const ActiveProjectCard = memo(function ActiveProjectCard({ project, onComplete 
         })}
       </div>
 
-      <div className="mt-1.5 text-[10px] text-gray-500">
-        {completedProducts}/{totalProducts} products
+      <div className="mt-1.5 flex items-center justify-between">
+        <span className="text-[10px] text-gray-500">
+          {completedProducts}/{totalProducts} products
+        </span>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-[10px] text-blue-600 hover:text-blue-700 font-medium"
+        >
+          {expanded ? "Hide" : "Manage"} products
+        </button>
       </div>
+
+      {/* Expanded product list with action rows */}
+      {expanded && (
+        <div className="mt-2 pt-2 border-t border-gray-100 space-y-2.5">
+          {project.products.map((product) => {
+            const stageName = STAGE_DISPLAY_NAMES[product.productionStatus || ""] || product.productionStatus || "Awaiting"
+            const stageColor =
+              product.productionStatus === "PACKING" ? "bg-cyan-100 text-cyan-700" :
+              product.productionStatus === "PAINTING" ? "bg-teal-100 text-teal-700" :
+              product.productionStatus === "SHOTBLASTING" ? "bg-lime-100 text-lime-700" :
+              product.productionStatus === "FITTING" ? "bg-yellow-100 text-yellow-700" :
+              product.productionStatus === "FABRICATION" ? "bg-amber-100 text-amber-700" :
+              product.productionStatus === "CUTTING" ? "bg-orange-100 text-orange-700" :
+              FINISHED_STAGES.includes(product.productionStatus || "") ? "bg-green-100 text-green-700" :
+              "bg-gray-100 text-gray-600"
+
+            return (
+              <div key={product.id}>
+                <div className="flex items-center justify-between gap-2 text-[10px]">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-gray-700 truncate block">{product.description}</span>
+                    <span className="text-gray-400 font-mono">{product.partCode}</span>
+                  </div>
+                  <span className={`shrink-0 px-1.5 py-0.5 rounded text-[9px] font-medium ${stageColor}`}>
+                    {stageName}
+                  </span>
+                </div>
+                <ProductActionRow
+                  productId={product.id}
+                  projectId={project.id}
+                  currentStage={product.productionStatus}
+                />
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Complete button — only when all products done */}
       {allProductsDone ? (

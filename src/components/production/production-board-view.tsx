@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { STAGE_DISPLAY_NAMES } from "@/lib/production-utils"
+import { ProductActionRow } from "./product-action-row"
 
 type PendingHandover = {
   id: string
@@ -524,7 +525,7 @@ const ProducingProjectCard = memo(function ProducingProjectCard({ project, onCom
 
       {/* Expanded product list */}
       {expanded && (
-        <div className="mt-2 pt-2 border-t border-gray-100 space-y-1.5">
+        <div className="mt-2 pt-2 border-t border-gray-100 space-y-2.5">
           {project.products.map((product) => {
             const stageName = STAGE_DISPLAY_NAMES[product.productionStatus || ""] || product.productionStatus || "Awaiting"
             const stageColor =
@@ -538,14 +539,21 @@ const ProducingProjectCard = memo(function ProducingProjectCard({ project, onCom
               "bg-gray-100 text-gray-600"
 
             return (
-              <div key={product.id} className="flex items-center justify-between gap-2 text-[10px]">
-                <div className="min-w-0 flex-1">
-                  <span className="text-gray-700 truncate block">{product.description}</span>
-                  <span className="text-gray-400 font-mono">{product.partCode}</span>
+              <div key={product.id}>
+                <div className="flex items-center justify-between gap-2 text-[10px]">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-gray-700 truncate block">{product.description}</span>
+                    <span className="text-gray-400 font-mono">{product.partCode}</span>
+                  </div>
+                  <span className={`shrink-0 px-1.5 py-0.5 rounded text-[9px] font-medium ${stageColor}`}>
+                    {stageName}
+                  </span>
                 </div>
-                <span className={`shrink-0 px-1.5 py-0.5 rounded text-[9px] font-medium ${stageColor}`}>
-                  {stageName}
-                </span>
+                <ProductActionRow
+                  productId={product.id}
+                  projectId={project.id}
+                  currentStage={product.productionStatus}
+                />
               </div>
             )
           })}

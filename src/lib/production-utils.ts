@@ -1,5 +1,38 @@
 // Production Module — shared utilities and constants
 
+// All production stages in order (for manual progress updates)
+export const ALL_PRODUCTION_STAGES = [
+  "AWAITING",
+  "CUTTING",
+  "FABRICATION",
+  "FITTING",
+  "SHOTBLASTING",
+  "PAINTING",
+  "PACKING",
+  "COMPLETED",
+] as const
+
+export const ALL_STAGE_DISPLAY_NAMES: Record<string, string> = {
+  AWAITING: "Awaiting",
+  CUTTING: "Cutting",
+  FABRICATION: "Weld/Fab",
+  FITTING: "Pre-Fit/Fitting",
+  SHOTBLASTING: "Shotblast",
+  PAINTING: "Painting",
+  PACKING: "Packing",
+  COMPLETED: "Completed",
+}
+
+// Mapping from stage to the worker role that handles it
+export const STAGE_WORKER_ROLES: Record<string, string> = {
+  CUTTING: "CUTTER",
+  FABRICATION: "WELDER",
+  FITTING: "FITTER",
+  SHOTBLASTING: "PAINTER",
+  PAINTING: "PAINTER",
+  PACKING: "PACKER",
+}
+
 // The 6 workshop stages (subset of ProductionStage enum used for dashboard columns)
 export const WORKSHOP_STAGES = [
   "CUTTING",
