@@ -205,6 +205,8 @@ export function Sidebar() {
             item.href === "/production" ? badges.productionIncoming :
             0
 
+          const isFood = item.href === "/what-to-eat"
+
           return (
             <Link
               key={item.name}
@@ -212,22 +214,42 @@ export function Sidebar() {
               onClick={() => setMobileOpen(false)}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? isCyber
-                    ? "bg-[#FCE300] text-[#1A1A1E] font-bold shadow-[0_0_12px_rgba(252,227,0,0.3)] rounded-none border-l-2 border-[#00F0FF]"
-                    : isSage
-                      ? "bg-[#00B140]/15 text-[#00B140] font-semibold border-l-3 border-[#00B140] rounded-l-none"
-                      : "bg-blue-50 text-blue-700"
-                  : isCyber
-                    ? "text-[#888] hover:bg-[#2A2A30] hover:text-[#FCE300] rounded-none"
-                    : isSage
-                      ? "text-[#ccc] hover:bg-[#3A3A3A] hover:text-white"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                isFood
+                  ? isActive
+                    ? isCyber
+                      ? "bg-purple-600/20 text-purple-300 font-bold shadow-[0_0_12px_rgba(168,85,247,0.3)] rounded-none border-l-2 border-purple-400"
+                      : isSage
+                        ? "bg-gray-500/15 text-gray-300 font-semibold border-l-3 border-gray-400 rounded-l-none"
+                        : "bg-amber-50 text-amber-700"
+                    : isCyber
+                      ? "text-purple-400/60 hover:bg-purple-900/20 hover:text-purple-300 rounded-none"
+                      : isSage
+                        ? "text-gray-400 hover:bg-gray-600/20 hover:text-gray-200"
+                        : "text-amber-600/60 hover:bg-amber-50 hover:text-amber-700"
+                  : isActive
+                    ? isCyber
+                      ? "bg-[#FCE300] text-[#1A1A1E] font-bold shadow-[0_0_12px_rgba(252,227,0,0.3)] rounded-none border-l-2 border-[#00F0FF]"
+                      : isSage
+                        ? "bg-[#00B140]/15 text-[#00B140] font-semibold border-l-3 border-[#00B140] rounded-l-none"
+                        : "bg-blue-50 text-blue-700"
+                    : isCyber
+                      ? "text-[#888] hover:bg-[#2A2A30] hover:text-[#FCE300] rounded-none"
+                      : isSage
+                        ? "text-[#ccc] hover:bg-[#3A3A3A] hover:text-white"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               )}
               title={collapsed && !mobileOpen ? item.name : undefined}
             >
               <div className="relative shrink-0">
-                <item.icon className={cn("h-5 w-5", isActive ? (isCyber ? "text-[#1A1A1E]" : isSage ? "text-[#00B140]" : "text-blue-600") : (isCyber ? "text-[#666]" : isSage ? "text-[#999]" : "text-gray-400"))} />
+                <item.icon className={cn("h-5 w-5",
+                  isFood
+                    ? isActive
+                      ? isCyber ? "text-purple-300" : isSage ? "text-gray-300" : "text-amber-600"
+                      : isCyber ? "text-purple-500/60" : isSage ? "text-gray-500" : "text-amber-400/60"
+                    : isActive
+                      ? isCyber ? "text-[#1A1A1E]" : isSage ? "text-[#00B140]" : "text-blue-600"
+                      : isCyber ? "text-[#666]" : isSage ? "text-[#999]" : "text-gray-400"
+                )} />
                 {badgeCount > 0 && (collapsed && !mobileOpen) && (
                   <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center h-3.5 min-w-3.5 rounded-full bg-red-500 px-0.5 text-[8px] font-bold text-white">
                     {badgeCount}
