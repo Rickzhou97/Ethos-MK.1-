@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
-import { WORKSHOP_STAGES } from "@/lib/production-utils"
+import { WORKSHOP_STAGES, ALL_PRODUCTION_STAGES } from "@/lib/production-utils"
 
 export async function GET(
   _request: NextRequest,
@@ -107,12 +107,52 @@ export async function GET(
     avgProcessingMins: avgMins,
   }
 
+  // Get products at earlier stages (allocated to this stage but previous process not finished)
+  const stageIdx = (ALL_PRODUCTION_STAGES as readonly string[]).indexOf(stage)
+  const previousStages = stageIdx > 0
+    ? ALL_PRODUCTION_STAGES.slice(0, stageIdx).filter(s => s !== "COMPLETED")
+    : []
+
+  const allocatedProducts = previousStages.length > 0
+    ? await prisma.product.findMany({
+        where: {
+          productionStatus: { in: previousStages as string[] },
+        },
+        select: {
+          id: true,
+          partCode: true,
+          description: true,
+          productJobNumber: true,
+          quantity: true,
+          productionStatus: true,
+          productionTargetDate: true,
+          project: {
+            select: {
+              id: true,
+              projectNumber: true,
+              name: true,
+              priority: true,
+              isICUFlag: true,
+              classification: true,
+              targetCompletion: true,
+              ragStatus: true,
+              contractValue: true,
+              customer: { select: { name: true } },
+              projectManager: { select: { name: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      })
+    : []
+
   return NextResponse.json({
     projects,
     queue: pending,
     active,
     completed,
     allTasks: tasks,
+    allocatedProducts,
     stats,
   })
 }

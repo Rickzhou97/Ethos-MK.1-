@@ -7,6 +7,7 @@ import {
   WORKSHOP_STAGES,
   STAGE_DISPLAY_NAMES,
   STAGE_BORDER_COLORS,
+  ALL_STAGE_DISPLAY_NAMES,
 } from "@/lib/production-utils"
 import { useLayout } from "@/components/layout/layout-context"
 
@@ -39,6 +40,29 @@ export type WorkshopTask = {
     productionStatus: string | null
     productionTargetDate: string | null
   }
+  project: {
+    id: string
+    projectNumber: string
+    name: string
+    priority: string
+    isICUFlag: boolean
+    classification: string
+    targetCompletion: string | null
+    ragStatus: string | null
+    contractValue: string | number | null
+    customer: { name: string } | null
+    projectManager: { name: string } | null
+  }
+}
+
+export type AllocatedProduct = {
+  id: string
+  partCode: string
+  description: string
+  productJobNumber: string | null
+  quantity: number
+  productionStatus: string | null
+  productionTargetDate: string | null
   project: {
     id: string
     projectNumber: string
@@ -97,21 +121,29 @@ export type WorkshopWorker = {
 // ─── Theme helpers ───
 
 type AppTheme = "light" | "cyberpunk" | "sage"
+type ThemeColor = "cyan" | "amber" | "green" | "slate"
 
-function useLaneStyles(themeColor: "cyan" | "amber" | "green", appTheme: AppTheme) {
+function useLaneStyles(themeColor: ThemeColor, appTheme: AppTheme) {
   const base = {
     cyan:  { border: "border-cyan-500",  accent: "text-cyan-600",  line: "bg-cyan-500" },
     amber: { border: "border-amber-500", accent: "text-amber-600", line: "bg-amber-500" },
     green: { border: "border-green-500", accent: "text-green-600", line: "bg-green-500" },
+    slate: { border: "border-slate-400", accent: "text-slate-600", line: "bg-slate-400" },
   }[themeColor]
 
   if (appTheme === "cyberpunk") {
+    const accentMap: Record<ThemeColor, string> = {
+      cyan: "text-cyan-400", amber: "text-amber-400", green: "text-green-400", slate: "text-slate-400",
+    }
+    const borderMap: Record<ThemeColor, string> = {
+      cyan: "border-cyan-700", amber: "border-amber-700", green: "border-green-700", slate: "border-slate-600",
+    }
     return {
       ...base,
-      accent: themeColor === "cyan" ? "text-cyan-400" : themeColor === "amber" ? "text-amber-400" : "text-green-400",
+      accent: accentMap[themeColor],
       laneBg: "bg-[#1A1A1E]",
       cardBg: "bg-[#2A2A30]",
-      cardBorder: themeColor === "cyan" ? "border-cyan-700" : themeColor === "amber" ? "border-amber-700" : "border-green-700",
+      cardBorder: borderMap[themeColor],
       titleText: "text-white",
       subtitleText: "text-gray-500",
       bodyText: "text-gray-300",
@@ -121,12 +153,18 @@ function useLaneStyles(themeColor: "cyan" | "amber" | "green", appTheme: AppThem
   }
 
   if (appTheme === "sage") {
+    const accentMap: Record<ThemeColor, string> = {
+      cyan: "text-cyan-500", amber: "text-amber-500", green: "text-green-500", slate: "text-slate-400",
+    }
+    const borderMap: Record<ThemeColor, string> = {
+      cyan: "border-cyan-700", amber: "border-amber-700", green: "border-green-700", slate: "border-slate-600",
+    }
     return {
       ...base,
-      accent: themeColor === "cyan" ? "text-cyan-500" : themeColor === "amber" ? "text-amber-500" : "text-green-500",
+      accent: accentMap[themeColor],
       laneBg: "bg-[#2D2D2D]",
       cardBg: "bg-[#3A3A3A]",
-      cardBorder: themeColor === "cyan" ? "border-cyan-700" : themeColor === "amber" ? "border-amber-700" : "border-green-700",
+      cardBorder: borderMap[themeColor],
       titleText: "text-white",
       subtitleText: "text-gray-400",
       bodyText: "text-gray-200",
@@ -136,11 +174,17 @@ function useLaneStyles(themeColor: "cyan" | "amber" | "green", appTheme: AppThem
   }
 
   // Light theme
+  const bgMap: Record<ThemeColor, string> = {
+    cyan: "bg-cyan-50", amber: "bg-amber-50", green: "bg-green-50", slate: "bg-slate-50",
+  }
+  const cardBorderMap: Record<ThemeColor, string> = {
+    cyan: "border-cyan-200", amber: "border-amber-200", green: "border-green-200", slate: "border-slate-200",
+  }
   return {
     ...base,
-    laneBg: themeColor === "cyan" ? "bg-cyan-50" : themeColor === "amber" ? "bg-amber-50" : "bg-green-50",
+    laneBg: bgMap[themeColor],
     cardBg: "bg-white",
-    cardBorder: themeColor === "cyan" ? "border-cyan-200" : themeColor === "amber" ? "border-amber-200" : "border-green-200",
+    cardBorder: cardBorderMap[themeColor],
     titleText: "text-gray-900",
     subtitleText: "text-gray-500",
     bodyText: "text-gray-700",
@@ -155,13 +199,16 @@ export function WorkshopView({
   initialData,
   initialStage,
   workers,
+  initialAllocated = [],
 }: {
   initialData: WorkshopData
   initialStage: string
   workers: WorkshopWorker[]
+  initialAllocated?: AllocatedProduct[]
 }) {
   const [activeStage, setActiveStage] = useState(initialStage)
   const [data, setData] = useState(initialData)
+  const [allocated, setAllocated] = useState<AllocatedProduct[]>(initialAllocated)
   const [loading, setLoading] = useState(false)
   const { theme: appTheme } = useLayout()
 
@@ -199,6 +246,7 @@ export function WorkshopView({
           tasks,
           stats: json.stats,
         })
+        setAllocated(json.allocatedProducts || [])
       }
     } catch (err) {
       console.error("Failed to fetch workshop data:", err)
@@ -240,7 +288,7 @@ export function WorkshopView({
       </div>
 
       {/* Stats bar */}
-      <div className="flex items-center gap-4 text-xs text-gray-500 px-1">
+      <div className="flex items-center gap-4 text-xs text-gray-500 px-1 flex-wrap">
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-cyan-400" />
           {liveTasks.length} live
@@ -253,8 +301,13 @@ export function WorkshopView({
           <span className="w-2 h-2 rounded-full bg-green-400" />
           {completedTasks.length} awaiting inspection
         </span>
+        <span className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-slate-400" />
+          {allocated.length} allocated
+        </span>
         <span className="text-gray-400">|</span>
         <span>{data.stats.completedTodayCount} completed today</span>
+        <span className="text-gray-300 text-[9px] ml-auto">v2</span>
       </div>
 
       {loading && (
@@ -265,19 +318,39 @@ export function WorkshopView({
 
       {!loading && (
         <div className="space-y-6">
-          {/* LIVE — active work in progress */}
-          <SwimLane
-            title="LIVE"
-            subtitle="Active work in progress"
-            themeColor="cyan"
-            tasks={liveTasks}
-            cardType="live"
-            workers={workers}
-            onAction={refresh}
-            appTheme={appTheme}
-          />
+          {/* Row 1: LIVE (left) | divider | COMPLETED (right) */}
+          <div className="flex gap-0 min-h-[200px]">
+            <div className="flex-1 min-w-0">
+              <SwimLane
+                title="LIVE"
+                subtitle="Active work in progress"
+                themeColor="cyan"
+                tasks={liveTasks}
+                cardType="live"
+                workers={workers}
+                onAction={refresh}
+                appTheme={appTheme}
+              />
+            </div>
 
-          {/* READY TO START — awaiting start */}
+            {/* Vertical divider */}
+            <div className="w-px bg-gray-300 mx-3 self-stretch" />
+
+            <div className="flex-1 min-w-0">
+              <SwimLane
+                title="COMPLETED"
+                subtitle="Work done, awaiting inspection"
+                themeColor="green"
+                tasks={completedTasks}
+                cardType="completed"
+                workers={workers}
+                onAction={refresh}
+                appTheme={appTheme}
+              />
+            </div>
+          </div>
+
+          {/* Row 2: READY TO START — full width */}
           <SwimLane
             title="READY TO START"
             subtitle="Stage reached, awaiting start"
@@ -289,16 +362,11 @@ export function WorkshopView({
             appTheme={appTheme}
           />
 
-          {/* COMPLETED — awaiting inspection */}
-          <SwimLane
-            title="COMPLETED"
-            subtitle="Work done, awaiting inspection"
-            themeColor="green"
-            tasks={completedTasks}
-            cardType="completed"
-            workers={workers}
-            onAction={refresh}
+          {/* Row 3: ALLOCATED — full width */}
+          <AllocatedLane
+            products={allocated}
             appTheme={appTheme}
+            activeStage={activeStage}
           />
         </div>
       )}
@@ -320,7 +388,7 @@ function SwimLane({
 }: {
   title: string
   subtitle: string
-  themeColor: "cyan" | "amber" | "green"
+  themeColor: ThemeColor
   tasks: WorkshopTask[]
   cardType: "live" | "ready" | "completed"
   workers: WorkshopWorker[]
@@ -330,7 +398,7 @@ function SwimLane({
   const styles = useLaneStyles(themeColor, appTheme)
 
   return (
-    <div className={cn("rounded-lg border-2 overflow-hidden", styles.border, styles.laneBg)}>
+    <div className={cn("rounded-lg border-2 overflow-hidden h-full", styles.border, styles.laneBg)}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="flex-1">
@@ -371,6 +439,111 @@ function SwimLane({
   )
 }
 
+// ─── Allocated Lane ───
+
+function AllocatedLane({
+  products,
+  appTheme,
+  activeStage,
+}: {
+  products: AllocatedProduct[]
+  appTheme: AppTheme
+  activeStage: string
+}) {
+  const styles = useLaneStyles("slate", appTheme)
+
+  return (
+    <div className={cn("rounded-lg border-2 overflow-hidden", styles.border, styles.laneBg)}>
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex-1">
+          <h3 className={cn("text-sm font-bold uppercase tracking-wider", styles.accent)}>
+            ALLOCATED
+          </h3>
+          <p className={cn("text-[10px] mt-0.5", styles.subtitleText)}>
+            Allocated to {STAGE_DISPLAY_NAMES[activeStage] || activeStage}, previous process not finished
+          </p>
+        </div>
+        <span className={cn("text-xs font-semibold", styles.accent)}>
+          {products.length}
+        </span>
+      </div>
+
+      {/* Horizontal line */}
+      <div className={cn("h-0.5", styles.line)} />
+
+      {/* Cards — horizontal scroll */}
+      <div className="flex gap-3 p-3 overflow-x-auto min-h-[140px]">
+        {products.length === 0 && (
+          <div className={cn("flex flex-col items-center justify-center w-full gap-2", styles.emptyText)}>
+            <span className="text-lg font-semibold italic opacity-40">All clear</span>
+            <span className="text-xs">No allocated jobs waiting</span>
+          </div>
+        )}
+        {products.map((product) => (
+          <AllocatedCard
+            key={product.id}
+            product={product}
+            appTheme={appTheme}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Allocated Card ───
+
+function AllocatedCard({
+  product,
+  appTheme,
+}: {
+  product: AllocatedProduct
+  appTheme: AppTheme
+}) {
+  const styles = useLaneStyles("slate", appTheme)
+  const currentStageName = product.productionStatus
+    ? (ALL_STAGE_DISPLAY_NAMES[product.productionStatus] || product.productionStatus)
+    : "Unknown"
+
+  return (
+    <div className={cn(
+      "shrink-0 w-[220px] rounded-lg border p-3 flex flex-col gap-2 shadow-sm",
+      styles.cardBg, styles.cardBorder
+    )}>
+      {/* Product info */}
+      <div>
+        <Link href={`/projects/${product.project.id}`} className="hover:underline">
+          <div className={cn("text-xs font-semibold truncate", styles.bodyText)}>
+            {product.description}
+          </div>
+        </Link>
+        <div className={cn("text-[10px] font-mono mt-0.5", styles.mutedText)}>
+          {product.productJobNumber || product.partCode}
+        </div>
+      </div>
+
+      {/* Project & customer */}
+      <Link href={`/projects/${product.project.id}`} className="hover:underline">
+        <div className={cn("text-[10px] space-y-0.5", styles.mutedText)}>
+          <div className="truncate">{product.project.projectNumber} — {product.project.name}</div>
+          <div className="truncate">{product.project.customer?.name || "No customer"}</div>
+        </div>
+      </Link>
+
+      {/* Current stage badge */}
+      <div className="mt-auto pt-1">
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+          <span className={cn("text-[10px] font-medium", styles.mutedText)}>
+            Currently at: <span className="font-semibold text-amber-600">{currentStageName}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Task Card ───
 
 function TaskCard({
@@ -389,7 +562,7 @@ function TaskCard({
   appTheme: AppTheme
 }) {
   const [actionLoading, setActionLoading] = useState(false)
-  const styles = useLaneStyles(themeColor as "cyan" | "amber" | "green", appTheme)
+  const styles = useLaneStyles(themeColor as ThemeColor, appTheme)
 
   async function handleStart() {
     setActionLoading(true)

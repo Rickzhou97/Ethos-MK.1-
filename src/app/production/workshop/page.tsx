@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
-import { WorkshopView, type WorkshopData, type WorkshopWorker } from "@/components/production/workshop-view"
+import { WorkshopView, type WorkshopData, type WorkshopWorker, type AllocatedProduct } from "@/components/production/workshop-view"
+import { ALL_PRODUCTION_STAGES } from "@/lib/production-utils"
 
 export const dynamic = "force-dynamic"
 
@@ -100,6 +101,46 @@ async function getWorkshopData(stage: string) {
   }
 }
 
+async function getAllocatedProducts(stage: string) {
+  const stageIdx = (ALL_PRODUCTION_STAGES as readonly string[]).indexOf(stage)
+  const previousStages = stageIdx > 0
+    ? ALL_PRODUCTION_STAGES.slice(0, stageIdx).filter(s => s !== "COMPLETED")
+    : []
+
+  if (previousStages.length === 0) return []
+
+  return prisma.product.findMany({
+    where: {
+      productionStatus: { in: previousStages as string[] },
+    },
+    select: {
+      id: true,
+      partCode: true,
+      description: true,
+      productJobNumber: true,
+      quantity: true,
+      productionStatus: true,
+      productionTargetDate: true,
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          name: true,
+          priority: true,
+          isICUFlag: true,
+          classification: true,
+          targetCompletion: true,
+          ragStatus: true,
+          contractValue: true,
+          customer: { select: { name: true } },
+          projectManager: { select: { name: true } },
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  })
+}
+
 async function getWorkers() {
   return prisma.worker.findMany({
     orderBy: { name: "asc" },
@@ -107,19 +148,22 @@ async function getWorkers() {
 }
 
 export default async function WorkshopPage() {
-  const [initialData, workers] = await Promise.all([
+  const [initialData, workers, allocated] = await Promise.all([
     getWorkshopData("CUTTING"),
     getWorkers(),
+    getAllocatedProducts("CUTTING"),
   ])
 
   const serializedData: WorkshopData = JSON.parse(JSON.stringify(initialData))
   const serializedWorkers: WorkshopWorker[] = JSON.parse(JSON.stringify(workers))
+  const serializedAllocated: AllocatedProduct[] = JSON.parse(JSON.stringify(allocated))
 
   return (
     <WorkshopView
       initialData={serializedData}
       initialStage="CUTTING"
       workers={serializedWorkers}
+      initialAllocated={serializedAllocated}
     />
   )
 }
