@@ -137,12 +137,17 @@ export function Sidebar() {
             </Link>
           ) : (
             <div className="flex items-center cursor-pointer select-none" onClick={handleLogoClick}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={onionMode ? "/onion-201.svg" : "/ethos-logo.svg"}
-                alt={onionMode ? "Onion 201" : "Ethos MK.1"}
-                className={cn("h-12 w-auto transition-all duration-300", onionMode && "drop-shadow-[0_0_8px_rgba(212,168,67,0.5)]")}
-              />
+              {onionMode ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/onion-201.svg" alt="Onion 201" className="h-12 w-auto drop-shadow-[0_0_8px_rgba(212,168,67,0.5)]" />
+                </>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <span className="text-2xl font-light tracking-[0.3em] text-gray-800">ETHOS</span>
+                  <span className="text-[10px] font-normal tracking-[0.4em] text-amber-600">MK.1</span>
+                </div>
+              )}
             </div>
           )
         ) : (
@@ -165,8 +170,8 @@ export function Sidebar() {
                 </>
               ) : (
                 <>
-                  <span className="text-[10px] font-light tracking-[3px] text-gray-700">E</span>
-                  <span className="text-[6px] text-[#C8941E] tracking-[1px]">MK.1</span>
+                  <span className="text-sm font-light tracking-[3px] text-gray-800">E</span>
+                  <span className="text-[7px] text-amber-600 tracking-[1px] font-medium">MK.1</span>
                 </>
               )}
             </div>
