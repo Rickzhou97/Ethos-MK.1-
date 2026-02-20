@@ -8,6 +8,15 @@ import { Label } from "@/components/ui/label"
 import { AlertTriangle, Eye, EyeOff } from "lucide-react"
 import { authenticate } from "./actions"
 
+function MMEChevron({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 44 40" fill="none" className={className}>
+      <path d="M4 34 L22 6 L40 34" stroke="#5BB8F5" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 34 L22 16 L32 34" stroke="#ffffff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -45,29 +54,43 @@ export default function LoginPage() {
   const hasMicrosoftSSO = true
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-4">
-      {/* Background image */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/login-bg.jpg"
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+    <div
+      className="relative min-h-screen flex items-center justify-center px-4"
+      style={{
+        backgroundImage: "url('/login-bg.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/55" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-sm space-y-8">
-        {/* MM Engineering logo */}
-        <div className="flex justify-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/mme-logo.svg" alt="MM Engineering" className="h-10 opacity-90" />
+        {/* MM Engineering logo — inline HTML, no SVG file */}
+        <div className="flex items-center justify-center gap-3">
+          <MMEChevron className="h-9 w-9" />
+          <div className="flex items-baseline gap-0.5">
+            <span className="text-white text-xl font-bold tracking-wide">MM</span>
+            <span className="text-white/80 text-xl font-light tracking-wide">engineering</span>
+          </div>
         </div>
 
-        {/* ETHOS logo */}
-        <div className="text-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/ethos-logo.svg" alt="ETHOS MK.1" className="mx-auto w-full max-w-[320px]" />
+        {/* ETHOS logo — pure CSS text */}
+        <div className="text-center space-y-2">
+          <div className="mx-auto w-64 h-px bg-gradient-to-r from-transparent via-amber-600/50 to-transparent" />
+          <h1 className="text-5xl font-extralight tracking-[0.35em] text-white pt-2">
+            ETHOS
+          </h1>
+          <p className="text-amber-500 text-sm font-light tracking-[0.4em]">
+            MK.1
+          </p>
+          <div className="mx-auto w-48 h-px bg-gradient-to-r from-transparent via-amber-600/30 to-transparent" />
+          <p className="text-white/40 text-[9px] tracking-[0.25em] font-light pt-1">
+            ENGINEER-TO-ORDER HUB OPERATION SYSTEM
+          </p>
+          <div className="mx-auto w-64 h-px bg-gradient-to-r from-transparent via-amber-600/50 to-transparent" />
         </div>
 
         {/* Glass card */}
@@ -89,13 +112,10 @@ export default function LoginPage() {
                 Sign in with Microsoft
               </Button>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/20" />
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-transparent px-3 text-white/50">or use email</span>
-                </div>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-white/20" />
+                <span className="text-xs text-white/40">or use email</span>
+                <div className="flex-1 h-px bg-white/20" />
               </div>
             </>
           )}
