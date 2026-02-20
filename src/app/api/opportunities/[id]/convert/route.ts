@@ -191,16 +191,37 @@ export async function POST(
     const oppLine = opportunity.quoteLines[i]
     const jobNum = `${String(nextNumber)}-${String(i + 1).padStart(2, "0")}`
 
+    // Look up variant's Sage stock code for the partCode and catalogue link
+    let partCode = `ITEM-${i + 1}`
+    let catalogueItemId: string | null = null
+    if (oppLine.variantId) {
+      const variant = await prisma.productVariant.findUnique({
+        where: { id: oppLine.variantId },
+        select: { sageStockCode: true, code: true, catalogueItemId: true },
+      })
+      if (variant) {
+        partCode = variant.sageStockCode || variant.code
+        // Link to ProductCatalogue (either via the variant's link or by matching partCode)
+        if (variant.catalogueItemId) {
+          catalogueItemId = variant.catalogueItemId
+        } else {
+          const catItem = await prisma.productCatalogue.findUnique({
+            where: { partCode },
+            select: { id: true },
+          })
+          if (catItem) catalogueItemId = catItem.id
+        }
+      }
+    }
+
     await prisma.product.create({
       data: {
         projectId: project.id,
-        partCode: oppLine.variantId
-          ? oppLine.description.substring(0, 50)
-          : `ITEM-${i + 1}`,
+        partCode,
         description: oppLine.description,
         quantity: oppLine.quantity,
         productJobNumber: jobNum,
-        catalogueItemId: null,
+        catalogueItemId,
         additionalDetails:
           oppLine.width && oppLine.height
             ? `${oppLine.width}mm x ${oppLine.height}mm`
