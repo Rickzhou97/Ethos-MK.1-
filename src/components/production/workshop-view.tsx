@@ -410,8 +410,8 @@ function TaskCard({
     }
   }
 
-  async function handleInspect(result: "ACCEPTED" | "REJECTED") {
-    if (result === "REJECTED") {
+  async function handleInspect(decision: "ACCEPTED" | "REJECTED") {
+    if (decision === "REJECTED") {
       const reason = prompt("Rejection reason / NCR description:")
       if (!reason) return
       setActionLoading(true)
@@ -419,7 +419,7 @@ function TaskCard({
         const res = await fetch(`/api/production/tasks/${task.id}/inspect`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ result: "REJECTED", reason }),
+          body: JSON.stringify({ decision: "REJECTED", ncrDescription: reason }),
         })
         if (res.ok) onAction()
       } finally {
@@ -432,7 +432,7 @@ function TaskCard({
       const res = await fetch(`/api/production/tasks/${task.id}/inspect`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ result: "ACCEPTED" }),
+        body: JSON.stringify({ decision: "ACCEPTED" }),
       })
       if (res.ok) onAction()
     } finally {
