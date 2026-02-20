@@ -48,6 +48,7 @@ export function Header() {
             onKeyDown={handleKeyDown}
           />
         </div>
+        <span className="hidden md:block text-sm font-medium italic text-gray-400">Health, Wealth and Success!</span>
       </div>
       <div className="flex items-center gap-2 sm:gap-4">
         <button
