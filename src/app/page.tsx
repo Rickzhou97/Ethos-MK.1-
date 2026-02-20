@@ -21,6 +21,7 @@ import Link from "next/link"
 import { formatDate, formatCurrency, getProjectStatusColor, getSalesStageColor, getDepartmentColor, prettifyEnum, calculateScheduleRag, getRagColor } from "@/lib/utils"
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts"
 import { DashboardTimeline } from "@/components/dashboard/dashboard-timeline"
+import { DashboardTabs } from "@/components/dashboard/dashboard-tabs"
 
 async function getDashboardData() {
   const [
@@ -212,6 +213,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <DashboardTabs />
+
       {/* Page header with quick actions */}
       <div className="flex items-center justify-between">
         <div>

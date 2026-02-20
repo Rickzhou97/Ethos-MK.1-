@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
-  FolderKanban,
   FileText,
   ShoppingCart,
   Users,
@@ -41,7 +40,6 @@ import { useSession, signOut } from "next-auth/react"
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "CRM", href: "/crm", icon: Target },
-  { name: "Projects", href: "/projects", icon: FolderKanban },
   { name: "Design", href: "/design", icon: PenTool },
   { name: "Production", href: "/production", icon: Factory },
   { name: "Installation", href: "/installation", icon: HardHat },
@@ -196,7 +194,7 @@ export function Sidebar() {
       <nav className="flex flex-col gap-1 p-3 overflow-y-auto flex-1 min-h-0">
         {navigation.map((item) => {
           const isActive = item.href === "/"
-            ? pathname === "/"
+            ? pathname === "/" || pathname === "/projects"
             : pathname.startsWith(item.href)
 
           // Badge count per nav item

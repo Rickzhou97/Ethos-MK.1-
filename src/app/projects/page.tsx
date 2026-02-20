@@ -8,6 +8,7 @@ import { TableView } from "@/components/projects/table-view"
 import { TrackerView } from "@/components/projects/tracker-view"
 import { ByCustomerView } from "@/components/projects/by-customer-view"
 import { TimelineView } from "@/components/projects/timeline-view"
+import { DashboardTabs } from "@/components/dashboard/dashboard-tabs"
 
 function ViewFallback() {
   return (
@@ -27,6 +28,8 @@ export default async function ProjectsPage({
 
   return (
     <div className="space-y-4">
+      <DashboardTabs />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Projects</h1>
