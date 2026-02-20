@@ -28,9 +28,14 @@ import {
   MessageSquare,
   Database,
   CalendarRange,
+  LogOut,
+  Zap,
+  Leaf,
+  Sun,
 } from "lucide-react"
 import { useLayout } from "./layout-context"
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useSession, signOut } from "next-auth/react"
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -62,7 +67,8 @@ type BadgeCounts = {
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { collapsed, toggleCollapsed, theme } = useLayout()
+  const { collapsed, toggleCollapsed, theme, setTheme } = useLayout()
+  const { data: session } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [badges, setBadges] = useState<BadgeCounts>({ designHandovers: 0, productionIncoming: 0 })
   const isCyber = theme === "cyberpunk"
@@ -253,11 +259,100 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Collapse toggle — desktop only */}
-      <div className="hidden md:block absolute bottom-4 left-0 right-0 px-3">
+      {/* Bottom section: user, theme, logout, collapse */}
+      <div className="border-t border-border px-3 py-3 space-y-2">
+        {/* User info */}
+        {(!collapsed || mobileOpen) && session?.user && (
+          <div className="flex items-center gap-2 px-1 mb-2">
+            <div className={cn(
+              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-medium",
+              isCyber ? "bg-[#FCE300] text-[#1A1A1E]" : isSage ? "bg-[#00B140] text-white" : "bg-blue-100 text-blue-700"
+            )}>
+              {(session.user.name || "U").split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className={cn("text-xs font-medium truncate", isCyber ? "text-white" : isSage ? "text-white" : "text-gray-800")}>
+                {session.user.name || "User"}
+              </p>
+              <p className={cn("text-[10px] truncate", isCyber ? "text-[#888]" : isSage ? "text-[#999]" : "text-gray-400")}>
+                {((session.user as { role?: string })?.role || "VIEWER").replace(/_/g, " ")}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Theme toggles */}
+        {(!collapsed || mobileOpen) ? (
+          <div className="flex items-center gap-1 px-1">
+            <button
+              onClick={() => setTheme("light")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[10px] font-medium transition-colors",
+                theme === "light" ? "bg-blue-50 text-blue-700" : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+              )}
+              title="Light theme"
+            >
+              <Sun className="h-3.5 w-3.5" />
+              Light
+            </button>
+            <button
+              onClick={() => setTheme("cyberpunk")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[10px] font-medium transition-colors",
+                theme === "cyberpunk"
+                  ? "bg-[#1A1A1E] text-[#FCE300] border border-[#FCE300]/30"
+                  : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+              )}
+              title="Cyberpunk theme"
+            >
+              <Zap className="h-3.5 w-3.5" />
+              Cyber
+            </button>
+            <button
+              onClick={() => setTheme("sage")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[10px] font-medium transition-colors",
+                theme === "sage"
+                  ? "bg-[#00B140]/15 text-[#00B140] border border-[#00B140]/30"
+                  : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+              )}
+              title="Sage theme"
+            >
+              <Leaf className="h-3.5 w-3.5" />
+              Sage
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={() => setTheme(theme === "light" ? "cyberpunk" : theme === "cyberpunk" ? "sage" : "light")}
+              className="p-1.5 rounded-md text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+              title="Switch theme"
+            >
+              {theme === "light" ? <Sun className="h-4 w-4" /> : theme === "cyberpunk" ? <Zap className="h-4 w-4 text-[#FCE300]" /> : <Leaf className="h-4 w-4 text-[#00B140]" />}
+            </button>
+          </div>
+        )}
+
+        {/* Sign out */}
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className={cn(
+            "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            isCyber ? "text-[#888] hover:bg-[#2A2A30] hover:text-red-400" : isSage ? "text-[#999] hover:bg-[#3A3A3A] hover:text-red-400" : "text-gray-500 hover:bg-red-50 hover:text-red-600"
+          )}
+        >
+          <LogOut className="h-4 w-4" />
+          {(!collapsed || mobileOpen) && <span>Sign Out</span>}
+        </button>
+
+        {/* Collapse toggle — desktop only */}
         <button
           onClick={toggleCollapsed}
-          className="flex w-full items-center justify-center rounded-lg p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+          className={cn(
+            "hidden md:flex w-full items-center justify-center rounded-lg p-2 transition-colors",
+            isCyber ? "text-[#666] hover:bg-[#2A2A30] hover:text-[#FCE300]" : isSage ? "text-[#999] hover:bg-[#3A3A3A] hover:text-white" : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+          )}
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
