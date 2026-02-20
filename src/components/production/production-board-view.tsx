@@ -4,8 +4,9 @@ import { useState, memo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
-import { STAGE_DISPLAY_NAMES, DEFAULT_STAGE_HOURS, WORKSHOP_STAGES } from "@/lib/production-utils"
+import { STAGE_DISPLAY_NAMES } from "@/lib/production-utils"
 import { ProductActionRow } from "./product-action-row"
+import { ProjectScheduleDialog } from "./project-schedule-dialog"
 
 type PendingHandover = {
   id: string
@@ -70,6 +71,7 @@ type ProducingProject = {
     productionTargetDate: string | null
     productionCompletionDate: string | null
     currentDepartment: string | null
+    designCard?: { id: string } | null
   }>
   _count: { products: number; ncrs: number }
 }
@@ -420,15 +422,9 @@ function ProducingColumn({ projects, onComplete }: { projects: ProducingProject[
 const ProducingProjectCard = memo(function ProducingProjectCard({ project, onComplete }: { project: ProducingProject; onComplete: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false)
   const [completing, setCompleting] = useState(false)
-  const [showSchedule, setShowSchedule] = useState(false)
+  const [showDialog, setShowDialog] = useState(false)
 
   const FINISHED_STAGES = ["PACKING", "DISPATCHED", "COMPLETED", "STORAGE", "N_A"]
-
-  const stageCounts: Record<string, number> = {}
-  for (const product of project.products) {
-    const stage = product.productionStatus || "AWAITING"
-    stageCounts[stage] = (stageCounts[stage] || 0) + 1
-  }
 
   const completedProducts = project.products.filter(
     (p) => FINISHED_STAGES.includes(p.productionStatus || "") || p.productionCompletionDate
@@ -441,30 +437,13 @@ const ProducingProjectCard = memo(function ProducingProjectCard({ project, onCom
 
   const isOverdue = project.targetCompletion && new Date(project.targetCompletion) < new Date()
 
-  // Calculate production start date (earliest productionPlannedStart across products)
+  // Planned start (earliest across products)
   const startDates = project.products
     .map((p) => p.productionPlannedStart)
     .filter(Boolean) as string[]
-  const productionStart = startDates.length > 0
-    ? new Date(startDates.sort()[0])
-    : null
+  const productionStart = startDates.length > 0 ? new Date(startDates.sort()[0]) : null
 
-  // Calculate estimated end date from start + total workshop hours
-  const totalWorkshopHours = WORKSHOP_STAGES.reduce((sum, s) => sum + (DEFAULT_STAGE_HOURS[s] || 0), 0)
-  const workingHoursPerDay = 8
-  const totalWorkingDays = Math.ceil(totalWorkshopHours / workingHoursPerDay)
-  const estimatedEnd = productionStart
-    ? (() => {
-        const d = new Date(productionStart)
-        let daysAdded = 0
-        while (daysAdded < totalWorkingDays) {
-          d.setDate(d.getDate() + 1)
-          const day = d.getDay()
-          if (day !== 0 && day !== 6) daysAdded++
-        }
-        return d
-      })()
-    : null
+  const shortDateFmt: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" }
 
   async function handleCompleteProduction() {
     setCompleting(true)
@@ -487,12 +466,10 @@ const ProducingProjectCard = memo(function ProducingProjectCard({ project, onCom
     }
   }
 
-  const dateFmt: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }
-
   return (
     <div className="rounded-lg border border-border bg-white p-3 shadow-sm">
       <div className="flex items-start justify-between gap-2">
-        <button onClick={() => setShowSchedule(!showSchedule)} className="min-w-0 flex-1 text-left cursor-pointer">
+        <button onClick={() => setShowDialog(true)} className="min-w-0 flex-1 text-left cursor-pointer">
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className="text-[10px] font-mono text-gray-400">{project.projectNumber}</span>
             {project.isICUFlag && (
@@ -512,43 +489,26 @@ const ProducingProjectCard = memo(function ProducingProjectCard({ project, onCom
           <div className={`text-[10px] font-medium shrink-0 px-1.5 py-0.5 rounded ${
             isOverdue ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-500"
           }`}>
-            {new Date(project.targetCompletion).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+            {new Date(project.targetCompletion).toLocaleDateString("en-GB", shortDateFmt)}
           </div>
         )}
       </div>
 
-      {/* Schedule panel */}
-      {showSchedule && (
-        <div className="mt-2 p-2.5 rounded-md bg-blue-50 border border-blue-200 space-y-2">
-          <div className="flex items-center justify-between text-[10px]">
-            <span className="text-gray-500 font-medium">Production Start</span>
-            <span className="text-gray-800 font-semibold">
-              {productionStart ? productionStart.toLocaleDateString("en-GB", dateFmt) : "Not set"}
-            </span>
-          </div>
-          <div className="space-y-1">
-            <span className="text-[10px] text-gray-500 font-medium">Required Time per Stage</span>
-            {WORKSHOP_STAGES.map((stage) => (
-              <div key={stage} className="flex items-center justify-between text-[10px] pl-2">
-                <span className="text-gray-600">{STAGE_DISPLAY_NAMES[stage]}</span>
-                <span className="text-gray-700 font-mono">
-                  {DEFAULT_STAGE_HOURS[stage]}h ({Math.round((DEFAULT_STAGE_HOURS[stage] / workingHoursPerDay) * 10) / 10}d)
-                </span>
-              </div>
-            ))}
-            <div className="flex items-center justify-between text-[10px] pt-1 border-t border-blue-200">
-              <span className="text-gray-600 font-semibold">Total</span>
-              <span className="text-gray-800 font-semibold font-mono">{totalWorkshopHours}h ({totalWorkingDays}d)</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-between text-[10px] pt-1 border-t border-blue-200">
-            <span className="text-gray-500 font-medium">Estimated End</span>
-            <span className={`font-semibold ${estimatedEnd && estimatedEnd < new Date() ? "text-red-600" : "text-green-700"}`}>
-              {estimatedEnd ? estimatedEnd.toLocaleDateString("en-GB", dateFmt) : "No start date"}
-            </span>
-          </div>
-        </div>
-      )}
+      {/* Start / DDL info line */}
+      <div className="mt-1.5 flex items-center gap-3 text-[10px]">
+        <span className="text-gray-400">
+          Start: <span className={productionStart ? "text-gray-700 font-medium" : "text-orange-500"}>
+            {productionStart ? productionStart.toLocaleDateString("en-GB", shortDateFmt) : "Not set"}
+          </span>
+        </span>
+        <span className="text-gray-400">
+          DDL: <span className={`font-medium ${isOverdue ? "text-red-600" : "text-gray-700"}`}>
+            {project.targetCompletion
+              ? new Date(project.targetCompletion).toLocaleDateString("en-GB", shortDateFmt)
+              : "Not set"}
+          </span>
+        </span>
+      </div>
 
       {/* Stage summary bar */}
       <div className="mt-2 flex gap-0.5">
@@ -653,6 +613,13 @@ const ProducingProjectCard = memo(function ProducingProjectCard({ project, onCom
           </div>
         </div>
       )}
+
+      {/* Schedule dialog */}
+      <ProjectScheduleDialog
+        open={showDialog}
+        onClose={() => setShowDialog(false)}
+        project={project}
+      />
     </div>
   )
 })

@@ -97,6 +97,7 @@ async function getBoardData() {
             productionTargetDate: true,
             productionCompletionDate: true,
             currentDepartment: true,
+            designCard: { select: { id: true } },
           },
         },
         _count: { select: { products: true, ncrs: true } },

@@ -40,6 +40,7 @@ async function getProductionData() {
             productionCompletionDate: true,
             currentDepartment: true,
             designCompletionDate: true,
+            designCard: { select: { id: true } },
           },
         },
         _count: {
