@@ -1,7 +1,7 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
-import { Search, Bell, LogOut, Zap, Leaf, AArrowUp, AArrowDown } from "lucide-react"
+import { Search, Bell, LogOut, Zap, Leaf } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useRef, useState } from "react"
 import { useSession, signOut } from "next-auth/react"
@@ -10,7 +10,7 @@ import { useLayout } from "./layout-context"
 export function Header() {
   const router = useRouter()
   const { data: session } = useSession()
-  const { theme, setTheme, fontSize, setFontSize } = useLayout()
+  const { theme, setTheme } = useLayout()
   const [searchValue, setSearchValue] = useState("")
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -73,31 +73,6 @@ export function Header() {
         >
           <Zap className="h-5 w-5" />
         </button>
-        <div className="flex items-center rounded-lg border border-border">
-          <button
-            onClick={() => setFontSize(fontSize === "small" ? "small" : fontSize === "normal" ? "small" : "normal")}
-            className={`p-1.5 rounded-l-lg transition-colors ${
-              fontSize === "small" ? "text-gray-300 cursor-default" : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
-            }`}
-            title="Decrease font size"
-            disabled={fontSize === "small"}
-          >
-            <AArrowDown className="h-4 w-4" />
-          </button>
-          <span className="px-1.5 text-[10px] font-medium text-gray-500 select-none border-x border-border">
-            {fontSize === "small" ? "S" : fontSize === "normal" ? "M" : "L"}
-          </span>
-          <button
-            onClick={() => setFontSize(fontSize === "large" ? "large" : fontSize === "normal" ? "large" : "normal")}
-            className={`p-1.5 rounded-r-lg transition-colors ${
-              fontSize === "large" ? "text-gray-300 cursor-default" : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
-            }`}
-            title="Increase font size"
-            disabled={fontSize === "large"}
-          >
-            <AArrowUp className="h-4 w-4" />
-          </button>
-        </div>
         <button className="relative rounded-lg p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600">
           <Bell className="h-5 w-5" />
         </button>
