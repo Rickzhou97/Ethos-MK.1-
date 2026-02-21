@@ -39,7 +39,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Only run middleware on page routes (not API, static, or image routes)
-    "/((?!_next/static|_next/image|favicon.ico|api/).*)",
+    // Only run middleware on page routes (not API, static, image, or public asset routes)
+    "/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:jpg|jpeg|png|gif|svg|ico|webp|mp4|css|js)$).*)",
   ],
 }
