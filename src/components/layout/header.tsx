@@ -1,7 +1,7 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
-import { Search, Bell, LogOut, Zap, Leaf } from "lucide-react"
+import { Search, Bell, LogOut, Zap, Leaf, Minus, Plus, Type } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useRef, useState } from "react"
 import { useSession, signOut } from "next-auth/react"
@@ -10,7 +10,7 @@ import { useLayout } from "./layout-context"
 export function Header() {
   const router = useRouter()
   const { data: session } = useSession()
-  const { theme, setTheme } = useLayout()
+  const { theme, setTheme, fontSize, setFontSize } = useLayout()
   const [searchValue, setSearchValue] = useState("")
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -73,6 +73,27 @@ export function Header() {
         >
           <Zap className="h-5 w-5" />
         </button>
+        <div className="hidden sm:flex items-center gap-0.5 rounded-lg border border-border px-1 py-0.5">
+          <button
+            onClick={() => setFontSize(fontSize === "large" ? "normal" : "small")}
+            className={`p-1 rounded transition-colors ${fontSize === "small" ? "text-gray-300 cursor-default" : "text-gray-400 hover:text-gray-600"}`}
+            disabled={fontSize === "small"}
+            title="Smaller font"
+          >
+            <Minus className="h-3.5 w-3.5" />
+          </button>
+          <span className="w-5 text-center text-[10px] font-medium text-gray-500 select-none">
+            {fontSize === "small" ? "S" : fontSize === "normal" ? "M" : "L"}
+          </span>
+          <button
+            onClick={() => setFontSize(fontSize === "small" ? "normal" : "large")}
+            className={`p-1 rounded transition-colors ${fontSize === "large" ? "text-gray-300 cursor-default" : "text-gray-400 hover:text-gray-600"}`}
+            disabled={fontSize === "large"}
+            title="Larger font"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        </div>
         <button className="relative rounded-lg p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600">
           <Bell className="h-5 w-5" />
         </button>
