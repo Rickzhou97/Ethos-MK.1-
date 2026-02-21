@@ -36,6 +36,15 @@ export async function POST(request: NextRequest) {
     if (match) nextNum = parseInt(match[0], 10) + 1
   }
 
+  // Calculate total from lines if provided and no explicit totalValue
+  const lines: { description: string; quantity: number; unitCost: number; totalCost: number }[] = body.lines || []
+  const linesTotalValue = lines.reduce((sum: number, l: { totalCost: number }) => sum + (l.totalCost || 0), 0)
+  const totalValue = body.totalValue
+    ? parseFloat(body.totalValue)
+    : linesTotalValue > 0
+      ? linesTotalValue
+      : null
+
   const po = await prisma.purchaseOrder.create({
     data: {
       poNumber: `PO-${String(nextNum).padStart(4, "0")}`,
@@ -44,9 +53,22 @@ export async function POST(request: NextRequest) {
       status: body.status || "DRAFT",
       dateSent: body.dateSent ? new Date(body.dateSent) : null,
       expectedDelivery: body.expectedDelivery ? new Date(body.expectedDelivery) : null,
-      totalValue: body.totalValue ? parseFloat(body.totalValue) : null,
+      totalValue,
       notes: body.notes || null,
+      ...(lines.length > 0
+        ? {
+            poLines: {
+              create: lines.map((l: { description: string; quantity: number; unitCost: number; totalCost: number }) => ({
+                description: l.description,
+                quantity: l.quantity || 1,
+                unitCost: l.unitCost || null,
+                totalCost: l.totalCost || null,
+              })),
+            },
+          }
+        : {}),
     },
   })
+
   return NextResponse.json(po, { status: 201 })
 }

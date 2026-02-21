@@ -999,14 +999,17 @@ model PurchaseOrderLine {
   quantity       Int     @default(1)
   unitCost       Decimal? @db.Decimal(12, 2)
   totalCost      Decimal? @db.Decimal(12, 2)
-  received       Boolean @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  received       Boolean   @default(false)
+  receivedQty    Int       @default(0)
+  receivedDate   DateTime?
+  receivedNotes  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   // Relations
-  purchaseOrder PurchaseOrder    @relation(fields: [poId], references: [id], onDelete: Cascade)
-  product       Product?         @relation(fields: [productId], references: [id])
-  nominalCode   NominalCode? @relation(fields: [nominalCodeId], references: [id])
+  purchaseOrder PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+  product       Product?      @relation(fields: [productId], references: [id])
+  nominalCode   NominalCode?  @relation(fields: [nominalCodeId], references: [id])
 
   @@map("purchase_order_lines")
 }
