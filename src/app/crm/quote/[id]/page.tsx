@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { QuoteBuilder } from "@/components/crm/quote-builder"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export default async function QuotePage({
   params,

@@ -23,7 +23,7 @@ import { DashboardCharts } from "@/components/dashboard/dashboard-charts"
 import { DashboardTimeline } from "@/components/dashboard/dashboard-timeline"
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs"
 
-export const revalidate = 30
+export const revalidate = 60
 
 async function getDashboardData() {
   const sixMonthsAgo = new Date()
@@ -101,10 +101,12 @@ async function getDashboardData() {
         project: { select: { id: true, projectNumber: true, name: true } },
       },
     }),
-    // Pipeline values: all active projects with estimatedValue or contractValue
-    prisma.project.findMany({
+    // Pipeline values by sales stage — use groupBy to avoid fetching all rows
+    prisma.project.groupBy({
+      by: ["salesStage"],
       where: { projectStatus: { notIn: ["COMPLETE"] } },
-      select: { estimatedValue: true, contractValue: true, salesStage: true },
+      _sum: { estimatedValue: true, contractValue: true },
+      _count: { id: true },
     }),
     // Quote stats
     prisma.quote.count(),
@@ -144,15 +146,18 @@ async function getDashboardData() {
     }),
   ])
 
-  // Calculate pipeline values
+  // Calculate pipeline values from grouped aggregates
   let opportunityValue = 0
   let quotedValue = 0
   let orderValue = 0
-  for (const p of pipelineProjects) {
-    const value = Number(p.contractValue || p.estimatedValue || 0)
-    if (p.salesStage === "OPPORTUNITY") opportunityValue += value
-    else if (p.salesStage === "QUOTED") quotedValue += value
-    else if (p.salesStage === "ORDER") orderValue += value
+  let opportunityCount = 0
+  let quotedCount = 0
+  let orderCount = 0
+  for (const g of pipelineProjects) {
+    const value = Number(g._sum.contractValue || g._sum.estimatedValue || 0)
+    if (g.salesStage === "OPPORTUNITY") { opportunityValue = value; opportunityCount = g._count.id }
+    else if (g.salesStage === "QUOTED") { quotedValue = value; quotedCount = g._count.id }
+    else if (g.salesStage === "ORDER") { orderValue = value; orderCount = g._count.id }
   }
 
   // Build monthly chart data (last 6 months)
@@ -187,9 +192,9 @@ async function getDashboardData() {
   }))
 
   const chartPipelineData = [
-    { stage: "Opportunity", value: opportunityValue, count: pipelineProjects.filter((p) => p.salesStage === "OPPORTUNITY").length },
-    { stage: "Quoted", value: quotedValue, count: pipelineProjects.filter((p) => p.salesStage === "QUOTED").length },
-    { stage: "On Order", value: orderValue, count: pipelineProjects.filter((p) => p.salesStage === "ORDER").length },
+    { stage: "Opportunity", value: opportunityValue, count: opportunityCount },
+    { stage: "Quoted", value: quotedValue, count: quotedCount },
+    { stage: "On Order", value: orderValue, count: orderCount },
   ]
 
   return {

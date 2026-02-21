@@ -5,7 +5,7 @@ import Link from "next/link"
 import { formatCurrency, formatDate, prettifyEnum } from "@/lib/utils"
 import { CreatePoDialog } from "@/components/purchasing/create-po-dialog"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 function getPoStatusColor(status: string) {
   const colors: Record<string, string> = {

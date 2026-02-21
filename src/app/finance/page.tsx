@@ -5,20 +5,20 @@ import Link from "next/link"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { PoundSterling, TrendingUp, TrendingDown, AlertTriangle, Clock, FileText } from "lucide-react"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 async function getFinanceData() {
   const [projects, invoices, nominalCodes] = await Promise.all([
     prisma.project.findMany({
       where: { salesStage: "ORDER" },
-      include: {
+      select: {
+        id: true, projectNumber: true, name: true, contractValue: true, estimatedValue: true, currentCost: true,
         customer: { select: { name: true } },
-        purchaseOrders: { select: { totalValue: true, status: true } },
+        purchaseOrders: { select: { totalValue: true } },
         plantHires: { select: { totalCost: true } },
         subContracts: { select: { agreedValue: true, invoicedToDate: true } },
-        costCategories: true,
-        salesInvoices: true,
-        retentions: true,
+        salesInvoices: { select: { applicationAmount: true, paidAmount: true } },
+        retentions: { select: { retentionAmount: true } },
       },
       orderBy: { updatedAt: "desc" },
     }),

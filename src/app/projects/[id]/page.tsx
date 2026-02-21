@@ -35,14 +35,14 @@ import { AddProductDialog } from "@/components/projects/add-product-dialog"
 import { RaiseNcrDialog } from "@/components/projects/raise-ncr-dialog"
 import { DocumentManager } from "@/components/projects/document-manager"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 async function getProject(id: string) {
   const project = await prisma.project.findUnique({
     where: { id },
     include: {
-      customer: true,
-      coordinator: true,
+      customer: { select: { id: true, name: true } },
+      coordinator: { select: { id: true, name: true } },
       projectManager: { select: { name: true } },
       installManager: { select: { name: true } },
       products: {
@@ -54,12 +54,15 @@ async function getProject(id: string) {
       },
       ncrs: {
         orderBy: { raisedDate: "desc" },
-        include: {
+        select: {
+          id: true, ncrNumber: true, title: true, severity: true, status: true,
+          costImpact: true, raisedDate: true, closedDate: true,
           project: { select: { partCode: true, description: true } },
         },
       },
       retentions: {
         orderBy: { createdAt: "desc" },
+        select: { id: true, retentionPercent: true, retentionAmount: true, releaseDate: true, status: true, notes: true },
       },
       plantHires: {
         orderBy: { createdAt: "desc" },
@@ -74,6 +77,7 @@ async function getProject(id: string) {
       },
       costCategories: {
         orderBy: { costCode: "asc" },
+        select: { id: true, costCode: true, description: true, budgetAmount: true, committedAmount: true, actualAmount: true },
       },
       quotes: {
         orderBy: { createdAt: "desc" },
@@ -92,6 +96,7 @@ async function getProject(id: string) {
       },
       variations: {
         orderBy: { dateRaised: "desc" },
+        select: { id: true, variationNumber: true, title: true, description: true, type: true, status: true, costImpact: true, valueImpact: true, dateRaised: true },
       },
       designCards: {
         include: {

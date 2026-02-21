@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { formatCurrency, prettifyEnum, getProjectStatusColor, getSalesStageColor } from "@/lib/utils"
 import Link from "next/link"
 
-export const revalidate = 30
+export const revalidate = 120
 
 async function getReportData() {
   const [
