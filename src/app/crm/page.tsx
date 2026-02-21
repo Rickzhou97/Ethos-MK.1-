@@ -23,7 +23,7 @@ export default async function CrmPage({
   const view = params.view || "pipeline"
 
   return (
-    <div className="space-y-4 max-w-full overflow-hidden">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900 shrink-0">CRM Pipeline</h1>

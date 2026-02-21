@@ -21,7 +21,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen">
       <Sidebar />
       <div className={cn(
-        "flex-1 min-w-0 transition-all duration-200",
+        "flex-1 min-w-0 w-full overflow-x-hidden transition-all duration-200",
         // Desktop: offset for sidebar width
         "md:pl-60",
         collapsed ? "md:pl-16" : "md:pl-60",
@@ -29,7 +29,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
         "pl-0"
       )}>
         <Header />
-        <main className={cn("p-3 sm:p-4 md:p-6", isCyber && "cyber-graffiti-bg", isSage && "sage-watermark-bg")}>{children}</main>
+        <main className={cn("p-3 sm:p-4 md:p-6 overflow-x-hidden", isCyber && "cyber-graffiti-bg", isSage && "sage-watermark-bg")}>{children}</main>
       </div>
     </div>
   )
