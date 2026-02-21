@@ -21,7 +21,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen">
       <Sidebar />
       <div className={cn(
-        "flex-1 transition-all duration-200",
+        "flex-1 min-w-0 transition-all duration-200",
         // Desktop: offset for sidebar width
         "md:pl-60",
         collapsed ? "md:pl-16" : "md:pl-60",
