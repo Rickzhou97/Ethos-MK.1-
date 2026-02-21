@@ -32,7 +32,6 @@ import {
   Zap,
   Leaf,
   Sun,
-  Type,
 } from "lucide-react"
 import { useLayout } from "./layout-context"
 import { useState, useEffect, useRef, useCallback } from "react"
@@ -68,7 +67,7 @@ type BadgeCounts = {
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { collapsed, toggleCollapsed, theme, setTheme, fontSize, setFontSize } = useLayout()
+  const { collapsed, toggleCollapsed, theme, setTheme } = useLayout()
   const { data: session } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [badges, setBadges] = useState<BadgeCounts>({ designHandovers: 0, productionIncoming: 0 })
@@ -348,75 +347,6 @@ export function Sidebar() {
               title="Switch theme"
             >
               {theme === "light" ? <Sun className="h-4 w-4" /> : theme === "cyberpunk" ? <Zap className="h-4 w-4 text-[#FCE300]" /> : <Leaf className="h-4 w-4 text-[#00B140]" />}
-            </button>
-          </div>
-        )}
-
-        {/* Font size toggles */}
-        {(!collapsed || mobileOpen) ? (
-          <div className="flex items-center gap-1 px-1">
-            <button
-              onClick={() => setFontSize("small")}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[10px] font-medium transition-colors",
-                fontSize === "small"
-                  ? isCyber ? "bg-[#1A1A1E] text-[#FCE300] border border-[#FCE300]/30"
-                    : isSage ? "bg-[#00B140]/15 text-[#00B140] border border-[#00B140]/30"
-                    : "bg-blue-50 text-blue-700"
-                  : isCyber ? "text-[#888] hover:bg-[#2A2A30] hover:text-[#FCE300]"
-                    : isSage ? "text-[#999] hover:bg-[#3A3A3A] hover:text-white"
-                    : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
-              )}
-              title="Small font size"
-            >
-              <span className="text-[9px]">A</span>
-            </button>
-            <button
-              onClick={() => setFontSize("normal")}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[10px] font-medium transition-colors",
-                fontSize === "normal"
-                  ? isCyber ? "bg-[#1A1A1E] text-[#FCE300] border border-[#FCE300]/30"
-                    : isSage ? "bg-[#00B140]/15 text-[#00B140] border border-[#00B140]/30"
-                    : "bg-blue-50 text-blue-700"
-                  : isCyber ? "text-[#888] hover:bg-[#2A2A30] hover:text-[#FCE300]"
-                    : isSage ? "text-[#999] hover:bg-[#3A3A3A] hover:text-white"
-                    : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
-              )}
-              title="Normal font size"
-            >
-              <span className="text-[11px]">A</span>
-            </button>
-            <button
-              onClick={() => setFontSize("large")}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[10px] font-medium transition-colors",
-                fontSize === "large"
-                  ? isCyber ? "bg-[#1A1A1E] text-[#FCE300] border border-[#FCE300]/30"
-                    : isSage ? "bg-[#00B140]/15 text-[#00B140] border border-[#00B140]/30"
-                    : "bg-blue-50 text-blue-700"
-                  : isCyber ? "text-[#888] hover:bg-[#2A2A30] hover:text-[#FCE300]"
-                    : isSage ? "text-[#999] hover:bg-[#3A3A3A] hover:text-white"
-                    : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
-              )}
-              title="Large font size"
-            >
-              <span className="text-[13px]">A</span>
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-1">
-            <button
-              onClick={() => setFontSize(fontSize === "small" ? "normal" : fontSize === "normal" ? "large" : "small")}
-              className={cn(
-                "p-1.5 rounded-md",
-                isCyber ? "text-[#888] hover:bg-[#2A2A30] hover:text-[#FCE300]"
-                  : isSage ? "text-[#999] hover:bg-[#3A3A3A] hover:text-white"
-                  : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
-              )}
-              title="Change font size"
-            >
-              <Type className="h-4 w-4" />
             </button>
           </div>
         )}
