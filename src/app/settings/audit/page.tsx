@@ -3,7 +3,23 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { History, Filter } from "lucide-react"
+import { History, Filter, Clock } from "lucide-react"
+import Link from "next/link"
+import { getProjectStatusColor, prettifyEnum } from "@/lib/utils"
+
+type TimeSummary = {
+  projectId: string
+  projectNumber: string
+  projectName: string
+  customerName: string
+  projectStatus: string
+  designDays: number | null
+  designHours: number | null
+  prodDays: number | null
+  prodHours: number | null
+  installDays: number | null
+  totalDays: number | null
+}
 
 type AuditEntry = {
   id: string
@@ -23,6 +39,8 @@ export default function AuditTrailPage() {
   const [logs, setLogs] = useState<AuditEntry[]>([])
   const [entityFilter, setEntityFilter] = useState("")
   const [loading, setLoading] = useState(true)
+  const [timeSummary, setTimeSummary] = useState<TimeSummary[]>([])
+  const [summaryLoading, setSummaryLoading] = useState(true)
 
   useEffect(() => {
     async function fetchLogs() {
@@ -36,6 +54,15 @@ export default function AuditTrailPage() {
     }
     fetchLogs()
   }, [entityFilter])
+
+  useEffect(() => {
+    async function fetchTimeSummary() {
+      const res = await fetch("/api/audit/time-summary")
+      if (res.ok) setTimeSummary(await res.json())
+      setSummaryLoading(false)
+    }
+    fetchTimeSummary()
+  }, [])
 
   const actionColors: Record<string, string> = {
     CREATE: "bg-green-100 text-green-800",
@@ -68,6 +95,66 @@ export default function AuditTrailPage() {
         </select>
       </div>
 
+      {/* Project Time Summary */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Clock className="h-4 w-4 text-gray-400" />
+            Project Time Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {summaryLoading ? (
+            <div className="px-4 py-12 text-center text-sm text-gray-500">Loading...</div>
+          ) : timeSummary.length === 0 ? (
+            <div className="px-4 py-12 text-center text-sm text-gray-500">No time data available.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-t border-border bg-gray-50/50">
+                    <th className="px-3 py-2.5 text-left text-xs font-medium uppercase text-gray-500">Project</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-medium uppercase text-gray-500">Customer</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-medium uppercase text-gray-500">Status</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-medium uppercase text-gray-500">Design (days)</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-medium uppercase text-gray-500">Design (hrs)</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-medium uppercase text-gray-500">Production (days)</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-medium uppercase text-gray-500">Production (hrs)</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-medium uppercase text-gray-500">Install (days)</th>
+                    <th className="px-3 py-2.5 text-right text-xs font-medium uppercase text-gray-500 font-semibold">Total (days)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {timeSummary.map((s) => (
+                    <tr key={s.projectId} className="hover:bg-gray-50">
+                      <td className="px-3 py-2">
+                        <Link href={`/projects/${s.projectId}`} className="text-blue-600 hover:text-blue-700 font-mono text-xs font-semibold">
+                          {s.projectNumber}
+                        </Link>
+                        <div className="text-xs text-gray-500 truncate max-w-[160px]">{s.projectName}</div>
+                      </td>
+                      <td className="px-3 py-2 text-xs text-gray-500">{s.customerName}</td>
+                      <td className="px-3 py-2">
+                        <Badge variant="secondary" className={`${getProjectStatusColor(s.projectStatus)} text-[10px]`}>
+                          {prettifyEnum(s.projectStatus)}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-2 text-right font-mono text-xs">{s.designDays ?? "—"}</td>
+                      <td className="px-3 py-2 text-right font-mono text-xs">{s.designHours != null ? `${s.designHours}h` : "—"}</td>
+                      <td className="px-3 py-2 text-right font-mono text-xs">{s.prodDays ?? "—"}</td>
+                      <td className="px-3 py-2 text-right font-mono text-xs">{s.prodHours != null ? `${s.prodHours}h` : "—"}</td>
+                      <td className="px-3 py-2 text-right font-mono text-xs">{s.installDays ?? "—"}</td>
+                      <td className="px-3 py-2 text-right font-mono text-xs font-semibold text-gray-900">{s.totalDays ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
