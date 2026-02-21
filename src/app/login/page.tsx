@@ -59,7 +59,7 @@ export default function LoginPage() {
       style={{
         backgroundImage: "url('/login-bg.jpg')",
         backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundPosition: "center top",
         backgroundRepeat: "no-repeat",
       }}
     >
@@ -177,7 +177,7 @@ export default function LoginPage() {
         {/* Mission statement */}
         <div className="text-center space-y-2 pt-2">
           <p className="text-lg font-bold tracking-wide text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]">
-            Engineering safe havens<br />for human civilisation
+            Engineering safe havens<br />for human civilization
           </p>
           <p className="text-amber-400 text-xs font-semibold tracking-[0.35em] uppercase">
             — MX27 —
