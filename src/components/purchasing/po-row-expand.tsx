@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { formatCurrency, formatDate, prettifyEnum } from "@/lib/utils"
-import { ChevronDown, ChevronUp, Package, Check } from "lucide-react"
+import { ChevronDown, ChevronUp, Package, Check, Plus } from "lucide-react"
 import Link from "next/link"
 
 type PoLine = {
@@ -55,6 +55,20 @@ export function PoTableRow({ po }: { po: Po }) {
   const [receiveNotes, setReceiveNotes] = useState("")
   const [saving, setSaving] = useState(false)
   const [currentStatus, setCurrentStatus] = useState(po.status)
+  const [addingLine, setAddingLine] = useState(false)
+  const [newDesc, setNewDesc] = useState("")
+  const [newQty, setNewQty] = useState("1")
+  const [newUnitCost, setNewUnitCost] = useState("")
+  const [lineCount, setLineCount] = useState(po._count.poLines)
+
+  async function refreshLines() {
+    const res = await fetch(`/api/purchase-orders/${po.id}`)
+    if (res.ok) {
+      const data = await res.json()
+      setLines(data.poLines || [])
+      setLineCount(data.poLines?.length || 0)
+    }
+  }
 
   async function toggleExpand() {
     if (expanded) {
@@ -62,15 +76,32 @@ export function PoTableRow({ po }: { po: Po }) {
       return
     }
     setExpanded(true)
-    if (lines.length === 0) {
-      setLoading(true)
-      const res = await fetch(`/api/purchase-orders/${po.id}`)
-      if (res.ok) {
-        const data = await res.json()
-        setLines(data.poLines || [])
-      }
-      setLoading(false)
+    setLoading(true)
+    await refreshLines()
+    setLoading(false)
+  }
+
+  async function handleAddLine() {
+    if (!newDesc.trim()) return
+    setSaving(true)
+    const res = await fetch(`/api/purchase-orders/${po.id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        description: newDesc.trim(),
+        quantity: newQty,
+        unitCost: newUnitCost || undefined,
+      }),
+    })
+    if (res.ok) {
+      setAddingLine(false)
+      setNewDesc("")
+      setNewQty("1")
+      setNewUnitCost("")
+      await refreshLines()
+      router.refresh()
     }
+    setSaving(false)
   }
 
   async function handleReceive(lineId: string) {
@@ -92,13 +123,7 @@ export function PoTableRow({ po }: { po: Po }) {
       setReceivingLine(null)
       setReceiveQty("")
       setReceiveNotes("")
-
-      // Refresh line data
-      const res2 = await fetch(`/api/purchase-orders/${po.id}`)
-      if (res2.ok) {
-        const data = await res2.json()
-        setLines(data.poLines || [])
-      }
+      await refreshLines()
       router.refresh()
     }
     setSaving(false)
@@ -137,7 +162,7 @@ export function PoTableRow({ po }: { po: Po }) {
         <td className="px-3 py-2.5 text-right font-mono text-sm font-medium">
           {po.totalValue ? formatCurrency(Number(po.totalValue)) : "—"}
         </td>
-        <td className="px-3 py-2.5 text-center text-xs text-gray-600">{po._count.poLines}</td>
+        <td className="px-3 py-2.5 text-center text-xs text-gray-600">{lineCount}</td>
       </tr>
 
       {expanded && (
@@ -146,109 +171,166 @@ export function PoTableRow({ po }: { po: Po }) {
             <div className="border border-border rounded-lg overflow-hidden bg-white">
               {loading ? (
                 <div className="px-4 py-6 text-center text-xs text-gray-500">Loading lines...</div>
-              ) : lines.length === 0 ? (
-                <div className="px-4 py-6 text-center text-xs text-gray-500">No line items on this PO.</div>
               ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-gray-50/80 border-b border-border">
-                      <th className="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500">Description</th>
-                      <th className="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500">Qty</th>
-                      <th className="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500">Unit Cost</th>
-                      <th className="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500">Total</th>
-                      <th className="px-3 py-2 text-center text-xs font-medium uppercase text-gray-500">Received</th>
-                      <th className="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {lines.map((line) => (
-                      <tr key={line.id} className={line.received ? "bg-green-50/30" : ""}>
-                        <td className="px-3 py-2">
-                          <div className="text-sm text-gray-900">{line.description}</div>
-                          {line.product?.partCode && (
-                            <div className="text-xs text-gray-400 font-mono">{line.product.partCode}</div>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-right font-mono text-xs">{line.quantity}</td>
-                        <td className="px-3 py-2 text-right font-mono text-xs">
-                          {line.unitCost != null ? formatCurrency(Number(line.unitCost)) : "—"}
-                        </td>
-                        <td className="px-3 py-2 text-right font-mono text-xs">
-                          {line.totalCost != null ? formatCurrency(Number(line.totalCost)) : "—"}
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          {line.received ? (
-                            <Badge variant="secondary" className="bg-green-100 text-green-700 text-[10px]">
-                              <Check className="h-3 w-3 mr-0.5" />
-                              {line.receivedQty}/{line.quantity}
-                            </Badge>
-                          ) : line.receivedQty > 0 ? (
-                            <Badge variant="secondary" className="bg-amber-100 text-amber-700 text-[10px]">
-                              {line.receivedQty}/{line.quantity}
-                            </Badge>
-                          ) : (
-                            <span className="text-xs text-gray-400">0/{line.quantity}</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          {receivingLine === line.id ? (
-                            <div className="flex items-center gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
-                              <Input
-                                type="number"
-                                min={0}
-                                max={line.quantity}
-                                value={receiveQty}
-                                onChange={(e) => setReceiveQty(e.target.value)}
-                                placeholder="Qty"
-                                className="w-16 h-7 text-xs"
-                              />
-                              <Input
-                                value={receiveNotes}
-                                onChange={(e) => setReceiveNotes(e.target.value)}
-                                placeholder="Notes"
-                                className="w-24 h-7 text-xs"
-                              />
-                              <Button
-                                size="sm"
-                                className="h-7 text-xs px-2"
-                                onClick={() => handleReceive(line.id)}
-                                disabled={saving || !receiveQty}
-                              >
-                                {saving ? "..." : "OK"}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-7 text-xs px-2"
-                                onClick={() => {
-                                  setReceivingLine(null)
-                                  setReceiveQty("")
-                                  setReceiveNotes("")
-                                }}
-                              >
-                                ×
-                              </Button>
-                            </div>
-                          ) : !line.received ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 text-xs"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setReceivingLine(line.id)
-                                setReceiveQty(String(line.quantity - line.receivedQty))
-                              }}
-                            >
-                              <Package className="h-3 w-3 mr-1" />
-                              Receive
-                            </Button>
-                          ) : null}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <>
+                  {lines.length > 0 && (
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-gray-50/80 border-b border-border">
+                          <th className="px-3 py-2 text-left text-xs font-medium uppercase text-gray-500">Description</th>
+                          <th className="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500">Qty</th>
+                          <th className="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500">Unit Cost</th>
+                          <th className="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500">Total</th>
+                          <th className="px-3 py-2 text-center text-xs font-medium uppercase text-gray-500">Received</th>
+                          <th className="px-3 py-2 text-right text-xs font-medium uppercase text-gray-500">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {lines.map((line) => (
+                          <tr key={line.id} className={line.received ? "bg-green-50/30" : ""}>
+                            <td className="px-3 py-2">
+                              <div className="text-sm text-gray-900">{line.description}</div>
+                              {line.product?.partCode && (
+                                <div className="text-xs text-gray-400 font-mono">{line.product.partCode}</div>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 text-right font-mono text-xs">{line.quantity}</td>
+                            <td className="px-3 py-2 text-right font-mono text-xs">
+                              {line.unitCost != null ? formatCurrency(Number(line.unitCost)) : "—"}
+                            </td>
+                            <td className="px-3 py-2 text-right font-mono text-xs">
+                              {line.totalCost != null ? formatCurrency(Number(line.totalCost)) : "—"}
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              {line.received ? (
+                                <Badge variant="secondary" className="bg-green-100 text-green-700 text-[10px]">
+                                  <Check className="h-3 w-3 mr-0.5" />
+                                  {line.receivedQty}/{line.quantity}
+                                </Badge>
+                              ) : line.receivedQty > 0 ? (
+                                <Badge variant="secondary" className="bg-amber-100 text-amber-700 text-[10px]">
+                                  {line.receivedQty}/{line.quantity}
+                                </Badge>
+                              ) : (
+                                <span className="text-xs text-gray-400">0/{line.quantity}</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 text-right">
+                              {receivingLine === line.id ? (
+                                <div className="flex items-center gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    max={line.quantity}
+                                    value={receiveQty}
+                                    onChange={(e) => setReceiveQty(e.target.value)}
+                                    placeholder="Qty"
+                                    className="w-16 h-7 text-xs"
+                                  />
+                                  <Input
+                                    value={receiveNotes}
+                                    onChange={(e) => setReceiveNotes(e.target.value)}
+                                    placeholder="Notes"
+                                    className="w-24 h-7 text-xs"
+                                  />
+                                  <Button
+                                    size="sm"
+                                    className="h-7 text-xs px-2"
+                                    onClick={() => handleReceive(line.id)}
+                                    disabled={saving || !receiveQty}
+                                  >
+                                    {saving ? "..." : "OK"}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 text-xs px-2"
+                                    onClick={() => {
+                                      setReceivingLine(null)
+                                      setReceiveQty("")
+                                      setReceiveNotes("")
+                                    }}
+                                  >
+                                    ×
+                                  </Button>
+                                </div>
+                              ) : !line.received ? (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setReceivingLine(line.id)
+                                    setReceiveQty(String(line.quantity - line.receivedQty))
+                                  }}
+                                >
+                                  <Package className="h-3 w-3 mr-1" />
+                                  Receive
+                                </Button>
+                              ) : null}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+
+                  {/* Add Line */}
+                  <div className="px-3 py-2 border-t border-border" onClick={(e) => e.stopPropagation()}>
+                    {addingLine ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={newDesc}
+                          onChange={(e) => setNewDesc(e.target.value)}
+                          placeholder="Item description *"
+                          className="flex-1 h-7 text-xs"
+                          autoFocus
+                        />
+                        <Input
+                          type="number"
+                          min={1}
+                          value={newQty}
+                          onChange={(e) => setNewQty(e.target.value)}
+                          placeholder="Qty"
+                          className="w-16 h-7 text-xs"
+                        />
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={newUnitCost}
+                          onChange={(e) => setNewUnitCost(e.target.value)}
+                          placeholder="Unit £"
+                          className="w-20 h-7 text-xs"
+                        />
+                        <Button
+                          size="sm"
+                          className="h-7 text-xs px-2"
+                          onClick={handleAddLine}
+                          disabled={saving || !newDesc.trim()}
+                        >
+                          {saving ? "..." : "Add"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-xs px-2"
+                          onClick={() => { setAddingLine(false); setNewDesc(""); setNewQty("1"); setNewUnitCost("") }}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ) : (
+                      <button
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium"
+                        onClick={() => setAddingLine(true)}
+                      >
+                        <Plus className="h-3 w-3" />
+                        Add Line Item
+                      </button>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </td>

@@ -40,6 +40,45 @@ export async function PATCH(
   return NextResponse.json(po)
 }
 
+// Add a line to this PO
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const body = await request.json()
+
+  if (!body.description) {
+    return NextResponse.json({ error: "description required" }, { status: 400 })
+  }
+
+  const qty = parseInt(body.quantity, 10) || 1
+  const unitCost = body.unitCost ? parseFloat(body.unitCost) : null
+  const totalCost = unitCost ? unitCost * qty : null
+
+  const line = await prisma.purchaseOrderLine.create({
+    data: {
+      poId: id,
+      description: body.description,
+      quantity: qty,
+      unitCost,
+      totalCost,
+    },
+  })
+
+  // Recalculate PO total from all lines
+  const allLines = await prisma.purchaseOrderLine.findMany({
+    where: { poId: id },
+    select: { totalCost: true },
+  })
+  const newTotal = allLines.reduce((sum, l) => sum + (Number(l.totalCost) || 0), 0)
+  if (newTotal > 0) {
+    await prisma.purchaseOrder.update({ where: { id }, data: { totalValue: newTotal } })
+  }
+
+  return NextResponse.json(line, { status: 201 })
+}
+
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
