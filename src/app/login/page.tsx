@@ -59,7 +59,7 @@ export default function LoginPage() {
       style={{
         backgroundImage: "url('/login-bg.jpg')",
         backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundPosition: "center 70%",
         backgroundRepeat: "no-repeat",
       }}
     >
