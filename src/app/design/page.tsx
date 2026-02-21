@@ -14,7 +14,6 @@ async function getDesignDashboardData() {
         OR: [
           { designCards: { some: {} } },
           {
-            products: { some: {} },
             designCards: { none: {} },
             projectStatus: { notIn: ["OPPORTUNITY", "QUOTATION", "COMPLETE"] },
           },
