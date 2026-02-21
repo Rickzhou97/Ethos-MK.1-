@@ -3,11 +3,15 @@ import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
 import { getNextStage } from "@/lib/production-utils"
 import type { ProductionStage } from "@/generated/prisma/client"
+import { requirePermission } from "@/lib/api-auth"
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requirePermission("production:inspect")
+  if (denied) return denied
+
   const { id } = await params
   const body = await request.json()
   const {

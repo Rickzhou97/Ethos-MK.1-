@@ -1,11 +1,15 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
+import { requirePermission } from "@/lib/api-auth"
 
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requirePermission("production:manage")
+  if (denied) return denied
+
   const { id } = await params
 
   const task = await prisma.productionTask.findUnique({ where: { id } })

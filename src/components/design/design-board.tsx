@@ -4,6 +4,7 @@ import { useState, useEffect, memo, useCallback } from "react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { usePermissions } from "@/hooks/use-permissions"
 import { AssignJobsDialog } from "./assign-jobs-dialog"
 
 type JobCard = {
@@ -279,6 +280,10 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
   const [proposing, setProposing] = useState(false)
   const [localHandoverStatus, setLocalHandoverStatus] = useState(project.handover?.status || null)
   const [activated, setActivated] = useState(false)
+  const { can } = usePermissions()
+  const canAssign = can("design:assign")
+  const canHandover = can("design:handover-create")
+  const canManageDesign = can("design:manage")
   const hasDesignCards = project.designCards.length > 0 || activated
 
   const totalJobs = project.designCards.reduce((s, c) => s + c.jobCards.length, 0)
@@ -459,8 +464,8 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
             )}
           </div>
 
-          {/* Action buttons based on column */}
-          {isDesignComplete && !handoverStatus ? (
+          {/* Action buttons based on column — hidden for read-only users */}
+          {isDesignComplete && !handoverStatus && canHandover ? (
             <button
               onClick={(e) => {
                 e.preventDefault()
@@ -475,7 +480,7 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
               </svg>
               {proposing ? "Proposing..." : (allComplete ? "Propose Handover" : "Propose Partial Handover")}
             </button>
-          ) : isDesignComplete && handoverStatus === "REJECTED" ? (
+          ) : isDesignComplete && handoverStatus === "REJECTED" && canHandover ? (
             <button
               onClick={(e) => {
                 e.preventDefault()
@@ -487,7 +492,7 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
             >
               {proposing ? "Re-proposing..." : "Re-propose Handover"}
             </button>
-          ) : hasDesignCards ? (
+          ) : hasDesignCards && canAssign ? (
             <button
               onClick={(e) => {
                 e.preventDefault()
@@ -501,7 +506,7 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
               </svg>
               Assign
             </button>
-          ) : (
+          ) : !hasDesignCards && canManageDesign ? (
             <button
               onClick={(e) => {
                 e.preventDefault()
@@ -516,7 +521,7 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
               </svg>
               {activating ? "Activating..." : "Activate Design"}
             </button>
-          )}
+          ) : null}
         </div>
 
         {project.targetCompletion && (

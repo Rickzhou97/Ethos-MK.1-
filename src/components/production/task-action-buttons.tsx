@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Play, CheckCircle2, Pause, RotateCcw, Eye, XCircle, Lock } from "lucide-react"
 import { NcrRejectDialog } from "./ncr-reject-dialog"
+import { usePermissions } from "@/hooks/use-permissions"
 import type { WorkshopTask, WorkshopWorker } from "./workshop-view"
 
 export function TaskActionButtons({
@@ -19,6 +20,9 @@ export function TaskActionButtons({
   const [loading, setLoading] = useState(false)
   const [showWorkerSelect, setShowWorkerSelect] = useState(false)
   const [showNcrDialog, setShowNcrDialog] = useState(false)
+  const { can } = usePermissions()
+  const canManage = can("production:manage")
+  const canInspect = can("production:inspect")
 
   const callApi = async (url: string, body?: Record<string, unknown>) => {
     setLoading(true)
@@ -78,8 +82,10 @@ export function TaskActionButtons({
     )
   }
 
-  // PENDING or REWORK — show Start button
+  // PENDING or REWORK — show Start button (only for users with production:manage)
   if (task.status === "PENDING" || task.status === "REWORK") {
+    if (!canManage) return null
+
     const canStart = projectInRail
 
     if (showWorkerSelect) {
@@ -137,8 +143,9 @@ export function TaskActionButtons({
     )
   }
 
-  // IN_PROGRESS — show Complete and Hold buttons
+  // IN_PROGRESS — show Complete and Hold buttons (only for users with production:manage)
   if (task.status === "IN_PROGRESS") {
+    if (!canManage) return null
     return (
       <div className="flex flex-col gap-1">
         <button
@@ -163,8 +170,9 @@ export function TaskActionButtons({
     )
   }
 
-  // COMPLETED + inspection PENDING — show Inspect & Accept / Reject
+  // COMPLETED + inspection PENDING — show Inspect & Accept / Reject (only for users with production:inspect)
   if (task.status === "COMPLETED" && task.inspectionStatus === "PENDING") {
+    if (!canInspect) return null
     return (
       <>
         <div className="flex flex-col gap-1">
@@ -205,8 +213,9 @@ export function TaskActionButtons({
     )
   }
 
-  // ON_HOLD — show Resume
+  // ON_HOLD — show Resume (only for users with production:manage)
   if (task.status === "ON_HOLD") {
+    if (!canManage) return null
     return (
       <button
         onClick={() =>

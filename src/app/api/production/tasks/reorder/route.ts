@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { requirePermission } from "@/lib/api-auth"
 
 export async function POST(request: NextRequest) {
+  const denied = await requirePermission("production:manage")
+  if (denied) return denied
+
   const body = await request.json()
   const { taskIds } = body as { taskIds: string[] }
 

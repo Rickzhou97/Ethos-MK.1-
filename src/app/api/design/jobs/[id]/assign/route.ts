@@ -1,12 +1,16 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
+import { requirePermission } from "@/lib/api-auth"
 
 // POST /api/design/jobs/:id/assign — Assign a designer to a specific job card
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requirePermission("design:assign")
+  if (denied) return denied
+
   const { id } = await params
 
   let designerId: string

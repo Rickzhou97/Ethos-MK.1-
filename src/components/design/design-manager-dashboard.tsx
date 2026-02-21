@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import { usePermissions } from "@/hooks/use-permissions"
 import { AssignDesignerDialog } from "./assign-designer-dialog"
 import { DesignProgressCard } from "./design-progress-card"
 import { OverdueAlerts } from "./overdue-alerts"
@@ -90,6 +91,8 @@ export function DesignManagerDashboard({
 }: Props) {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [selectedCards, setSelectedCards] = useState<string[]>([])
+  const { can } = usePermissions()
+  const canAssign = can("design:assign")
 
   const totalQueued = queueGroups.reduce((sum, g) => sum + g.cards.length, 0)
   const totalLive = liveGroups.reduce((sum, g) => sum + g.cards.length, 0)
@@ -155,12 +158,14 @@ export function DesignManagerDashboard({
                         </Badge>
                       </td>
                       <td className="px-3 py-2">
-                        <button
-                          onClick={() => handleAssignClick([card.id])}
-                          className="text-xs text-blue-600 hover:underline"
-                        >
-                          Assign
-                        </button>
+                        {canAssign && (
+                          <button
+                            onClick={() => handleAssignClick([card.id])}
+                            className="text-xs text-blue-600 hover:underline"
+                          >
+                            Assign
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))

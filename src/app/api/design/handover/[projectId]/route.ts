@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
 import { DEFAULT_HANDOVER_CHECKLIST } from "@/lib/design-utils"
+import { requirePermission } from "@/lib/api-auth"
 
 // GET /api/design/handover/[projectId] — Fetch existing handover + design cards
 export async function GET(
@@ -47,6 +48,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ projectId: string }> }
 ) {
+  const denied = await requirePermission("design:handover-create")
+  if (denied) return denied
+
   const { projectId } = await params
 
   try {

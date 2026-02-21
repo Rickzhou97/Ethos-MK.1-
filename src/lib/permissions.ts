@@ -21,6 +21,7 @@ export type Permission =
   | "design:read" | "design:manage" | "design:assign"
   | "design:start" | "design:review" | "design:signoff"
   | "design:handover-create" | "design:handover-acknowledge"
+  | "production:read" | "production:manage" | "production:inspect"
 
 const ROLE_PERMISSIONS: Record<string, Permission[]> = {
   ADMIN: [
@@ -41,6 +42,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "design:read", "design:manage", "design:assign",
     "design:start", "design:review", "design:signoff",
     "design:handover-create", "design:handover-acknowledge",
+    "production:read", "production:manage", "production:inspect",
   ],
   ESTIMATOR: [
     "projects:read", "projects:create",
@@ -71,6 +73,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "team:read",
     "crm:read",
     "design:read", "design:manage", "design:assign", "design:handover-create",
+    "production:read",
   ],
   DESIGNER: [
     "projects:read",
@@ -83,6 +86,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "ncrs:read", "ncrs:create",
     "team:read",
     "design:read", "design:start", "design:review",
+    "production:read",
   ],
   PRODUCTION_MANAGER: [
     "projects:read",
@@ -97,6 +101,7 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "ncrs:read", "ncrs:create", "ncrs:edit",
     "team:read",
     "design:read", "design:handover-acknowledge",
+    "production:read", "production:manage", "production:inspect",
   ],
   SALES_DIRECTOR: [
     "projects:read",
@@ -109,6 +114,8 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "catalogue:read",
     "reports:read",
     "crm:read", "crm:create", "crm:edit", "crm:convert",
+    "design:read",
+    "production:read",
   ],
   VIEWER: [
     "projects:read",

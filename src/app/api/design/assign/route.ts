@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
+import { requirePermission } from "@/lib/api-auth"
 
 // POST /api/design/assign — Assign designer to design card(s)
 export async function POST(request: NextRequest) {
   try {
+    const denied = await requirePermission("design:assign")
+    if (denied) return denied
+
     const body = await request.json()
     const { designCardIds, designerId } = body
 
