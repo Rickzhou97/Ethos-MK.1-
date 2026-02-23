@@ -107,6 +107,12 @@ export function AssignJobsDialog({ open, onOpenChange, projectNumber, projectNam
 
         {/* Content */}
         <div className="overflow-y-auto flex-1 px-6 py-4">
+          {designCards.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-sm text-gray-500">No design cards found for this project.</p>
+              <p className="text-xs text-gray-400 mt-1">Activate design on products first using the &quot;+ Activate Design&quot; button on the project card.</p>
+            </div>
+          ) : (
           <div className="space-y-6">
             {designCards.map((card) => (
               <div key={card.id} className="border border-border rounded-lg overflow-hidden">
@@ -183,6 +189,7 @@ export function AssignJobsDialog({ open, onOpenChange, projectNumber, projectNam
               </div>
             ))}
           </div>
+          )}
         </div>
 
         {/* Footer */}
