@@ -17,6 +17,7 @@ export default async function MyWorkPage() {
           description: true,
           partCode: true,
           productJobNumber: true,
+          productionStatus: true,
         },
       },
       project: {

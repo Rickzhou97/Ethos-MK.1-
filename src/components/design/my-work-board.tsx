@@ -33,6 +33,7 @@ type DesignCard = {
     description: string
     partCode: string
     productJobNumber: string | null
+    productionStatus: string | null
   }
   project: {
     id: string
@@ -280,10 +281,39 @@ function WaitingWorkCard({ card, blockedJobType, onOpenBom }: { card: DesignCard
 }
 
 function ProductWorkCard({ card, onOpenBom, isLive }: { card: DesignCard; onOpenBom: (card: DesignCard) => void; isLive?: boolean }) {
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [sendError, setSendError] = useState<string | null>(null)
+
   // Find the current active job card for action buttons
   const activeJob = card.jobCards.find(
     (j) => j.status === "IN_PROGRESS" || j.status === "SUBMITTED" || j.status === "REJECTED" || j.status === "READY" || j.status === "APPROVED"
   )
+
+  const isComplete = card.status === "COMPLETE" && !activeJob
+  const alreadyInProduction = !!card.product.productionStatus
+
+  async function handleSendToHandover() {
+    setSending(true)
+    setSendError(null)
+    try {
+      const res = await fetch(`/api/design/handover/${card.project.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ includedProductIds: [card.product.id] }),
+      })
+      if (res.ok) {
+        setSent(true)
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setSendError(data.error || "Failed to send")
+      }
+    } catch {
+      setSendError("Network error")
+    } finally {
+      setSending(false)
+    }
+  }
 
   return (
     <div className={`rounded-lg border p-3 shadow-sm ${
@@ -355,21 +385,55 @@ function ProductWorkCard({ card, onOpenBom, isLive }: { card: DesignCard; onOpen
         </div>
       )}
 
-      {/* Completed indicator */}
-      {card.status === "COMPLETE" && !activeJob && (
-        <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-green-600">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-xs font-medium">Design Complete</span>
+      {/* Completed indicator + handover button */}
+      {isComplete && (
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-green-600">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="text-xs font-medium">Design Complete</span>
+            </div>
+            <button
+              onClick={() => onOpenBom(card)}
+              className="text-[10px] text-amber-600 hover:text-amber-700 hover:underline font-medium"
+            >
+              View BOM
+            </button>
           </div>
-          <button
-            onClick={() => onOpenBom(card)}
-            className="text-[10px] text-amber-600 hover:text-amber-700 hover:underline font-medium"
-          >
-            View BOM
-          </button>
+          {/* Handover action */}
+          {alreadyInProduction ? (
+            <div className="mt-2 flex items-center gap-1.5 px-2 py-1.5 rounded bg-blue-50 border border-blue-200">
+              <svg className="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span className="text-[10px] font-medium text-blue-600">In Production</span>
+            </div>
+          ) : sent ? (
+            <div className="mt-2 flex items-center gap-1.5 px-2 py-1.5 rounded bg-amber-50 border border-amber-200">
+              <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-[10px] font-medium text-amber-600">Handover Proposed</span>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={handleSendToHandover}
+                disabled={sending}
+                className="mt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-md bg-emerald-600 px-2.5 py-1.5 text-[11px] font-medium text-white hover:bg-emerald-700 transition-colors disabled:opacity-50"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                {sending ? "Sending..." : "Send to Handover"}
+              </button>
+              {sendError && (
+                <p className="mt-1 text-[9px] text-red-500">{sendError}</p>
+              )}
+            </>
+          )}
         </div>
       )}
     </div>
