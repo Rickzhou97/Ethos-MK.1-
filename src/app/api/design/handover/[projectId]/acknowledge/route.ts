@@ -169,6 +169,7 @@ export async function POST(
     }
 
     revalidatePath("/production")
+    revalidatePath("/production/dashboard")
     revalidatePath("/design")
 
     return NextResponse.json(JSON.parse(JSON.stringify(updatedHandover)))
