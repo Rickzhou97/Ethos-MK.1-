@@ -60,6 +60,7 @@ export function AssignJobsDialog({ open, onOpenChange, projectId, projectNumber,
   const [saved, setSaved] = useState<Record<string, boolean>>({})
   const [error, setError] = useState<string | null>(null)
   const [activating, setActivating] = useState(false)
+  const [dirty, setDirty] = useState(false)
   const [assignments, setAssignments] = useState<Record<string, string>>(() => {
     const map: Record<string, string> = {}
     for (const card of designCards) {
@@ -109,7 +110,7 @@ export function AssignJobsDialog({ open, onOpenChange, projectId, projectNumber,
         setAssignments((a) => ({ ...a, [jobCardId]: designerId }))
         setSaved((s) => ({ ...s, [jobCardId]: true }))
         setTimeout(() => setSaved((s) => ({ ...s, [jobCardId]: false })), 2000)
-        router.refresh()
+        setDirty(true)
       } else {
         const data = await res.json().catch(() => ({ error: "Unknown error" }))
         setError(data.error || `Failed to assign (${res.status})`)
@@ -163,13 +164,13 @@ export function AssignJobsDialog({ open, onOpenChange, projectId, projectNumber,
     for (const jc of jobs) clearMap[jc.id] = false
     setSaving((s) => ({ ...s, ...clearMap }))
 
-    if (!hasError) router.refresh()
+    if (!hasError) setDirty(true)
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30" onClick={() => onOpenChange(false)} />
+      <div className="absolute inset-0 bg-black/30" onClick={() => { if (dirty) router.refresh(); onOpenChange(false) }} />
 
       {/* Dialog */}
       <div className="relative bg-white rounded-lg shadow-xl border border-border w-full max-w-3xl mx-4 max-h-[85vh] flex flex-col">
@@ -326,7 +327,7 @@ export function AssignJobsDialog({ open, onOpenChange, projectId, projectNumber,
         <div className="px-6 py-3 border-t border-border bg-gray-50 rounded-b-lg shrink-0">
           <div className="flex justify-end">
             <button
-              onClick={() => onOpenChange(false)}
+              onClick={() => { if (dirty) router.refresh(); onOpenChange(false) }}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-border rounded-lg hover:bg-gray-50"
             >
               Done
