@@ -22,7 +22,14 @@ type DesignCard = {
     name: string
   }
   assignedDesigner: { id: string; name: string } | null
-  jobCards: { id: string; jobType: string; status: string }[]
+  jobCards: { id: string; jobType: string; status: string; assignedToId: string | null }[]
+}
+
+// Check if a card has any actionable work (not all BLOCKED/SIGNED_OFF)
+function hasActionableJobs(card: DesignCard): boolean {
+  return card.jobCards.some(
+    (jc) => jc.status !== "BLOCKED" && jc.status !== "SIGNED_OFF"
+  )
 }
 
 type Designer = {
@@ -178,8 +185,13 @@ export function DesignerWorkloadBoard({
         <div className="flex gap-3 overflow-x-auto pb-4">
           {columns.map((col) => {
             const colCards = grouped[col.id] || []
-            // Sort: IN_PROGRESS first, then REVIEW, then QUEUED, then rest
-            const sortedCards = [...colCards].sort((a, b) => {
+
+            // Split into active (has actionable jobs) and waiting (all jobs blocked)
+            const activeCards = colCards.filter(hasActionableJobs)
+            const waitingCards = colCards.filter((c) => !hasActionableJobs(c))
+
+            // Sort active: IN_PROGRESS first, then REVIEW, then QUEUED, then rest
+            const sortedActive = [...activeCards].sort((a, b) => {
               const order: Record<string, number> = { IN_PROGRESS: 0, REVIEW: 1, QUEUED: 2 }
               return (order[a.status] ?? 3) - (order[b.status] ?? 3)
             })
@@ -198,9 +210,16 @@ export function DesignerWorkloadBoard({
                     <div className="px-3 py-2.5 border-b border-border space-y-1.5">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold text-gray-700">{col.name}</span>
-                        <span className="flex items-center justify-center h-5 min-w-5 rounded-full bg-gray-200 px-1.5 text-[10px] font-semibold text-gray-600">
-                          {colCards.length}
-                        </span>
+                        <div className="flex items-center gap-1">
+                          <span className="flex items-center justify-center h-5 min-w-5 rounded-full bg-gray-200 px-1.5 text-[10px] font-semibold text-gray-600">
+                            {activeCards.length}
+                          </span>
+                          {waitingCards.length > 0 && (
+                            <span className="flex items-center justify-center h-5 min-w-5 rounded-full bg-orange-100 px-1.5 text-[10px] font-semibold text-orange-600" title="Allocated but not ready">
+                              +{waitingCards.length}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {colCards.length > 0 && (() => {
                         const remaining = calcRemainingDays(colCards)
@@ -223,10 +242,10 @@ export function DesignerWorkloadBoard({
                       })()}
                     </div>
 
-                    {/* All cards for this designer */}
-                    <div className="flex flex-col gap-2 p-2 min-h-[80px]">
-                      {sortedCards.length > 0 ? (
-                        sortedCards.map((card, idx) => (
+                    {/* Active cards — ready to work on */}
+                    <div className="flex flex-col gap-2 p-2 min-h-[60px]">
+                      {sortedActive.length > 0 ? (
+                        sortedActive.map((card, idx) => (
                           <Draggable key={card.id} draggableId={card.id} index={idx}>
                             {(dragProvided, dragSnapshot) => (
                               <div
@@ -247,6 +266,25 @@ export function DesignerWorkloadBoard({
                       )}
                       {provided.placeholder}
                     </div>
+
+                    {/* Not Ready section — allocated but predecessor not finished */}
+                    {waitingCards.length > 0 && (
+                      <div className="border-t border-dashed border-orange-300 mx-2">
+                        <div className="flex items-center gap-1.5 px-2 py-1.5">
+                          <svg className="w-3 h-3 text-orange-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                          <span className="text-[10px] font-semibold text-orange-600 uppercase">
+                            Not Ready ({waitingCards.length})
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-1.5 px-2 pb-2">
+                          {waitingCards.map((card) => (
+                            <WaitingCard key={card.id} card={card} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </Droppable>
@@ -255,6 +293,54 @@ export function DesignerWorkloadBoard({
         </div>
       </DragDropContext>
     </div>
+  )
+}
+
+function WaitingCard({ card }: { card: DesignCard }) {
+  // Find the next job that will become ready (first BLOCKED job)
+  const nextJob = card.jobCards.find((jc) => jc.status === "BLOCKED")
+  // Find the predecessor job that's blocking it
+  const predecessorJob = nextJob
+    ? card.jobCards[card.jobCards.indexOf(nextJob) - 1]
+    : null
+
+  return (
+    <Link href={`/projects/${card.project.id}`}>
+      <div className="rounded-md border border-orange-200 bg-orange-50/50 px-2.5 py-2 hover:bg-orange-50 transition-colors">
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className="text-[10px] font-mono text-gray-400">{card.project.projectNumber}</span>
+        </div>
+        <div className="text-[10px] font-medium text-gray-700 truncate">{card.product.description}</div>
+        <div className="text-[9px] text-gray-400 truncate">
+          {card.product.productJobNumber || card.product.partCode}
+        </div>
+        {predecessorJob && nextJob && (
+          <div className="mt-1 flex items-center gap-1 text-[9px] text-orange-600">
+            <span>Waiting for</span>
+            <span className="font-semibold">{JOB_TYPE_LABELS[predecessorJob.jobType] || predecessorJob.jobType}</span>
+            <span className="text-gray-400">({predecessorJob.status.replace(/_/g, " ").toLowerCase()})</span>
+          </div>
+        )}
+        {/* Mini progress dots */}
+        <div className="flex gap-1 mt-1.5">
+          {card.jobCards.map((jc) => (
+            <div
+              key={jc.id}
+              className={`h-1 flex-1 rounded-full ${
+                jc.status === "SIGNED_OFF" ? "bg-green-500" :
+                jc.status === "APPROVED" ? "bg-emerald-400" :
+                jc.status === "SUBMITTED" ? "bg-amber-400" :
+                jc.status === "IN_PROGRESS" ? "bg-blue-400" :
+                jc.status === "READY" ? "bg-slate-300" :
+                jc.status === "REJECTED" ? "bg-red-400" :
+                "bg-gray-200"
+              }`}
+              title={`${JOB_TYPE_LABELS[jc.jobType] || jc.jobType}: ${jc.status}`}
+            />
+          ))}
+        </div>
+      </div>
+    </Link>
   )
 }
 
