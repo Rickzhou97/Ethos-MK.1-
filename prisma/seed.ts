@@ -17,12 +17,32 @@ async function main() {
   prisma = await loadPrisma()
   console.log("Seeding database...")
 
-  // Clean existing data
+  // Clean existing data (order matters: delete leaf tables first, then parents)
+  // 1. Design workflow leaves
+  await prisma.designBomLine.deleteMany()
+  await prisma.designJobCard.deleteMany()
+  await prisma.productDesignCard.deleteMany()
+  await prisma.designHandover.deleteMany()
+  // 2. Production workflow
+  await prisma.productionTask.deleteMany()
+  // 3. Financial / document leaves
   await prisma.document.deleteMany()
   await prisma.purchaseOrderLine.deleteMany()
   await prisma.purchaseOrder.deleteMany()
   await prisma.quoteLine.deleteMany()
   await prisma.quote.deleteMany()
+  await prisma.nonConformanceReport.deleteMany()
+  await prisma.subContractorWork.deleteMany()
+  await prisma.retentionHoldback.deleteMany()
+  await prisma.plantHire.deleteMany()
+  await prisma.projectCostCategory.deleteMany()
+  await prisma.salesInvoice.deleteMany()
+  await prisma.variation.deleteMany()
+  await prisma.projectResourceEstimate.deleteMany()
+  // 4. Audit / misc
+  await prisma.auditLog.deleteMany()
+  await prisma.suggestion.deleteMany()
+  // 5. Core entities
   await prisma.product.deleteMany()
   await prisma.productCatalogue.deleteMany()
   await prisma.project.deleteMany()
@@ -558,7 +578,7 @@ async function main() {
     },
   })
 
-  await prisma.project.create({
+  const p200598 = await prisma.project.create({
     data: {
       projectNumber: "200598",
       name: "Weir Mill Flood Doors",
@@ -577,7 +597,35 @@ async function main() {
     },
   })
 
-  await prisma.project.create({
+  const weirMillProducts = [
+    { partCode: "DFD-0001", description: "Double Flood Door", details: "Weir Mill - Loading Bay Door 1", jobNo: "200598-1-1", dept: "DESIGN" as const, designer: "Andrew Robinson", due: "2026-04-15" },
+    { partCode: "DFD-0001", description: "Double Flood Door", details: "Weir Mill - Loading Bay Door 2", jobNo: "200598-1-2", dept: "DESIGN" as const, designer: "Andrew Robinson", due: "2026-04-30" },
+    { partCode: "SFD-0001", description: "Single Flood Door", details: "Weir Mill - Plant Room Door", jobNo: "200598-2-1", dept: "DESIGN" as const, designer: "Andrew Robinson", due: "2026-05-15" },
+    { partCode: "SFD-0001", description: "Single Flood Door", details: "Weir Mill - Emergency Exit Door", jobNo: "200598-3-1", dept: "DESIGN" as const, designer: "David Howells", due: "2026-05-30" },
+    { partCode: "SFD-0001", description: "Single Flood Door", details: "Weir Mill - Riverside Entrance", jobNo: "200598-4-1", dept: "PLANNING" as const, designer: "David Howells", due: "2026-06-15" },
+    { partCode: "DFD-0001", description: "Double Flood Door", details: "Weir Mill - Car Park Entrance", jobNo: "200598-5-1", dept: "PLANNING" as const, designer: "David Howells", due: "2026-07-01" },
+    { partCode: "TRANS-0001", description: "Transom above doorset", details: "Weir Mill - Loading Bay Transom 1", jobNo: "200598-1-3", dept: "DESIGN" as const, designer: "Andrew Robinson", due: "2026-04-15" },
+    { partCode: "TRANS-0001", description: "Transom above doorset", details: "Weir Mill - Loading Bay Transom 2", jobNo: "200598-1-4", dept: "DESIGN" as const, designer: "Andrew Robinson", due: "2026-04-30" },
+  ]
+
+  for (const p of weirMillProducts) {
+    await prisma.product.create({
+      data: {
+        projectId: p200598.id,
+        partCode: p.partCode,
+        description: p.description,
+        additionalDetails: p.details,
+        productJobNumber: p.jobNo,
+        quantity: 1,
+        currentDepartment: p.dept,
+        allocatedDesignerId: userMap[p.designer]?.id,
+        coordinatorId: userMap["Richard Guest"].id,
+        requiredCompletionDate: new Date(p.due),
+      },
+    })
+  }
+
+  const p200615 = await prisma.project.create({
     data: {
       projectNumber: "200615",
       name: "Barmouth Viaduct Garden",
@@ -595,6 +643,33 @@ async function main() {
       targetCompletion: new Date("2026-07-31"),
     },
   })
+
+  const barmouthProducts = [
+    { partCode: "SFGEXC3-0001", description: "Single Flood Gate - EXC3", details: "Barmouth Viaduct - Pedestrian Gate North", jobNo: "200615-1-1", dept: "DESIGN" as const, designer: "Gregg Hughes", due: "2026-04-01" },
+    { partCode: "SFGEXC3-0001", description: "Single Flood Gate - EXC3", details: "Barmouth Viaduct - Pedestrian Gate South", jobNo: "200615-1-2", dept: "DESIGN" as const, designer: "Gregg Hughes", due: "2026-04-15" },
+    { partCode: "DFGEXC3-0001", description: "Double Flood Gate - EXC3", details: "Barmouth Viaduct - Vehicle Gate", jobNo: "200615-2-1", dept: "DESIGN" as const, designer: "Gregg Hughes", due: "2026-05-01" },
+    { partCode: "FLOODWALL", description: "Steel Flood Wall", details: "Barmouth Garden - Flood Wall Section A", jobNo: "200615-3-1", dept: "PLANNING" as const, designer: "Gregg Hughes", due: "2026-05-15" },
+    { partCode: "FLOODWALL", description: "Steel Flood Wall", details: "Barmouth Garden - Flood Wall Section B", jobNo: "200615-3-2", dept: "PLANNING" as const, designer: "Gregg Hughes", due: "2026-06-01" },
+    { partCode: "DB-0002", description: "Demountable Barrier - 300mm board height", details: "Barmouth Garden - Demountable Barrier", jobNo: "200615-4-1", dept: "PLANNING" as const, designer: "Gregg Hughes", due: "2026-06-15" },
+    { partCode: "PFG-0001", description: "Pedestrian Flood Gate", details: "Barmouth Promenade - PFG", jobNo: "200615-5-1", dept: "DESIGN" as const, designer: "Gregg Hughes", due: "2026-07-01" },
+  ]
+
+  for (const p of barmouthProducts) {
+    await prisma.product.create({
+      data: {
+        projectId: p200615.id,
+        partCode: p.partCode,
+        description: p.description,
+        additionalDetails: p.details,
+        productJobNumber: p.jobNo,
+        quantity: 1,
+        currentDepartment: p.dept,
+        allocatedDesignerId: userMap[p.designer]?.id,
+        coordinatorId: userMap["Stephen McDermid"].id,
+        requiredCompletionDate: new Date(p.due),
+      },
+    })
+  }
 
   console.log("Seeding complete!")
   console.log(`Created: ${users.length} users (JRD-aligned), ${customers.length} customers, ${catalogueItems.length} catalogue items`)
