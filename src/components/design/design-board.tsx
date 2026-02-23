@@ -532,6 +532,7 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
       <AssignJobsDialog
         open={assignOpen}
         onOpenChange={setAssignOpen}
+        projectId={project.id}
         projectNumber={project.projectNumber}
         projectName={project.name}
         designCards={project.designCards}
