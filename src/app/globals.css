@@ -83,9 +83,9 @@
 }
 
 /* Font size scaling — controlled by layout-context via class on <html> */
-html { font-size: 16px; }
-html.font-small { font-size: 14px; }
-html.font-large { font-size: 20px; }
+html { font-size: 18px; }
+html.font-small { font-size: 16px; }
+html.font-large { font-size: 22px; }
 
 .dark {
   --background: oklch(0.145 0 0);
