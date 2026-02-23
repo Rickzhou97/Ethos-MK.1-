@@ -35,6 +35,7 @@ import { AddProductDialog } from "@/components/projects/add-product-dialog"
 import { RaiseNcrDialog } from "@/components/projects/raise-ncr-dialog"
 import { DocumentManager } from "@/components/projects/document-manager"
 import { ProjectActivityLog } from "@/components/projects/project-activity-log"
+import { ProductHandoverButton } from "@/components/projects/product-handover-button"
 
 export const revalidate = 60
 
@@ -199,6 +200,12 @@ export default async function ProjectDetailPage({
   project.products.forEach((p) => {
     departmentCounts[p.currentDepartment] = (departmentCounts[p.currentDepartment] || 0) + 1
   })
+
+  // Map product ID → design card status for handover button
+  const designCardStatusMap: Record<string, string> = {}
+  for (const dc of project.designCards) {
+    designCardStatusMap[dc.product.id] = dc.status
+  }
 
   const estimatedValue = Number(project.estimatedValue) || 0
   const contractValue = Number(project.contractValue) || 0
@@ -417,6 +424,7 @@ export default async function ProjectDetailPage({
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Designer</th>
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase text-gray-500">Due</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase text-gray-500">RAG</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium uppercase text-gray-500">Handover</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -450,12 +458,20 @@ export default async function ProjectDetailPage({
                           <td className="px-4 py-3 text-center">
                             <div className={`mx-auto h-3 w-3 rounded-full ${getRagColor(scheduleRag)}`} />
                           </td>
+                          <td className="px-4 py-3 text-center">
+                            <ProductHandoverButton
+                              projectId={project.id}
+                              productId={product.id}
+                              designStatus={designCardStatusMap[product.id] || null}
+                              productionStatus={product.productionStatus}
+                            />
+                          </td>
                         </tr>
                       )
                     })}
                     {project.products.length === 0 && (
                       <tr>
-                        <td colSpan={10} className="px-4 py-12 text-center text-gray-500">
+                        <td colSpan={11} className="px-4 py-12 text-center text-gray-500">
                           No products added to this project yet.
                         </td>
                       </tr>
