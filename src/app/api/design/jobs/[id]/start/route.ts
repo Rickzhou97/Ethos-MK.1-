@@ -28,40 +28,50 @@ export async function POST(
     return NextResponse.json({ error: "Job card not found" }, { status: 404 })
   }
 
-  if (jobCard.status !== "READY") {
+  // Allow starting from READY (first time) or REJECTED (re-work)
+  if (jobCard.status !== "READY" && jobCard.status !== "REJECTED") {
     return NextResponse.json(
-      { error: `Cannot start job card: current status is ${jobCard.status}, expected READY` },
+      { error: `Cannot start job card: current status is ${jobCard.status}, expected READY or REJECTED` },
       { status: 400 }
     )
   }
 
-  // Validate dependency is met
-  const siblingCards = jobCard.designCard.jobCards
-  if (!canStartJob(jobCard.jobType, siblingCards)) {
-    return NextResponse.json(
-      { error: "Cannot start this job: prerequisite job has not been approved or signed off" },
-      { status: 400 }
-    )
+  // Validate dependency is met (skip for re-work — it was already started before)
+  if (jobCard.status === "READY") {
+    const siblingCards = jobCard.designCard.jobCards
+    if (!canStartJob(jobCard.jobType, siblingCards)) {
+      return NextResponse.json(
+        { error: "Cannot start this job: prerequisite job has not been approved or signed off" },
+        { status: 400 }
+      )
+    }
   }
 
+  const previousStatus = jobCard.status
   const now = new Date()
 
-  // Update job card status to IN_PROGRESS
+  // Update job card status to IN_PROGRESS (clear rejection data on re-work)
+  const updateData: Record<string, unknown> = {
+    status: "IN_PROGRESS",
+    startedAt: now,
+  }
+  if (previousStatus === "REJECTED") {
+    updateData.rejectedAt = null
+    updateData.rejectionReason = null
+  }
+
   const updated = await prisma.designJobCard.update({
     where: { id },
-    data: {
-      status: "IN_PROGRESS",
-      startedAt: now,
-    },
+    data: updateData,
   })
 
   // If the parent design card is still QUEUED, move it to IN_PROGRESS
-  if (jobCard.designCard.status === "QUEUED") {
+  if (jobCard.designCard.status === "QUEUED" || jobCard.designCard.status === "REVIEW") {
     await prisma.productDesignCard.update({
       where: { id: jobCard.designCardId },
       data: {
         status: "IN_PROGRESS",
-        actualStartDate: now,
+        ...(jobCard.designCard.status === "QUEUED" ? { actualStartDate: now } : {}),
       },
     })
   }
@@ -71,9 +81,9 @@ export async function POST(
     entity: "DesignJobCard",
     entityId: id,
     field: "status",
-    oldValue: "READY",
+    oldValue: previousStatus,
     newValue: "IN_PROGRESS",
-    metadata: JSON.stringify({ designCardId: jobCard.designCardId }),
+    metadata: JSON.stringify({ designCardId: jobCard.designCardId, isRework: previousStatus === "REJECTED" }),
   })
 
   revalidatePath("/design")
