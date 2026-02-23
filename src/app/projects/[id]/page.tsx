@@ -34,6 +34,7 @@ import { ProductStatusActions } from "@/components/projects/product-status-actio
 import { AddProductDialog } from "@/components/projects/add-product-dialog"
 import { RaiseNcrDialog } from "@/components/projects/raise-ncr-dialog"
 import { DocumentManager } from "@/components/projects/document-manager"
+import { ProjectActivityLog } from "@/components/projects/project-activity-log"
 
 export const revalidate = 60
 
@@ -108,6 +109,9 @@ async function getProject(id: string) {
       designHandover: {
         select: { id: true, status: true, initiatedAt: true, acknowledgedAt: true },
       },
+      projectNotes: {
+        orderBy: { createdAt: "desc" },
+      },
       _count: {
         select: {
           products: true,
@@ -117,11 +121,25 @@ async function getProject(id: string) {
           ncrs: true,
           variations: true,
           designCards: true,
+          projectNotes: true,
         },
       },
     },
   })
   return project
+}
+
+async function getProjectAuditEntries(projectId: string) {
+  return prisma.auditLog.findMany({
+    where: {
+      OR: [
+        { entity: "Project", entityId: projectId },
+        { entity: "DesignHandover", metadata: { contains: projectId } },
+      ],
+    },
+    orderBy: { createdAt: "desc" },
+    take: 100,
+  })
 }
 
 function getRagBadge(rag: string | null) {
@@ -159,7 +177,7 @@ export default async function ProjectDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const [project, catalogueItems, users] = await Promise.all([
+  const [project, catalogueItems, users, auditEntries] = await Promise.all([
     getProject(id),
     prisma.productCatalogue.findMany({
       orderBy: { partCode: "asc" },
@@ -169,6 +187,7 @@ export default async function ProjectDetailPage({
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
+    getProjectAuditEntries(id),
   ])
 
   if (!project) {
@@ -359,6 +378,7 @@ export default async function ProjectDetailPage({
             <TabsTrigger value="design">Design ({project._count.designCards})</TabsTrigger>
           )}
           <TabsTrigger value="documents">Documents ({project._count.documents})</TabsTrigger>
+          <TabsTrigger value="activity">Activity ({project._count.projectNotes})</TabsTrigger>
         </TabsList>
 
         {/* Products Tab */}
@@ -1192,6 +1212,15 @@ export default async function ProjectDetailPage({
               partCode: p.partCode,
               description: p.description,
             }))}
+          />
+        </TabsContent>
+
+        {/* Activity Tab */}
+        <TabsContent value="activity">
+          <ProjectActivityLog
+            projectId={project.id}
+            initialNotes={JSON.parse(JSON.stringify(project.projectNotes))}
+            auditEntries={JSON.parse(JSON.stringify(auditEntries))}
           />
         </TabsContent>
       </Tabs>

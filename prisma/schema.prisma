@@ -428,6 +428,9 @@ model Project {
   // Production module relations
   productionTasks ProductionTask[]
 
+  // Activity log
+  projectNotes ProjectNote[]
+
   @@index([projectStatus])
   @@index([salesStage])
   @@index([priority])
@@ -1361,6 +1364,26 @@ model Suggestion {
 
   @@index([createdAt])
   @@map("suggestions")
+}
+
+// ============================================================
+// PROJECT NOTES / ACTIVITY LOG
+// ============================================================
+
+model ProjectNote {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String?
+  userName  String
+  message   String
+  category  String   @default("NOTE") // NOTE, MILESTONE, DECISION, ISSUE
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@index([projectId, createdAt])
+  @@map("project_notes")
 }
 
 // ============================================================
