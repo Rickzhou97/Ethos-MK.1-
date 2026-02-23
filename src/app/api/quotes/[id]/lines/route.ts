@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 import {
   calculateCostTotal,
   calculateSellPrice,
@@ -66,6 +67,9 @@ export async function POST(
   })
 
   await recalcQuoteTotals(quoteId)
+
+  revalidatePath("/quotes")
+  revalidatePath("/finance")
 
   return NextResponse.json(line, { status: 201 })
 }

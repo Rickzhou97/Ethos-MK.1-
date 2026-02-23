@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 // ═══════════════════ Product-Type-Specific BOM Templates ═══════════════════
 type BomTemplate = Array<{ description: string; category: string; unitCost: number; sortOrder: number }>
@@ -349,6 +350,8 @@ export async function POST(
     },
   })
 
+  revalidatePath("/design")
+
   return NextResponse.json(JSON.parse(JSON.stringify(line)), { status: 201 })
 }
 
@@ -388,6 +391,8 @@ export async function PATCH(
     data,
   })
 
+  revalidatePath("/design")
+
   return NextResponse.json(JSON.parse(JSON.stringify(updated)))
 }
 
@@ -412,6 +417,8 @@ export async function DELETE(
   }
 
   await prisma.designBomLine.delete({ where: { id: lineId } })
+
+  revalidatePath("/design")
 
   return NextResponse.json({ success: true })
 }

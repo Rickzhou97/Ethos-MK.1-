@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function GET(
   request: NextRequest,
@@ -129,6 +130,8 @@ export async function PATCH(
     }
   }
 
+  revalidatePath("/crm")
+
   return NextResponse.json(opportunity)
 }
 
@@ -138,5 +141,8 @@ export async function DELETE(
 ) {
   const { id } = await params
   await prisma.opportunity.delete({ where: { id } })
+
+  revalidatePath("/crm")
+
   return NextResponse.json({ success: true })
 }

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db"
 import { logAudit } from "@/lib/audit"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function GET(request: NextRequest) {
   const projectId = request.nextUrl.searchParams.get("projectId")
@@ -50,6 +51,9 @@ export async function POST(request: NextRequest) {
     entityId: variation.id,
     newValue: `${variationNumber}: ${body.title}`,
   })
+
+  revalidatePath("/finance")
+  revalidatePath("/projects")
 
   return NextResponse.json(JSON.parse(JSON.stringify(variation)))
 }

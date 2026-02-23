@@ -4,6 +4,7 @@ import { logAudit } from "@/lib/audit"
 import { getNextStage } from "@/lib/production-utils"
 import type { ProductionStage } from "@/generated/prisma/client"
 import { requirePermission } from "@/lib/api-auth"
+import { revalidatePath } from "next/cache"
 
 export async function POST(
   request: NextRequest,
@@ -131,6 +132,9 @@ export async function POST(
       metadata: JSON.stringify({ stage: task.stage, nextStage }),
     })
 
+    revalidatePath("/production")
+    revalidatePath("/production/dashboard")
+
     return NextResponse.json({ success: true, nextStage })
   }
 
@@ -220,6 +224,9 @@ export async function POST(
     newValue: "REJECTED",
     metadata: JSON.stringify({ ncrNumber, ncrId: ncr.id, stage: task.stage }),
   })
+
+  revalidatePath("/production")
+  revalidatePath("/production/dashboard")
 
   return NextResponse.json({ success: true, ncrNumber, ncrId: ncr.id })
 }

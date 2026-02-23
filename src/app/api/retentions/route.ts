@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -29,5 +30,6 @@ export async function POST(request: NextRequest) {
       notes: body.notes || null,
     },
   })
+  revalidatePath("/finance")
   return NextResponse.json(retention, { status: 201 })
 }

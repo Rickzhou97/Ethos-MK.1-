@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db"
 import { logAudit } from "@/lib/audit"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function PATCH(
   request: NextRequest,
@@ -33,6 +34,9 @@ export async function PATCH(
     newValue: body.status || undefined,
   })
 
+  revalidatePath("/finance")
+  revalidatePath("/projects")
+
   return NextResponse.json(JSON.parse(JSON.stringify(variation)))
 }
 
@@ -44,6 +48,9 @@ export async function DELETE(
   await prisma.variation.delete({ where: { id } })
 
   await logAudit({ action: "DELETE", entity: "Variation", entityId: id })
+
+  revalidatePath("/finance")
+  revalidatePath("/projects")
 
   return NextResponse.json({ success: true })
 }

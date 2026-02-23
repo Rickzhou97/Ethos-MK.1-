@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function GET() {
   const quotes = await prisma.quote.findMany({
@@ -41,6 +42,9 @@ export async function POST(request: NextRequest) {
       createdById: body.createdById || null,
     },
   })
+
+  revalidatePath("/quotes")
+  revalidatePath("/finance")
 
   return NextResponse.json(quote, { status: 201 })
 }

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function GET(
   _request: NextRequest,
@@ -69,6 +70,10 @@ export async function PATCH(
   }
 
   const quote = await prisma.quote.update({ where: { id }, data })
+
+  revalidatePath("/quotes")
+  revalidatePath("/finance")
+
   return NextResponse.json(quote)
 }
 
@@ -78,5 +83,9 @@ export async function DELETE(
 ) {
   const { id } = await params
   await prisma.quote.delete({ where: { id } })
+
+  revalidatePath("/quotes")
+  revalidatePath("/finance")
+
   return NextResponse.json({ success: true })
 }

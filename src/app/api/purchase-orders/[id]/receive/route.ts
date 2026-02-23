@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function POST(
   request: NextRequest,
@@ -59,5 +60,6 @@ export async function POST(
     })
   }
 
+  revalidatePath("/finance")
   return NextResponse.json({ success: true, poStatus: newStatus })
 }

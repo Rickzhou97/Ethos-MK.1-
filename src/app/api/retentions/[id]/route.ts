@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function PATCH(
   request: NextRequest,
@@ -16,6 +17,7 @@ export async function PATCH(
   if (body.notes !== undefined) data.notes = body.notes
 
   const retention = await prisma.retentionHoldback.update({ where: { id }, data })
+  revalidatePath("/finance")
   return NextResponse.json(retention)
 }
 
@@ -25,5 +27,6 @@ export async function DELETE(
 ) {
   const { id } = await params
   await prisma.retentionHoldback.delete({ where: { id } })
+  revalidatePath("/finance")
   return NextResponse.json({ success: true })
 }

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function PATCH(
   request: NextRequest,
@@ -72,6 +73,8 @@ export async function PATCH(
     })
   }
 
+  revalidatePath("/crm")
+
   return NextResponse.json(JSON.parse(JSON.stringify(line)))
 }
 
@@ -90,6 +93,8 @@ export async function DELETE(
     where: { id },
     data: { hasItoLines: itoCount > 0 },
   })
+
+  revalidatePath("/crm")
 
   return NextResponse.json({ success: true })
 }

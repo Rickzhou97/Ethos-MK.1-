@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 import { logAudit } from "@/lib/audit"
 
 export async function DELETE(
@@ -77,6 +78,7 @@ export async function DELETE(
     metadata: `Deleted customer: ${customer.name}`,
   })
 
+  revalidatePath("/customers")
   return NextResponse.json({ success: true })
 }
 

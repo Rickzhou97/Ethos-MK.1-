@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function PATCH(
   request: NextRequest,
@@ -34,6 +35,9 @@ export async function PATCH(
     data: { ncrCost: totalNcrCost },
   })
 
+  revalidatePath("/ncrs")
+  revalidatePath("/projects")
+
   return NextResponse.json(ncr)
 }
 
@@ -61,6 +65,9 @@ export async function DELETE(
     where: { id: ncr.projectId },
     data: { ncrCost: totalNcrCost },
   })
+
+  revalidatePath("/ncrs")
+  revalidatePath("/projects")
 
   return NextResponse.json({ success: true })
 }

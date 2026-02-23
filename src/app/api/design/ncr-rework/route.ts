@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
+import { revalidatePath } from "next/cache"
 
 // POST /api/design/ncr-rework — NCR-triggered rework: reset job cards and revert design card
 export async function POST(request: NextRequest) {
@@ -121,6 +122,8 @@ export async function POST(request: NextRequest) {
         jobCards: { orderBy: { sortOrder: "asc" } },
       },
     })
+
+    revalidatePath("/design")
 
     return NextResponse.json(JSON.parse(JSON.stringify(updatedCard)))
   } catch (error) {

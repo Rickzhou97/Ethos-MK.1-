@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function GET(
   _request: NextRequest,
@@ -37,6 +38,7 @@ export async function PATCH(
   if (body.expectedDelivery !== undefined) data.expectedDelivery = body.expectedDelivery ? new Date(body.expectedDelivery) : null
 
   const po = await prisma.purchaseOrder.update({ where: { id }, data })
+  revalidatePath("/finance")
   return NextResponse.json(po)
 }
 
@@ -76,6 +78,7 @@ export async function POST(
     await prisma.purchaseOrder.update({ where: { id }, data: { totalValue: newTotal } })
   }
 
+  revalidatePath("/finance")
   return NextResponse.json(line, { status: 201 })
 }
 
@@ -85,5 +88,6 @@ export async function DELETE(
 ) {
   const { id } = await params
   await prisma.purchaseOrder.delete({ where: { id } })
+  revalidatePath("/finance")
   return NextResponse.json({ success: true })
 }

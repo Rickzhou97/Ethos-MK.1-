@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
+import { revalidatePath } from "next/cache"
 
 // POST /api/design/handover/[projectId]/reject — Reject a submitted handover
 export async function POST(
@@ -71,6 +72,8 @@ export async function POST(
         rejectionReason: rejectionReason.trim(),
       }),
     })
+
+    revalidatePath("/design")
 
     return NextResponse.json(JSON.parse(JSON.stringify(updatedHandover)))
   } catch (error) {

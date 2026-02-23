@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
+import { revalidatePath } from "next/cache"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -87,6 +88,9 @@ export async function POST(request: NextRequest) {
     field: "stage",
     newValue: stage,
   })
+
+  revalidatePath("/production")
+  revalidatePath("/production/dashboard")
 
   return NextResponse.json(task, { status: 201 })
 }

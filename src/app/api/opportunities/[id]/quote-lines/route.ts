@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function GET(
   request: NextRequest,
@@ -74,6 +75,8 @@ export async function POST(
     where: { id },
     data: { hasItoLines: itoCount > 0 },
   })
+
+  revalidatePath("/crm")
 
   return NextResponse.json(JSON.parse(JSON.stringify(line)), { status: 201 })
 }

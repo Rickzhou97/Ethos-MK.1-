@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { requirePermission } from "@/lib/api-auth"
+import { revalidatePath } from "next/cache"
 
 export async function POST(request: NextRequest) {
   const denied = await requirePermission("production:manage")
@@ -25,6 +26,9 @@ export async function POST(request: NextRequest) {
   )
 
   await Promise.all(updates)
+
+  revalidatePath("/production")
+  revalidatePath("/production/dashboard")
 
   return NextResponse.json({ success: true, count: taskIds.length })
 }

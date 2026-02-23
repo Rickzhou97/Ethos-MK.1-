@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function GET(
   _request: NextRequest,
@@ -47,6 +48,7 @@ export async function PATCH(
   }
 
   const invoice = await prisma.salesInvoice.update({ where: { id }, data })
+  revalidatePath("/finance")
   return NextResponse.json(invoice)
 }
 
@@ -56,5 +58,6 @@ export async function DELETE(
 ) {
   const { id } = await params
   await prisma.salesInvoice.delete({ where: { id } })
+  revalidatePath("/finance")
   return NextResponse.json({ success: true })
 }

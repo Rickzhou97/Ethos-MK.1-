@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
+import { revalidatePath } from "next/cache"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -54,6 +55,8 @@ export async function POST(request: NextRequest) {
     entityId: opportunity.id,
     metadata: opportunity.name,
   })
+
+  revalidatePath("/crm")
 
   return NextResponse.json(opportunity, { status: 201 })
 }

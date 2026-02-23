@@ -29,6 +29,7 @@ export async function POST(
     )
   }
 
+  try {
   // Step 1: Create or reuse Customer from Prospect
   let customerId = opportunity.prospect.convertedCustomerId
 
@@ -250,6 +251,7 @@ export async function POST(
 
   revalidatePath("/design")
   revalidatePath("/projects")
+  revalidatePath("/crm")
 
   return NextResponse.json({
     success: true,
@@ -257,4 +259,11 @@ export async function POST(
     projectId: project.id,
     projectNumber: project.projectNumber,
   })
+  } catch (error) {
+    console.error("Failed to convert opportunity:", error)
+    return NextResponse.json(
+      { error: "Failed to convert opportunity. Some records may have been partially created." },
+      { status: 500 }
+    )
+  }
 }

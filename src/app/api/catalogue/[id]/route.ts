@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function PATCH(
   request: NextRequest,
@@ -22,6 +23,7 @@ export async function PATCH(
     data,
   })
 
+  revalidatePath("/catalogue")
   return NextResponse.json(item)
 }
 
@@ -31,5 +33,6 @@ export async function DELETE(
 ) {
   const { id } = await params
   await prisma.productCatalogue.delete({ where: { id } })
+  revalidatePath("/catalogue")
   return NextResponse.json({ success: true })
 }
