@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
 import { canStartJob } from "@/lib/design-utils"
+import { revalidatePath } from "next/cache"
 
 export async function POST(
   _request: NextRequest,
@@ -75,5 +76,6 @@ export async function POST(
     metadata: JSON.stringify({ designCardId: jobCard.designCardId }),
   })
 
+  revalidatePath("/design")
   return NextResponse.json(updated)
 }

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
+import { revalidatePath } from "next/cache"
 
 export async function POST(
   request: NextRequest,
@@ -69,5 +70,6 @@ export async function POST(
     metadata: JSON.stringify({ designCardId: jobCard.designCardId }),
   })
 
+  revalidatePath("/design")
   return NextResponse.json(updated)
 }

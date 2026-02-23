@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db"
 import { logAudit } from "@/lib/audit"
 import { JOB_TYPE_ORDER, calculateDesignTargetDates } from "@/lib/design-utils"
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 export async function POST(
   _request: NextRequest,
@@ -86,5 +87,6 @@ export async function POST(
     orderBy: { createdAt: "asc" },
   })
 
+  revalidatePath("/design")
   return NextResponse.json(allCards)
 }
