@@ -104,8 +104,6 @@ export function DesignerWorkloadBoard({
     grouped[d.id] = []
     designerMap[d.id] = d
   }
-  grouped["unassigned"] = []
-
   for (const card of cards) {
     if (card.assignedDesigner) {
       const dId = card.assignedDesigner.id
@@ -115,22 +113,15 @@ export function DesignerWorkloadBoard({
       if (!designerMap[dId]) {
         designerMap[dId] = { id: dId, name: card.assignedDesigner.name }
       }
-    } else {
-      grouped["unassigned"].push(card)
     }
   }
 
   // Build columns in fixed order matching DESIGNER_FIRST_NAMES
-  const columns = [
-    ...filteredDesigners.map((d, i) => ({
-      id: d.id,
-      name: d.name,
-      borderColor: designerColors[i % designerColors.length],
-    })),
-    ...(grouped["unassigned"].length > 0
-      ? [{ id: "unassigned", name: "Unassigned", borderColor: "border-t-gray-400" }]
-      : []),
-  ]
+  const columns = filteredDesigners.map((d, i) => ({
+    id: d.id,
+    name: d.name,
+    borderColor: designerColors[i % designerColors.length],
+  }))
 
   async function handleDragEnd(result: DropResult) {
     const { draggableId, destination, source } = result
@@ -138,8 +129,6 @@ export function DesignerWorkloadBoard({
     if (destination.droppableId === source.droppableId) return
 
     const targetDesignerId = destination.droppableId
-    if (targetDesignerId === "unassigned") return // Can't drag to unassigned
-
     const card = cards.find((c) => c.id === draggableId)
     if (!card) return
 

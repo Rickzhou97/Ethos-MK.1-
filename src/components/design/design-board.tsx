@@ -107,6 +107,7 @@ function getProjectDesignStage(project: ProjectGroup): string {
 }
 
 const COLUMNS = [
+  { id: "WAITING", label: "Waiting", borderColor: "border-t-gray-400", bg: "bg-gray-50/50", description: "Projects waiting for design to start" },
   { id: "IN_PROGRESS", label: "In Progress", borderColor: "border-t-blue-400", bg: "bg-blue-50/30", description: "Actively being designed" },
   { id: "REVIEW", label: "Review / Approval", borderColor: "border-t-amber-500", bg: "bg-amber-50/30", description: "Waiting for client or internal review" },
   { id: "DESIGN_COMPLETE", label: "Design Complete", borderColor: "border-t-green-500", bg: "bg-blue-50", description: "Ready for handover to production" },
@@ -232,7 +233,7 @@ export function DesignBoard({ projects, designers }: { projects: ProjectGroup[];
     if (grouped[stage]) {
       grouped[stage].push(project)
     } else {
-      grouped["IN_PROGRESS"].push(project)
+      grouped["WAITING"].push(project)
     }
   }
 
