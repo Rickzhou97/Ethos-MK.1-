@@ -60,7 +60,6 @@ function getProductStage(card: DesignCard): string {
 }
 
 const COLUMNS = [
-  { id: "QUEUED", label: "To Do", borderColor: "border-t-gray-400", bg: "bg-gray-50/50" },
   { id: "GA_DRAWING", label: "GA Drawing", borderColor: "border-t-blue-400", bg: "bg-blue-50/30" },
   { id: "PRODUCTION_DRAWINGS", label: "Prod Drawings", borderColor: "border-t-indigo-400", bg: "bg-indigo-50/30" },
   { id: "BOM_FINALISATION", label: "BOM", borderColor: "border-t-amber-400", bg: "bg-amber-50/30" },
@@ -93,7 +92,7 @@ export function MyWorkBoard({ cards }: { cards: DesignCard[] }) {
     if (readyGrouped[stage]) {
       readyGrouped[stage].push(card)
     } else {
-      readyGrouped["QUEUED"].push(card)
+      readyGrouped["GA_DRAWING"].push(card)
     }
 
     // Also find the first BLOCKED job → place in that column's waiting section
