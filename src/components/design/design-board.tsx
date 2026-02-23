@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { usePermissions } from "@/hooks/use-permissions"
 import { AssignJobsDialog } from "./assign-jobs-dialog"
+import { HandoverSelectDialog } from "./handover-select-dialog"
 
 type JobCard = {
   id: string
@@ -281,8 +282,8 @@ export function DesignBoard({ projects, designers }: { projects: ProjectGroup[];
 
 const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, columnId }: { project: ProjectGroup; designers: Designer[]; columnId: string }) {
   const [assignOpen, setAssignOpen] = useState(false)
+  const [handoverOpen, setHandoverOpen] = useState(false)
   const [activating, setActivating] = useState(false)
-  const [proposing, setProposing] = useState(false)
   const [localHandoverStatus, setLocalHandoverStatus] = useState(project.handover?.status || null)
   const [activated, setActivated] = useState(false)
   const { can } = usePermissions()
@@ -330,30 +331,17 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
     }
   }
 
-  async function handleProposeHandover() {
-    setProposing(true)
-    try {
-      // Only include products that are design-complete AND not yet in production
-      const completeProductIds = project.designCards
-        .filter((c) => c.status === "COMPLETE" && !c.product.productionStatus)
-        .map((c) => c.product.id)
-
-      if (completeProductIds.length === 0) return
-
-      const res = await fetch(`/api/design/handover/${project.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ includedProductIds: completeProductIds }),
-      })
-      if (res.ok) {
-        setLocalHandoverStatus("SUBMITTED")
-      }
-    } finally {
-      setProposing(false)
-    }
-  }
-
-  const isDesignComplete = columnId === "DESIGN_COMPLETE"
+  // Build handoverable product list for the dialog
+  const handoverProductList = project.designCards
+    .filter((c) => c.status === "COMPLETE")
+    .map((c) => ({
+      productId: c.product.id,
+      designCardId: c.id,
+      partCode: c.product.partCode,
+      productJobNumber: c.product.productJobNumber,
+      description: c.product.description,
+      inProduction: !!c.product.productionStatus,
+    }))
 
   return (
     <>
@@ -519,28 +507,25 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
 
           {/* Action buttons based on column — hidden for read-only users */}
           {/* Show handover button if there are products ready AND no pending submission */}
-          {isDesignComplete && hasHandoverable && canHandover && handoverStatus !== "SUBMITTED" ? (
+          {hasHandoverable && canHandover && handoverStatus !== "SUBMITTED" ? (
             <button
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                handleProposeHandover()
+                setHandoverOpen(true)
               }}
-              disabled={proposing}
               className={cn(
-                "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-white transition-colors disabled:opacity-50",
+                "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-white transition-colors",
                 allComplete ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"
               )}
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              {proposing ? "Proposing..." : (
-                handoverStatus === "REJECTED" ? "Re-propose Handover" :
+              {handoverStatus === "REJECTED" ? "Re-propose Handover" :
                 handoverStatus === "ACKNOWLEDGED" ? `Handover ${handoverableProducts.length} More` :
                 allComplete ? "Propose Handover" :
-                `Handover ${handoverableProducts.length} Product${handoverableProducts.length !== 1 ? "s" : ""}`
-              )}
+                `Handover ${handoverableProducts.length} Product${handoverableProducts.length !== 1 ? "s" : ""}`}
             </button>
           ) : hasDesignCards && canAssign ? (
             <button
@@ -587,6 +572,16 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
         projectName={project.name}
         designCards={project.designCards}
         designers={designers}
+      />
+
+      <HandoverSelectDialog
+        open={handoverOpen}
+        onOpenChange={setHandoverOpen}
+        projectId={project.id}
+        projectNumber={project.projectNumber}
+        projectName={project.name}
+        products={handoverProductList}
+        onSubmitted={() => setLocalHandoverStatus("SUBMITTED")}
       />
 
     </>
