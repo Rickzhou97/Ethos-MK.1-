@@ -51,19 +51,30 @@ export async function POST(
       },
     })
 
-    // Advance the project: set p3Date, projectStatus to MANUFACTURE, reset departmentStatus
-    await prisma.project.update({
-      where: { id: projectId },
-      data: {
-        p3Date: now,
-        projectStatus: "MANUFACTURE",
-        departmentStatus: "TODO",
-      },
+    // Check if all products in this project will be in production after this acknowledgement
+    const allProjectProducts = await prisma.product.findMany({
+      where: { projectId },
+      select: { id: true, productionStatus: true },
     })
 
-    // ── Create initial CUTTING tasks for all products in this handover ──
     const includedProductIds = (handover.includedProductIds || []) as string[]
+    const allInProduction = allProjectProducts.every(
+      (p) => p.productionStatus !== null || includedProductIds.includes(p.id)
+    )
 
+    // Only advance project to MANUFACTURE when ALL products have been handed over
+    if (allInProduction) {
+      await prisma.project.update({
+        where: { id: projectId },
+        data: {
+          p3Date: now,
+          projectStatus: "MANUFACTURE",
+          departmentStatus: "TODO",
+        },
+      })
+    }
+
+    // ── Create initial CUTTING tasks for all products in this handover ──
     // If handover has specific product IDs, use those; otherwise get all project products
     const products = includedProductIds.length > 0
       ? await prisma.product.findMany({
@@ -123,21 +134,39 @@ export async function POST(
       metadata: JSON.stringify({ projectId }),
     })
 
-    // Log audit for project status advancement
-    await logAudit({
-      userId: receivedById,
-      action: "UPDATE",
-      entity: "Project",
-      entityId: projectId,
-      field: "projectStatus",
-      oldValue: "DESIGN",
-      newValue: "MANUFACTURE",
-      metadata: JSON.stringify({
-        trigger: "DesignHandover acknowledged",
-        handoverId: updatedHandover.id,
-        productsInitialized: products.length,
-      }),
-    })
+    // Log audit for project status advancement (only if fully handed over)
+    if (allInProduction) {
+      await logAudit({
+        userId: receivedById,
+        action: "UPDATE",
+        entity: "Project",
+        entityId: projectId,
+        field: "projectStatus",
+        oldValue: "DESIGN",
+        newValue: "MANUFACTURE",
+        metadata: JSON.stringify({
+          trigger: "DesignHandover acknowledged (all products)",
+          handoverId: updatedHandover.id,
+          productsInitialized: products.length,
+        }),
+      })
+    } else {
+      await logAudit({
+        userId: receivedById,
+        action: "UPDATE",
+        entity: "Project",
+        entityId: projectId,
+        field: "partialHandover",
+        oldValue: null,
+        newValue: `${products.length} products to production`,
+        metadata: JSON.stringify({
+          trigger: "Partial design handover acknowledged",
+          handoverId: updatedHandover.id,
+          productsInitialized: products.length,
+          remainingInDesign: allProjectProducts.length - products.length,
+        }),
+      })
+    }
 
     revalidatePath("/production")
     revalidatePath("/design")

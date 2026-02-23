@@ -18,6 +18,7 @@ type Handover = {
   designNotes: string | null
   initiatedAt: string | null
   initiatedBy: { id: string; name: string } | null
+  includedProductIds?: string[]
   project: {
     id: string
     projectNumber: string
@@ -26,7 +27,7 @@ type Handover = {
     designCards: {
       id: string
       status: string
-      product: { description: string; partCode: string }
+      product: { id: string; description: string; partCode: string }
       jobCards: { jobType: string; status: string }[]
     }[]
   }
@@ -186,7 +187,14 @@ export function PendingHandovers({ handovers }: Props) {
                         {handover.project.customer?.name || "—"}
                       </div>
                       <div className="text-center text-sm text-gray-700">
-                        {handover.project.designCards.length}
+                        {handover.includedProductIds && handover.includedProductIds.length < handover.project.designCards.length ? (
+                          <span>
+                            <span className="font-semibold text-amber-700">{handover.includedProductIds.length}</span>
+                            <span className="text-gray-400"> of {handover.project.designCards.length}</span>
+                          </span>
+                        ) : (
+                          handover.project.designCards.length
+                        )}
                       </div>
                       <div>
                         {handover.initiatedBy && (
@@ -321,13 +329,23 @@ export function PendingHandovers({ handovers }: Props) {
                       {/* Design Cards */}
                       <div>
                         <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
-                          Design Cards
+                          {handover.includedProductIds && handover.includedProductIds.length < handover.project.designCards.length
+                            ? `Products in this handover (${handover.includedProductIds.length} of ${handover.project.designCards.length})`
+                            : "Design Cards"}
                         </h3>
                         <div className="space-y-1.5">
-                          {handover.project.designCards.map((card) => (
+                          {handover.project.designCards.map((card) => {
+                            const isIncluded = !handover.includedProductIds ||
+                              handover.includedProductIds.length === 0 ||
+                              handover.includedProductIds.includes(card.product.id)
+                            return (
                             <div
                               key={card.id}
-                              className="flex items-center justify-between bg-white border border-gray-200 rounded-md px-3 py-2"
+                              className={`flex items-center justify-between rounded-md px-3 py-2 ${
+                                isIncluded
+                                  ? "bg-white border border-gray-200"
+                                  : "bg-gray-50 border border-gray-100 opacity-50"
+                              }`}
                             >
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-medium text-gray-800">
@@ -361,9 +379,12 @@ export function PendingHandovers({ handovers }: Props) {
                                 >
                                   {getDesignCardStatusLabel(card.status)}
                                 </Badge>
+                                {!isIncluded && (
+                                  <span className="text-[9px] text-gray-400 ml-1">not included</span>
+                                )}
                               </div>
                             </div>
-                          ))}
+                          )})}
                         </div>
                       </div>
                     </div>

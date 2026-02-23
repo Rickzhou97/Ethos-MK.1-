@@ -111,8 +111,9 @@ export async function POST(
       where: { projectId },
     })
 
-    // Only allow create (no existing) or update if DRAFT/REJECTED
-    if (existing && existing.status !== "DRAFT" && existing.status !== "REJECTED") {
+    // Only allow create (no existing) or update if DRAFT/REJECTED/ACKNOWLEDGED
+    // ACKNOWLEDGED is allowed for partial handovers — design manager can submit additional batches
+    if (existing && existing.status !== "DRAFT" && existing.status !== "REJECTED" && existing.status !== "ACKNOWLEDGED") {
       return NextResponse.json(
         {
           error: `Handover is already ${existing.status} and cannot be resubmitted`,

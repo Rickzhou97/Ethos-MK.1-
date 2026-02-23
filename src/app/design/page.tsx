@@ -34,7 +34,7 @@ async function getDesignDashboardData() {
         designCards: {
           include: {
             product: {
-              select: { id: true, description: true, partCode: true, productJobNumber: true },
+              select: { id: true, description: true, partCode: true, productJobNumber: true, productionStatus: true },
             },
             assignedDesigner: { select: { id: true, name: true } },
             jobCards: {

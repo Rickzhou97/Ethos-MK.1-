@@ -17,7 +17,7 @@ export default async function PendingHandoversPage() {
             select: {
               id: true,
               status: true,
-              product: { select: { description: true, partCode: true } },
+              product: { select: { id: true, description: true, partCode: true } },
               jobCards: { select: { jobType: true, status: true } },
             },
           },
@@ -28,7 +28,13 @@ export default async function PendingHandoversPage() {
     orderBy: { initiatedAt: "asc" },
   })
 
-  const serialized = JSON.parse(JSON.stringify(handovers))
+  // Annotate each handover with includedProductIds for partial handover display
+  const annotated = handovers.map((h) => ({
+    ...h,
+    includedProductIds: (h.includedProductIds || []) as string[],
+  }))
+
+  const serialized = JSON.parse(JSON.stringify(annotated))
   return (
     <div className="space-y-4">
       <div>

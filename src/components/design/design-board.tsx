@@ -22,6 +22,7 @@ type DesignCard = {
     description: string
     partCode: string
     productJobNumber: string | null
+    productionStatus: string | null
   }
   assignedDesigner: { id: string; name: string } | null
   jobCards: JobCard[]
@@ -77,6 +78,14 @@ function getProjectDesignStage(project: ProjectGroup): string {
   if (cards.every((c) => c.status === "COMPLETE")) return "DESIGN_COMPLETE"
   if (cards.every((c) => c.status === "QUEUED")) return "WAITING"
 
+  // Check if any products have completed design but haven't been handed to production yet
+  const handoverableProducts = cards.filter(
+    (c) => c.status === "COMPLETE" && !c.product.productionStatus
+  )
+
+  // If there are products ready for handover, show in DESIGN_COMPLETE
+  if (handoverableProducts.length > 0) return "DESIGN_COMPLETE"
+
   // Check what stages active (non-complete) cards are at
   const activeCards = cards.filter((c) => c.status !== "COMPLETE")
   const stages = activeCards.map((c) => getProductStage(c))
@@ -93,11 +102,6 @@ function getProjectDesignStage(project: ProjectGroup): string {
 
   // All active products are in review/approval stages
   if (hasReviewStage) return "REVIEW"
-
-  // If some cards are complete and remaining aren't in work stages, still DESIGN_COMPLETE
-  // (partial handover scenario: some done, rest in review)
-  const completeCount = cards.filter((c) => c.status === "COMPLETE").length
-  if (completeCount > 0 && completeCount >= cards.length / 2) return "DESIGN_COMPLETE"
 
   return "IN_PROGRESS"
 }
@@ -298,6 +302,12 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
   const allComplete = completeCardCount === totalCardCount && totalCardCount > 0
   const hasPartialComplete = completeCardCount > 0 && !allComplete
 
+  // Products ready for handover (complete design, not yet in production)
+  const handoverableProducts = project.designCards.filter(
+    (c) => c.status === "COMPLETE" && !c.product.productionStatus
+  )
+  const hasHandoverable = handoverableProducts.length > 0
+
   const designerNames = [...new Set(
     project.designCards
       .map((c) => c.assignedDesigner?.name?.split(" ")[0])
@@ -322,9 +332,12 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
   async function handleProposeHandover() {
     setProposing(true)
     try {
+      // Only include products that are design-complete AND not yet in production
       const completeProductIds = project.designCards
-        .filter((c) => c.status === "COMPLETE")
+        .filter((c) => c.status === "COMPLETE" && !c.product.productionStatus)
         .map((c) => c.product.id)
+
+      if (completeProductIds.length === 0) return
 
       const res = await fetch(`/api/design/handover/${project.id}`, {
         method: "POST",
@@ -344,11 +357,18 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
   return (
     <>
       <div className={cn(
-        "rounded-lg border bg-white p-3 shadow-sm hover:shadow-md transition-all",
-        handoverStatus === "REJECTED" ? "border-l-[3px] border-l-red-500 border-r border-t border-b border-border" :
-        handoverStatus === "SUBMITTED" ? "border-l-[3px] border-l-amber-500 border-r border-t border-b border-border" :
-        handoverStatus === "ACKNOWLEDGED" ? "border-l-[3px] border-l-green-500 border-r border-t border-b border-border" :
-        "border-border"
+        "rounded-lg border p-3 shadow-sm hover:shadow-md transition-all",
+        // Card background: beautiful emerald for fully complete, warm amber for partial
+        allComplete
+          ? "bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-300 ring-1 ring-emerald-200/50"
+          : hasPartialComplete && hasHandoverable
+          ? "bg-gradient-to-br from-amber-50/80 to-orange-50/60 border-amber-300 ring-1 ring-amber-200/50"
+          : "bg-white border-border",
+        // Left accent for handover status (takes precedence on left border)
+        handoverStatus === "REJECTED" ? "border-l-[3px] border-l-red-500" :
+        handoverStatus === "SUBMITTED" ? "border-l-[3px] border-l-amber-500" :
+        handoverStatus === "ACKNOWLEDGED" ? "border-l-[3px] border-l-green-500" :
+        ""
       )}>
         <Link href={`/projects/${project.id}`}>
           <div className="flex items-start justify-between gap-2 mb-1">
@@ -373,32 +393,64 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
 
           {hasDesignCards ? (
             <>
-              <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mt-2">
-                <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+              <div className={cn("w-full h-1.5 rounded-full overflow-hidden mt-2", allComplete ? "bg-emerald-200" : "bg-gray-200")}>
+                <div className={cn("h-full rounded-full transition-all", allComplete ? "bg-emerald-500" : hasPartialComplete ? "bg-amber-500" : "bg-blue-500")} style={{ width: `${pct}%` }} />
               </div>
 
               {/* Per-product breakdown with status icons */}
               <div className="mt-2 space-y-1">
-                <div className="text-[10px] text-gray-500 font-medium mb-1">
-                  {completeCardCount} of {totalCardCount} products design-complete
-                </div>
+                <div className={cn(
+                "text-[10px] font-medium mb-1 flex items-center gap-1.5",
+                allComplete ? "text-emerald-700" : hasPartialComplete ? "text-amber-700" : "text-gray-500"
+              )}>
+                {allComplete ? (
+                  <svg className="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ) : hasPartialComplete ? (
+                  <svg className="w-3 h-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ) : null}
+                {allComplete
+                  ? "All products design-complete"
+                  : `${completeCardCount} of ${totalCardCount} products complete`}
+                {hasHandoverable && !allComplete && (
+                  <span className="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold">
+                    {handoverableProducts.length} ready
+                  </span>
+                )}
+              </div>
                 {project.designCards.slice(0, 5).map((card) => {
                   const stage = getProductStage(card)
                   const isComplete = card.status === "COMPLETE"
+                  const inProduction = !!card.product.productionStatus
                   return (
                     <div key={card.id} className="flex items-center gap-1.5">
                       {isComplete ? (
-                        <svg className="w-3.5 h-3.5 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
+                        inProduction ? (
+                          <svg className="w-3.5 h-3.5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-3.5 h-3.5 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )
                       ) : (
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ml-1 ${STAGE_COLORS[stage] || "bg-gray-300"}`} />
                       )}
-                      <span className={cn("text-[10px] truncate flex-1", isComplete ? "text-green-700" : "text-gray-600")}>
+                      <span className={cn(
+                        "text-[10px] truncate flex-1",
+                        inProduction ? "text-blue-600" : isComplete ? "text-green-700" : "text-gray-600"
+                      )}>
                         {card.product.productJobNumber || card.product.partCode}
                       </span>
-                      <span className="text-[9px] text-gray-400 shrink-0">
-                        {isComplete ? "Done" : (STAGE_LABELS[stage] || stage)}
+                      <span className={cn(
+                        "text-[9px] shrink-0",
+                        inProduction ? "text-blue-500 font-medium" : "text-gray-400"
+                      )}>
+                        {inProduction ? "In Production" : isComplete ? "Done" : (STAGE_LABELS[stage] || stage)}
                       </span>
                       {!isComplete && (
                         <Link
@@ -448,9 +500,9 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
             handoverStatus === "ACKNOWLEDGED" ? "bg-green-50 text-green-700 border border-green-200" :
             "bg-gray-50 text-gray-600 border border-gray-200"
           )}>
-            {handoverStatus === "SUBMITTED" && "Handover proposed — awaiting review"}
+            {handoverStatus === "SUBMITTED" && (hasPartialComplete ? "Partial handover proposed — awaiting review" : "Handover proposed — awaiting review")}
             {handoverStatus === "REJECTED" && "Handover returned — needs revision"}
-            {handoverStatus === "ACKNOWLEDGED" && "Handover accepted by Production"}
+            {handoverStatus === "ACKNOWLEDGED" && (hasHandoverable ? "Partial handover accepted — more products ready" : "Handover accepted by Production")}
             {handoverStatus === "DRAFT" && "Handover draft"}
           </div>
         )}
@@ -465,7 +517,8 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
           </div>
 
           {/* Action buttons based on column — hidden for read-only users */}
-          {isDesignComplete && !handoverStatus && canHandover ? (
+          {/* Show handover button if there are products ready AND no pending submission */}
+          {isDesignComplete && hasHandoverable && canHandover && handoverStatus !== "SUBMITTED" ? (
             <button
               onClick={(e) => {
                 e.preventDefault()
@@ -473,24 +526,20 @@ const ProjectDesignCard = memo(function ProjectDesignCard({ project, designers, 
                 handleProposeHandover()
               }}
               disabled={proposing}
-              className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2 py-1 text-[10px] font-medium text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className={cn(
+                "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-white transition-colors disabled:opacity-50",
+                allComplete ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"
+              )}
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              {proposing ? "Proposing..." : (allComplete ? "Propose Handover" : "Propose Partial Handover")}
-            </button>
-          ) : isDesignComplete && handoverStatus === "REJECTED" && canHandover ? (
-            <button
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                handleProposeHandover()
-              }}
-              disabled={proposing}
-              className="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2 py-1 text-[10px] font-medium text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {proposing ? "Re-proposing..." : "Re-propose Handover"}
+              {proposing ? "Proposing..." : (
+                handoverStatus === "REJECTED" ? "Re-propose Handover" :
+                handoverStatus === "ACKNOWLEDGED" ? `Handover ${handoverableProducts.length} More` :
+                allComplete ? "Propose Handover" :
+                `Handover ${handoverableProducts.length} Product${handoverableProducts.length !== 1 ? "s" : ""}`
+              )}
             </button>
           ) : hasDesignCards && canAssign ? (
             <button
