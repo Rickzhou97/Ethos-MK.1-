@@ -135,7 +135,7 @@ export const PRODUCT_LANE_CONFIG: Record<
   { label: string; subtitle: string; borderColor: string; bgFrom: string; bgVia: string; bgTo: string; accentColor: string; textColor: string; dotColor: string; cellEmptyColor: string }
 > = {
   NORMAL: {
-    label: "Normal Products",
+    label: "Configure to Order",
     subtitle: "Standard production flow",
     borderColor: "border-gray-300",
     bgFrom: "from-gray-50/80",
@@ -176,7 +176,7 @@ export const MEGA_LANE = "MEGA" as const
 
 export const SWIM_LANE_LABELS: Record<string, string> = {
   ICU: "ICU / Urgent",
-  NORMAL: "Normal Products",
+  NORMAL: "Configure to Order",
   MEGA: "Innovate to Order",
 }
 
