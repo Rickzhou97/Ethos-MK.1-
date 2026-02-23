@@ -12,13 +12,15 @@ datasource db {
 // ============================================================
 
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  passwordHash  String
-  role          UserRole  @default(VIEWER)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                 String          @id @default(cuid())
+  name               String
+  email              String          @unique
+  passwordHash       String
+  role               UserRole        @default(STAFF)
+  department         UserDepartment?
+  mustChangePassword Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
 
   // Relations
   coordinatedProjects  Project[]  @relation("ProjectCoordinator")
@@ -39,13 +41,37 @@ model User {
 }
 
 enum UserRole {
-  ADMIN
-  ESTIMATOR
-  PROJECT_COORDINATOR
-  DESIGNER
-  PRODUCTION_MANAGER
+  MANAGING_DIRECTOR
+  TECHNICAL_DIRECTOR
   SALES_DIRECTOR
-  VIEWER
+  DIRECTOR
+  ENGINEERING_MANAGER
+  PRODUCTION_MANAGER
+  PROJECT_MANAGER
+  R_AND_D_MANAGER
+  DESIGN_ENGINEER
+  SITE_MANAGER
+  SITE_SUPERVISOR
+  BUSINESS_DEVELOPMENT
+  HEAD_OF_FINANCE_IT_PROCUREMENT
+  FINANCE_MANAGER
+  PROJECT_COORDINATOR
+  PROJECT_ADMINISTRATOR
+  PRODUCTION_SUPERVISOR
+  SURVEYOR
+  STAFF
+  ADMIN
+}
+
+enum UserDepartment {
+  DIRECTORS
+  ENGINEERING
+  PRODUCTION
+  SALES
+  PROJECTS
+  R_AND_D
+  SITE
+  FINANCE_IT_PROCUREMENT
 }
 
 // ============================================================

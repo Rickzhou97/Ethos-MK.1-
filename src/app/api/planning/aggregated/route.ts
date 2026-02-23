@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
   // ── 1. Fetch designers ──
   const designers = await prisma.user.findMany({
-    where: { role: "DESIGNER" },
+    where: { role: { in: ["DESIGN_ENGINEER", "ENGINEERING_MANAGER", "R_AND_D_MANAGER"] } },
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   })

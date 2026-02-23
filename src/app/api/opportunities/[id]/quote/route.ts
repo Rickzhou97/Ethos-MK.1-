@@ -116,7 +116,7 @@ export async function POST(
   }
 
   if (action === "approve") {
-    // Check if any line is ITO — requires SALES_DIRECTOR or ADMIN
+    // Check if any line is ITO — requires Director-level or ADMIN approval
     const hasIto = opp.quoteLines.some(
       (l: { classification?: string }) => l.classification === "INNOVATE_TO_ORDER"
     )
@@ -124,9 +124,10 @@ export async function POST(
     if (hasIto) {
       const session = await auth()
       const userRole = (session?.user as { role?: string })?.role
-      if (userRole !== "SALES_DIRECTOR" && userRole !== "ADMIN") {
+      const approvalRoles = ["MANAGING_DIRECTOR", "TECHNICAL_DIRECTOR", "SALES_DIRECTOR", "ADMIN"]
+      if (!userRole || !approvalRoles.includes(userRole)) {
         return NextResponse.json(
-          { error: "Quotes containing Innovate to Order items require Sales Director approval" },
+          { error: "Quotes containing Innovate to Order items require Director approval" },
           { status: 403 }
         )
       }

@@ -33,29 +33,70 @@ async function main() {
   await prisma.user.deleteMany()
 
   // ========================================
-  // USERS (Designers & Coordinators)
+  // USERS — All MME staff aligned with JRD roles
   // ========================================
   console.log("Creating users...")
-  // Default password for all seeded users: password123
   const { hash } = await import("bcryptjs")
-  const defaultHash = await hash("password123", 10)
+  const defaultHash = await hash("MME2026!", 10)
 
-  const users = await Promise.all([
-    prisma.user.create({ data: { name: "James Morton", email: "james.morton@mme.co.uk", passwordHash: defaultHash, role: "ADMIN" } }),
-    prisma.user.create({ data: { name: "Gregg Hughes", email: "gregg.hughes@mme.co.uk", passwordHash: defaultHash, role: "PROJECT_COORDINATOR" } }),
-    prisma.user.create({ data: { name: "Kelan Taylor", email: "kelan.taylor@mme.co.uk", passwordHash: defaultHash, role: "PROJECT_COORDINATOR" } }),
-    prisma.user.create({ data: { name: "Shaun Griffiths", email: "shaun.griffiths@mme.co.uk", passwordHash: defaultHash, role: "PROJECT_COORDINATOR" } }),
-    prisma.user.create({ data: { name: "Samuel Roberts", email: "samuel.roberts@mme.co.uk", passwordHash: defaultHash, role: "PROJECT_COORDINATOR" } }),
-    prisma.user.create({ data: { name: "Andrew Robinson", email: "andrew.robinson@mme.co.uk", passwordHash: defaultHash, role: "PROJECT_COORDINATOR" } }),
-    prisma.user.create({ data: { name: "Reece Hobson", email: "reece.hobson@mme.co.uk", passwordHash: defaultHash, role: "PROJECT_COORDINATOR" } }),
-    prisma.user.create({ data: { name: "Dave Howells", email: "dave.howells@mme.co.uk", passwordHash: defaultHash, role: "PROJECT_COORDINATOR" } }),
-    prisma.user.create({ data: { name: "Richard Guest", email: "richard.guest@mme.co.uk", passwordHash: defaultHash, role: "PROJECT_COORDINATOR" } }),
-    prisma.user.create({ data: { name: "Corey Thomas", email: "corey.thomas@mme.co.uk", passwordHash: defaultHash, role: "PROJECT_COORDINATOR" } }),
-    prisma.user.create({ data: { name: "Stephen McDermid", email: "stephen.mcdermid@mme.co.uk", passwordHash: defaultHash, role: "PROJECT_COORDINATOR" } }),
-    prisma.user.create({ data: { name: "Marc Pridmore", email: "marc.pridmore@mme.co.uk", passwordHash: defaultHash, role: "PROJECT_COORDINATOR" } }),
-    prisma.user.create({ data: { name: "Martin McDermid", email: "martin.mcdermid@mme.co.uk", passwordHash: defaultHash, role: "PROJECT_COORDINATOR" } }),
-    prisma.user.create({ data: { name: "Adam Parry", email: "adam.parry@mme.co.uk", passwordHash: defaultHash, role: "ESTIMATOR" } }),
-  ])
+  const staffData = [
+    // Directors
+    { name: "Chris McDermid",   email: "chris.mcdermid@mme.co.uk",   role: "MANAGING_DIRECTOR",  department: "DIRECTORS" },
+    { name: "James Morton",     email: "james.morton@mme.co.uk",     role: "TECHNICAL_DIRECTOR",  department: "DIRECTORS" },
+    { name: "Martin McDermid",  email: "mm@mme.co.uk",               role: "SALES_DIRECTOR",      department: "DIRECTORS" },
+    { name: "Nick West",        email: "nick.west@mme.co.uk",        role: "DIRECTOR",            department: "DIRECTORS" },
+
+    // Engineering
+    { name: "Shaun Griffiths",  email: "shaun.griffiths@mme.co.uk",  role: "ENGINEERING_MANAGER", department: "ENGINEERING" },
+    { name: "Gregg Hughes",     email: "gregg.hughes@mme.co.uk",     role: "DESIGN_ENGINEER",     department: "ENGINEERING" },
+    { name: "Andrew Robinson",  email: "andrew.robinson@mme.co.uk",  role: "DESIGN_ENGINEER",     department: "ENGINEERING" },
+    { name: "David Howells",    email: "david.howells@mme.co.uk",    role: "DESIGN_ENGINEER",     department: "ENGINEERING" },
+    { name: "Samuel Roberts",   email: "samuel.roberts@mme.co.uk",   role: "DESIGN_ENGINEER",     department: "ENGINEERING" },
+    { name: "Kelan Taylor",     email: "kelan.taylor@mme.co.uk",     role: "DESIGN_ENGINEER",     department: "ENGINEERING" },
+
+    // R&D
+    { name: "Reece Hobson",     email: "reece.hobson@mme.co.uk",     role: "R_AND_D_MANAGER",     department: "R_AND_D" },
+
+    // Production
+    { name: "Marc Pridmore",    email: "marc.pridmore@mme.co.uk",    role: "PRODUCTION_MANAGER",  department: "PRODUCTION" },
+    { name: "Nathan Hope",      email: "nathan.hope@mme.co.uk",      role: "PRODUCTION_SUPERVISOR", department: "PRODUCTION" },
+
+    // Projects
+    { name: "Richard Guest",    email: "richard.guest@mme.co.uk",    role: "PROJECT_MANAGER",     department: "PROJECTS" },
+    { name: "Corey Thomas",     email: "corey.thomas@mme.co.uk",     role: "PROJECT_COORDINATOR", department: "PROJECTS" },
+    { name: "Adam Parry",       email: "adam.parry@mme.co.uk",       role: "PROJECT_ADMINISTRATOR", department: "PROJECTS" },
+
+    // Sales / Business Development
+    { name: "Stephen McDermid", email: "stephen.mcdermid@mme.co.uk", role: "BUSINESS_DEVELOPMENT", department: "SALES" },
+
+    // Finance / IT / Procurement
+    { name: "Owen Hughes",      email: "owen.hughes@mme.co.uk",      role: "HEAD_OF_FINANCE_IT_PROCUREMENT", department: "FINANCE_IT_PROCUREMENT" },
+    { name: "Marc Harrison",    email: "marc.harrison@mme.co.uk",    role: "FINANCE_MANAGER",     department: "FINANCE_IT_PROCUREMENT" },
+
+    // Additional staff (roles TBC — defaults to STAFF)
+    { name: "Amy Carter",       email: "amy.carter@mme.co.uk",       role: "STAFF",               department: null },
+    { name: "Catherine Morris", email: "catherine.morris@mme.co.uk", role: "STAFF",               department: null },
+    { name: "Geraint Morgan",   email: "geraint.morgan@mme.co.uk",   role: "STAFF",               department: null },
+    { name: "Teresa Millan",    email: "teresa.millan@mme.co.uk",    role: "STAFF",               department: null },
+
+    // System Admin
+    { name: "Rick Zhou",        email: "rick.zhou@mme.co.uk",        role: "ADMIN",               department: "DIRECTORS" },
+  ] as const
+
+  const users = await Promise.all(
+    staffData.map((s) =>
+      prisma.user.create({
+        data: {
+          name: s.name,
+          email: s.email,
+          passwordHash: defaultHash,
+          role: s.role,
+          department: s.department,
+          mustChangePassword: true,
+        },
+      })
+    )
+  )
 
   const userMap = Object.fromEntries(users.map((u) => [u.name, u]))
 
@@ -481,7 +522,7 @@ async function main() {
         quantity: 1,
         currentDepartment: p.dept,
         productionStatus: p.prodStatus || null,
-        allocatedDesignerId: userMap["Dave Howells"]?.id,
+        allocatedDesignerId: userMap["David Howells"]?.id,
         coordinatorId: userMap["Marc Pridmore"].id,
         requiredCompletionDate: new Date("2026-06-30"),
       },
@@ -556,7 +597,7 @@ async function main() {
   })
 
   console.log("Seeding complete!")
-  console.log(`Created: ${users.length} users, ${customers.length} customers, ${catalogueItems.length} catalogue items`)
+  console.log(`Created: ${users.length} users (JRD-aligned), ${customers.length} customers, ${catalogueItems.length} catalogue items`)
 
   const projectCount = await prisma.project.count()
   const productCount = await prisma.product.count()

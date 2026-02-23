@@ -2,10 +2,10 @@ import { auth } from "@/lib/auth"
 import { hasPermission, type Permission } from "@/lib/permissions"
 import { NextResponse } from "next/server"
 
-/** Get the current user's role from the session. Returns "VIEWER" if no session. */
+/** Get the current user's role from the session. Returns "STAFF" if no session. */
 export async function getUserRole(): Promise<string> {
   const session = await auth()
-  return (session?.user as { role?: string } | undefined)?.role || "VIEWER"
+  return (session?.user as { role?: string } | undefined)?.role || "STAFF"
 }
 
 /**

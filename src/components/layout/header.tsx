@@ -32,7 +32,7 @@ export function Header() {
   }
 
   const userName = session?.user?.name || "User"
-  const userRole = (session?.user as { role?: string } | undefined)?.role || "VIEWER"
+  const userRole = (session?.user as { role?: string } | undefined)?.role || "STAFF"
   const initials = userName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
 
   return (

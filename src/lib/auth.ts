@@ -54,6 +54,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           email: user.email,
           role: user.role,
+          department: user.department,
         }
       },
     }),
@@ -63,7 +64,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // On first sign-in, add user info to token
       if (user) {
         token.id = user.id
-        token.role = (user as { role?: string }).role || "VIEWER"
+        token.role = (user as { role?: string }).role || "STAFF"
+        token.department = (user as { department?: string | null }).department || null
       }
 
       // For Microsoft SSO — match or create user in our database
@@ -79,13 +81,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               email: user.email,
               name: user.name || user.email.split("@")[0],
               passwordHash: "", // No password needed for SSO
-              role: "VIEWER", // Default role — admin can upgrade
+              role: "STAFF", // Default role — admin can upgrade
             },
           })
         }
 
         token.id = dbUser.id
         token.role = dbUser.role
+        token.department = dbUser.department
       }
 
       return token
@@ -94,6 +97,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string
         ;(session.user as { role?: string }).role = token.role as string
+        ;(session.user as { department?: string | null }).department = (token.department as string | null) || null
       }
       return session
     },

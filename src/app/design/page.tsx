@@ -105,7 +105,7 @@ async function getDesignDashboardData() {
     // All users who can be assigned design work
     prisma.user.findMany({
       where: {
-        role: { in: ["DESIGNER", "ADMIN", "PROJECT_COORDINATOR"] },
+        role: { in: ["DESIGN_ENGINEER", "ENGINEERING_MANAGER", "R_AND_D_MANAGER", "ADMIN"] },
       },
       select: { id: true, name: true },
       orderBy: { name: "asc" },

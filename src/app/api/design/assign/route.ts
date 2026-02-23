@@ -37,9 +37,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Designer not found" }, { status: 404 })
     }
 
-    if (designer.role !== "DESIGNER" && designer.role !== "ADMIN") {
+    const designRoles = ["DESIGN_ENGINEER", "ENGINEERING_MANAGER", "R_AND_D_MANAGER", "ADMIN"]
+    if (!designRoles.includes(designer.role)) {
       return NextResponse.json(
-        { error: "User does not have the DESIGNER role" },
+        { error: "User does not have a design-capable role" },
         { status: 400 }
       )
     }

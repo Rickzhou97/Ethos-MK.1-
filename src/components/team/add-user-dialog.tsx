@@ -15,7 +15,14 @@ import { Label } from "@/components/ui/label"
 import { Plus } from "lucide-react"
 import { prettifyEnum } from "@/lib/utils"
 
-const roles = ["ADMIN", "ESTIMATOR", "PROJECT_COORDINATOR", "DESIGNER", "PRODUCTION_MANAGER", "VIEWER"]
+const roles = [
+  "MANAGING_DIRECTOR", "TECHNICAL_DIRECTOR", "SALES_DIRECTOR", "DIRECTOR",
+  "ENGINEERING_MANAGER", "PRODUCTION_MANAGER", "PROJECT_MANAGER", "R_AND_D_MANAGER",
+  "DESIGN_ENGINEER", "SITE_MANAGER", "SITE_SUPERVISOR", "BUSINESS_DEVELOPMENT",
+  "HEAD_OF_FINANCE_IT_PROCUREMENT", "FINANCE_MANAGER",
+  "PROJECT_COORDINATOR", "PROJECT_ADMINISTRATOR", "PRODUCTION_SUPERVISOR",
+  "SURVEYOR", "STAFF", "ADMIN",
+]
 
 export function AddUserDialog() {
   const router = useRouter()

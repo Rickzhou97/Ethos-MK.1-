@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       name: body.name,
       email: body.email,
       passwordHash: "placeholder",
-      role: body.role || "VIEWER",
+      role: body.role || "STAFF",
     },
   })
 

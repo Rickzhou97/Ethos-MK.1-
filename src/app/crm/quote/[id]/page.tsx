@@ -12,7 +12,7 @@ export default async function QuotePage({
 }) {
   const { id } = await params
   const session = await auth()
-  const userRole = (session?.user as { role?: string })?.role || "VIEWER"
+  const userRole = (session?.user as { role?: string })?.role || "STAFF"
 
   const opportunity = await prisma.opportunity.findUnique({
     where: { id },

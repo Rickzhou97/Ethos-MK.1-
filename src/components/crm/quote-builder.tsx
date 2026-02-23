@@ -102,7 +102,7 @@ const approvalLabels: Record<string, string> = {
   REJECTED: "Rejected",
 }
 
-export function QuoteBuilder({ opportunity, userRole = "VIEWER" }: { opportunity: Opportunity; userRole?: string }) {
+export function QuoteBuilder({ opportunity, userRole = "STAFF" }: { opportunity: Opportunity; userRole?: string }) {
   const router = useRouter()
   const [lines, setLines] = useState<QuoteLine[]>(opportunity.quoteLines)
   const [rdCost, setRdCost] = useState(
@@ -174,7 +174,7 @@ export function QuoteBuilder({ opportunity, userRole = "VIEWER" }: { opportunity
   const quotedPrice = baseCost + marginAmount
 
   const hasItoLines = lines.some((l) => l.classification === "INNOVATE_TO_ORDER")
-  const canApproveIto = userRole === "SALES_DIRECTOR" || userRole === "ADMIN"
+  const canApproveIto = ["MANAGING_DIRECTOR", "TECHNICAL_DIRECTOR", "SALES_DIRECTOR", "ADMIN"].includes(userRole)
 
   // Add line item (manual)
   async function handleAddLine(data: {
