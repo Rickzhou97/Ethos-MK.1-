@@ -17,6 +17,7 @@ type JobCard = {
 type DesignCard = {
   id: string
   status: string
+  targetEndDate: string | null
   product: {
     id: string
     description: string

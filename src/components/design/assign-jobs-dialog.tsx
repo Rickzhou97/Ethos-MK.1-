@@ -13,6 +13,7 @@ type JobCard = {
 type DesignCard = {
   id: string
   status: string
+  targetEndDate: string | null
   product: {
     id: string
     description: string
@@ -70,6 +71,17 @@ export function AssignJobsDialog({ open, onOpenChange, projectId, projectNumber,
     }
     return map
   })
+  const [deadlines, setDeadlines] = useState<Record<string, string>>(() => {
+    const map: Record<string, string> = {}
+    for (const card of designCards) {
+      if (card.targetEndDate) {
+        map[card.id] = new Date(card.targetEndDate).toISOString().split("T")[0]
+      }
+    }
+    return map
+  })
+  const [deadlineSaving, setDeadlineSaving] = useState<Record<string, boolean>>({})
+  const [deadlineSaved, setDeadlineSaved] = useState<Record<string, boolean>>({})
 
   if (!open) return null
 
@@ -167,6 +179,36 @@ export function AssignJobsDialog({ open, onOpenChange, projectId, projectNumber,
     if (!hasError) setDirty(true)
   }
 
+  async function handleDeadline(cardId: string, dateValue: string) {
+    setDeadlines((d) => ({ ...d, [cardId]: dateValue }))
+    if (!dateValue) return
+
+    setError(null)
+    setDeadlineSaving((s) => ({ ...s, [cardId]: true }))
+    setDeadlineSaved((s) => ({ ...s, [cardId]: false }))
+
+    try {
+      const res = await fetch(`/api/design/cards/${cardId}/deadline`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetEndDate: dateValue }),
+      })
+
+      if (res.ok) {
+        setDeadlineSaved((s) => ({ ...s, [cardId]: true }))
+        setTimeout(() => setDeadlineSaved((s) => ({ ...s, [cardId]: false })), 2000)
+        setDirty(true)
+      } else {
+        const data = await res.json().catch(() => ({ error: "Unknown error" }))
+        setError(data.error || "Failed to save deadline")
+      }
+    } catch {
+      setError("Network error — could not save deadline")
+    } finally {
+      setDeadlineSaving((s) => ({ ...s, [cardId]: false }))
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
@@ -259,6 +301,32 @@ export function AssignJobsDialog({ open, onOpenChange, projectId, projectNumber,
                             <option key={d.id} value={d.id}>{d.name}</option>
                           ))}
                         </select>
+                      </div>
+                    </div>
+
+                    {/* Deadline row */}
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-200">
+                      <span className="text-[10px] text-gray-500 uppercase font-medium">Required Deadline</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="date"
+                          className="rounded-md border border-border px-2 py-1 text-xs focus:border-blue-500 focus:outline-none bg-white"
+                          value={deadlines[card.id] || ""}
+                          onChange={(e) => handleDeadline(card.id, e.target.value)}
+                        />
+                        <div className="w-5 flex items-center justify-center">
+                          {deadlineSaving[card.id] && (
+                            <svg className="w-3.5 h-3.5 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                          )}
+                          {deadlineSaved[card.id] && !deadlineSaving[card.id] && (
+                            <svg className="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
