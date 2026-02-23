@@ -188,7 +188,7 @@ export function MyWorkBoard({ cards }: { cards: DesignCard[] }) {
                       Not Ready ({waitingCards.length})
                     </span>
                   </div>
-                  <div className="flex flex-col gap-1.5 px-2 pb-2 overflow-y-auto max-h-[200px]">
+                  <div className="flex flex-col gap-1.5 px-2 pb-2 overflow-y-auto max-h-[400px]">
                     {waitingCards.map((card) => (
                       <WaitingWorkCard key={`waiting-${card.id}`} card={card} blockedJobType={col.id} onOpenBom={openBom} />
                     ))}
