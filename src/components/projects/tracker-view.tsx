@@ -47,6 +47,7 @@ async function getTrackerData(searchParams: Record<string, string | undefined>) 
         { currentDepartment: "asc" },
         { requiredCompletionDate: "asc" },
       ],
+      take: 200,
       include: {
         project: {
           select: {
@@ -82,7 +83,10 @@ export async function TrackerView({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-500">{products.length} products across all projects</p>
+      <p className="text-sm text-gray-500">
+        {products.length >= 200 ? "Showing first 200 products" : `${products.length} products`} across all projects
+        {products.length >= 200 && " — use filters to narrow results"}
+      </p>
 
       {/* Department summary pills */}
       <div className="flex flex-wrap gap-2">

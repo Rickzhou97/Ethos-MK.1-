@@ -30,11 +30,7 @@ async function getFinanceData() {
     }),
     prisma.nominalCode.findMany({
       where: { active: true },
-      include: {
-        _count: {
-          select: { purchaseOrderLines: true, plantHires: true, subContracts: true },
-        },
-      },
+      select: { id: true, code: true, description: true, category: true },
       orderBy: { code: "asc" },
     }),
   ])

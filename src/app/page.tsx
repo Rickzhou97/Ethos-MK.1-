@@ -30,39 +30,24 @@ async function getDashboardData() {
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
 
   const [
-    totalProjects,
-    activeProjects,
-    totalProducts,
-    orderProjects,
     projectsByStatus,
     departmentCounts,
     recentProjects,
     overdueProducts,
-    // New: pipeline values
+    // Pipeline values
     pipelineProjects,
-    // New: quote stats
-    totalQuotes,
-    draftQuotes,
-    submittedQuotes,
-    acceptedQuotes,
-    // New: ICU / priority projects
+    // Quote stats (single groupBy replaces 4 count queries)
+    quotesByStatus,
+    // ICU / priority projects
     icuProjects,
     criticalProjects,
-    // New: recent quotes
+    // Recent quotes
     recentQuotes,
-    // New: NCR stats
+    // NCR stats
     openNcrs,
     // Monthly data
     allProjectsForChart,
   ] = await Promise.all([
-    prisma.project.count(),
-    prisma.project.count({
-      where: { projectStatus: { notIn: ["COMPLETE"] } },
-    }),
-    prisma.product.count(),
-    prisma.project.count({
-      where: { salesStage: "ORDER" },
-    }),
     prisma.project.groupBy({
       by: ["projectStatus"],
       _count: { id: true },
@@ -108,11 +93,11 @@ async function getDashboardData() {
       _sum: { estimatedValue: true, contractValue: true },
       _count: { id: true },
     }),
-    // Quote stats
-    prisma.quote.count(),
-    prisma.quote.count({ where: { status: "DRAFT" } }),
-    prisma.quote.count({ where: { status: "SUBMITTED" } }),
-    prisma.quote.count({ where: { status: "ACCEPTED" } }),
+    // Quote stats — single groupBy instead of 4 separate counts
+    prisma.quote.groupBy({
+      by: ["status"],
+      _count: { id: true },
+    }),
     // ICU projects
     prisma.project.findMany({
       where: { isICUFlag: true, projectStatus: { not: "COMPLETE" } },
@@ -145,6 +130,24 @@ async function getDashboardData() {
       select: { createdAt: true, salesStage: true, projectStatus: true },
     }),
   ])
+
+  // Derive project counts from projectsByStatus groupBy (saves 3 queries)
+  const totalProjects = projectsByStatus.reduce((sum, g) => sum + g._count.id, 0)
+  const activeProjects = projectsByStatus
+    .filter((g) => g.projectStatus !== "COMPLETE")
+    .reduce((sum, g) => sum + g._count.id, 0)
+  const totalProducts = departmentCounts.reduce((sum, g) => sum + g._count.id, 0)
+  const orderProjects = projectsByStatus
+    .filter((g) => ["DESIGN", "MANUFACTURE", "DESIGN_FREEZE", "INSTALLATION", "REVIEW"].includes(g.projectStatus))
+    .reduce((sum, g) => sum + g._count.id, 0)
+
+  // Derive quote counts from quotesByStatus groupBy (saves 3 queries)
+  const quoteCountMap: Record<string, number> = {}
+  let totalQuotes = 0
+  for (const g of quotesByStatus) {
+    quoteCountMap[g.status] = g._count.id
+    totalQuotes += g._count.id
+  }
 
   // Calculate pipeline values from grouped aggregates
   let opportunityValue = 0
@@ -207,7 +210,7 @@ async function getDashboardData() {
     recentProjects,
     overdueProducts,
     pipeline: { opportunityValue, quotedValue, orderValue, total: opportunityValue + quotedValue + orderValue },
-    quotes: { total: totalQuotes, draft: draftQuotes, submitted: submittedQuotes, accepted: acceptedQuotes },
+    quotes: { total: totalQuotes, draft: quoteCountMap["DRAFT"] || 0, submitted: quoteCountMap["SUBMITTED"] || 0, accepted: quoteCountMap["ACCEPTED"] || 0 },
     icuProjects,
     criticalProjects,
     recentQuotes,

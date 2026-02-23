@@ -7,7 +7,7 @@ import { HandoverTrackingPanel } from "@/components/design/handover-tracking-pan
 export const revalidate = 60
 
 async function getDesignDashboardData() {
-  const [projects, allCards, timelineCards, designers, handovers] = await Promise.all([
+  const [projects, allDesignCards, designers, handovers] = await Promise.all([
     // All projects in design workflow OR won projects ready for design
     prisma.project.findMany({
       where: {
@@ -50,16 +50,24 @@ async function getDesignDashboardData() {
       orderBy: [{ priority: "asc" }, { createdAt: "asc" }],
     }),
 
-    // All non-complete cards for designer workload board
+    // Combined query for workload + timeline cards (replaces 2 separate queries)
     prisma.productDesignCard.findMany({
       where: {
-        status: { notIn: ["COMPLETE", "ON_HOLD"] },
+        OR: [
+          { status: { notIn: ["COMPLETE", "ON_HOLD"] } },
+          { assignedDesignerId: { not: null } },
+        ],
       },
       select: {
         id: true,
         status: true,
         estimatedHours: true,
         actualHours: true,
+        targetStartDate: true,
+        targetEndDate: true,
+        actualStartDate: true,
+        actualEndDate: true,
+        assignedDesignerId: true,
         product: {
           select: { id: true, description: true, partCode: true, productJobNumber: true },
         },
@@ -73,33 +81,6 @@ async function getDesignDashboardData() {
         },
       },
       orderBy: { createdAt: "asc" },
-    }),
-
-    // All cards with dates for timeline (including complete)
-    prisma.productDesignCard.findMany({
-      where: {
-        assignedDesignerId: { not: null },
-      },
-      select: {
-        id: true,
-        status: true,
-        targetStartDate: true,
-        targetEndDate: true,
-        actualStartDate: true,
-        actualEndDate: true,
-        product: {
-          select: { id: true, description: true, partCode: true, productJobNumber: true },
-        },
-        project: {
-          select: { id: true, projectNumber: true, name: true },
-        },
-        assignedDesigner: { select: { id: true, name: true } },
-        jobCards: {
-          select: { id: true, jobType: true, status: true },
-          orderBy: { sortOrder: "asc" },
-        },
-      },
-      orderBy: [{ assignedDesignerId: "asc" }, { targetStartDate: "asc" }],
     }),
 
     // All users who can be assigned design work
@@ -116,7 +97,16 @@ async function getDesignDashboardData() {
       where: {
         status: { in: ["SUBMITTED", "REJECTED", "ACKNOWLEDGED"] },
       },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        checklist: true,
+        designNotes: true,
+        initiatedAt: true,
+        acknowledgedAt: true,
+        rejectedAt: true,
+        rejectionReason: true,
+        includedProductIds: true,
         project: {
           select: {
             id: true,
@@ -134,6 +124,14 @@ async function getDesignDashboardData() {
       orderBy: { updatedAt: "desc" },
     }),
   ])
+
+  // Split combined cards into workload and timeline sets
+  const allCards = allDesignCards.filter(
+    (c) => c.status !== "COMPLETE" && c.status !== "ON_HOLD"
+  )
+  const timelineCards = allDesignCards.filter(
+    (c) => c.assignedDesignerId !== null
+  )
 
   return { projects, allCards, timelineCards, designers, handovers }
 }

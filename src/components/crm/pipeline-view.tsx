@@ -4,6 +4,7 @@ import { PipelineBoard } from "./pipeline-board"
 async function getPipelineData() {
   return prisma.opportunity.findMany({
     orderBy: [{ expectedCloseDate: "asc" }],
+    take: 200,
     include: {
       prospect: {
         select: { id: true, companyName: true },
