@@ -397,7 +397,7 @@ export function DesignTimeline({ cards: serverCards }: { cards: TimelineCard[] }
               <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full shrink-0 ${DESIGNER_COLORS[rowIdx % DESIGNER_COLORS.length]}`} />
                 <span className="text-xs font-medium text-gray-800 truncate">
-                  {row.designer.split(" ")[0]}
+                  {row.designer}
                 </span>
               </div>
               <div className="text-[9px] text-gray-400 mt-0.5 pl-4">

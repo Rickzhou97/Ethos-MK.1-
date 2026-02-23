@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
 import { requirePermission } from "@/lib/api-auth"
+import { revalidatePath } from "next/cache"
 
 // POST /api/design/jobs/:id/assign — Assign a designer to a specific job card
 export async function POST(
@@ -55,9 +56,32 @@ export async function POST(
     data: { assignedToId: designerId },
   })
 
-  // Always update the design card's assigned designer to keep workload board in sync
-  // If card is QUEUED, transition to IN_PROGRESS (designer assigned = work started)
-  const designCardUpdate: Record<string, unknown> = { assignedDesignerId: designerId }
+  // Determine the primary designer for the design card:
+  // After this assignment, find which designer has the most jobs assigned
+  const allJobCards = await prisma.designJobCard.findMany({
+    where: { designCardId: jobCard.designCardId },
+    select: { assignedToId: true },
+  })
+
+  // Count assignments per designer
+  const counts: Record<string, number> = {}
+  for (const jc of allJobCards) {
+    if (jc.assignedToId) {
+      counts[jc.assignedToId] = (counts[jc.assignedToId] || 0) + 1
+    }
+  }
+
+  // The designer with the most jobs becomes the card-level designer
+  let primaryDesignerId = designerId
+  let maxCount = 0
+  for (const [did, count] of Object.entries(counts)) {
+    if (count > maxCount) {
+      maxCount = count
+      primaryDesignerId = did
+    }
+  }
+
+  const designCardUpdate: Record<string, unknown> = { assignedDesignerId: primaryDesignerId }
   if (jobCard.designCard.status === "QUEUED") {
     designCardUpdate.status = "IN_PROGRESS"
     designCardUpdate.actualStartDate = new Date()
@@ -78,9 +102,12 @@ export async function POST(
       designerName: designer.name,
       jobType: jobCard.jobType,
       designCardId: jobCard.designCardId,
+      primaryDesignerId,
       statusChange: jobCard.designCard.status === "QUEUED" ? "QUEUED -> IN_PROGRESS" : null,
     }),
   })
+
+  revalidatePath("/design")
 
   return NextResponse.json(updated)
 }

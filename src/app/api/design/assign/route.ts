@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
 import { requirePermission } from "@/lib/api-auth"
+import { revalidatePath } from "next/cache"
 
 // POST /api/design/assign — Assign designer to design card(s)
 export async function POST(request: NextRequest) {
@@ -103,6 +104,15 @@ export async function POST(request: NextRequest) {
 
       updatedCards.push(updated)
 
+      // Also assign all unassigned job cards on this design card to the same designer
+      await prisma.designJobCard.updateMany({
+        where: {
+          designCardId: card.id,
+          assignedToId: null,
+        },
+        data: { assignedToId: designerId },
+      })
+
       // Log audit for assignment
       await logAudit({
         action: "UPDATE",
@@ -117,6 +127,8 @@ export async function POST(request: NextRequest) {
         }),
       })
     }
+
+    revalidatePath("/design")
 
     return NextResponse.json(JSON.parse(JSON.stringify(updatedCards)))
   } catch (error) {

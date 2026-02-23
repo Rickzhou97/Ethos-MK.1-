@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
+import { revalidatePath } from "next/cache"
 
 // POST /api/design/handover/[projectId]/acknowledge — Production Manager acknowledges handover
 export async function POST(
@@ -13,7 +14,7 @@ export async function POST(
     const body = await request.json()
     const { receivedById } = body
 
-    // Fetch existing handover
+    // Fetch existing handover (includes product IDs)
     const handover = await prisma.designHandover.findUnique({
       where: { projectId },
     })
@@ -60,6 +61,56 @@ export async function POST(
       },
     })
 
+    // ── Create initial CUTTING tasks for all products in this handover ──
+    const includedProductIds = (handover.includedProductIds || []) as string[]
+
+    // If handover has specific product IDs, use those; otherwise get all project products
+    const products = includedProductIds.length > 0
+      ? await prisma.product.findMany({
+          where: { id: { in: includedProductIds } },
+          select: { id: true },
+        })
+      : await prisma.product.findMany({
+          where: { projectId },
+          select: { id: true },
+        })
+
+    // Get max queue position for CUTTING stage
+    const maxPos = await prisma.productionTask.findFirst({
+      where: { stage: "CUTTING" },
+      orderBy: { queuePosition: "desc" },
+      select: { queuePosition: true },
+    })
+    let queuePosition = (maxPos?.queuePosition ?? -1) + 1
+
+    for (const product of products) {
+      // Only create if no CUTTING task already exists for this product
+      const existingTask = await prisma.productionTask.findFirst({
+        where: { productId: product.id, stage: "CUTTING" },
+      })
+
+      if (!existingTask) {
+        await prisma.productionTask.create({
+          data: {
+            productId: product.id,
+            projectId,
+            stage: "CUTTING",
+            status: "PENDING",
+            queuePosition: queuePosition++,
+          },
+        })
+
+        // Set product's production status to CUTTING
+        await prisma.product.update({
+          where: { id: product.id },
+          data: {
+            productionStatus: "CUTTING",
+            currentDepartment: "PRODUCTION",
+          },
+        })
+      }
+    }
+
     // Log audit for handover acknowledgement
     await logAudit({
       userId: receivedById,
@@ -84,8 +135,12 @@ export async function POST(
       metadata: JSON.stringify({
         trigger: "DesignHandover acknowledged",
         handoverId: updatedHandover.id,
+        productsInitialized: products.length,
       }),
     })
+
+    revalidatePath("/production")
+    revalidatePath("/design")
 
     return NextResponse.json(JSON.parse(JSON.stringify(updatedHandover)))
   } catch (error) {

@@ -48,11 +48,16 @@ function getDaysColor(days: number): string {
   return "text-red-600 bg-red-50"
 }
 
-// Only show these 7 designers, in this order
+// Only show these 7 designers, in this order (match by first name)
 const DESIGNER_FIRST_NAMES = ["Andrew", "David", "Gregg", "Kelan", "Reece", "Samuel", "Shaun"]
 
 // Map alternate names to canonical first names
 const NAME_ALIASES: Record<string, string> = { Dave: "David" }
+
+function getFirstName(fullName: string): string {
+  const first = fullName.split(" ")[0]
+  return NAME_ALIASES[first] || first
+}
 
 const designerColors = [
   "border-t-blue-500",
@@ -80,11 +85,7 @@ export function DesignerWorkloadBoard({
 
   // Filter to the 7 specific designers, ordered by DESIGNER_FIRST_NAMES
   const filteredDesigners = DESIGNER_FIRST_NAMES.map((firstName) => {
-    return designers.find((d) => {
-      const first = d.name.split(" ")[0]
-      const canonical = NAME_ALIASES[first] || first
-      return canonical === firstName
-    })
+    return designers.find((d) => getFirstName(d.name) === firstName)
   }).filter(Boolean) as Designer[]
 
   // Build designer columns from the filtered designers list
@@ -114,15 +115,11 @@ export function DesignerWorkloadBoard({
 
   // Build columns in fixed order matching DESIGNER_FIRST_NAMES
   const columns = [
-    ...filteredDesigners.map((d, i) => {
-      const first = d.name.split(" ")[0]
-      const displayName = NAME_ALIASES[first] || first
-      return {
-        id: d.id,
-        name: displayName,
-        borderColor: designerColors[i % designerColors.length],
-      }
-    }),
+    ...filteredDesigners.map((d, i) => ({
+      id: d.id,
+      name: d.name,
+      borderColor: designerColors[i % designerColors.length],
+    })),
     ...(grouped["unassigned"].length > 0
       ? [{ id: "unassigned", name: "Unassigned", borderColor: "border-t-gray-400" }]
       : []),

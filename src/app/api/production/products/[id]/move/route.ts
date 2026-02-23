@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { logAudit } from "@/lib/audit"
+import { revalidatePath } from "next/cache"
+
+const WORKSHOP_STAGES = ["CUTTING", "FABRICATION", "FITTING", "SHOTBLASTING", "PAINTING", "PACKING"]
 
 export async function PATCH(
   request: NextRequest,
@@ -31,6 +34,32 @@ export async function PATCH(
     data: { productionStatus },
   })
 
+  // If moving to a workshop stage, create a task if none exists
+  if (WORKSHOP_STAGES.includes(productionStatus)) {
+    const existingTask = await prisma.productionTask.findFirst({
+      where: { productId: id, stage: productionStatus },
+    })
+
+    if (!existingTask) {
+      const maxPos = await prisma.productionTask.findFirst({
+        where: { stage: productionStatus },
+        orderBy: { queuePosition: "desc" },
+        select: { queuePosition: true },
+      })
+      const queuePosition = (maxPos?.queuePosition ?? -1) + 1
+
+      await prisma.productionTask.create({
+        data: {
+          productId: id,
+          projectId: product.projectId,
+          stage: productionStatus,
+          status: "PENDING",
+          queuePosition,
+        },
+      })
+    }
+  }
+
   await logAudit({
     action: "UPDATE",
     entity: "Product",
@@ -39,6 +68,8 @@ export async function PATCH(
     oldValue: product.productionStatus,
     newValue: productionStatus,
   })
+
+  revalidatePath("/production")
 
   return NextResponse.json({ success: true })
 }
