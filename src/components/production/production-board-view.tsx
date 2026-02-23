@@ -12,6 +12,7 @@ type PendingHandover = {
   id: string
   projectId: string
   status: string
+  includedProductIds?: string[]
   initiatedAt: string | null
   initiatedBy: { id: string; name: string } | null
   project: {
@@ -265,10 +266,14 @@ function PendingHandoverColumn({
         {handovers.map((handover) => {
           const isAcking = loadingAction === handover.id + "-ack"
           const isRejecting = loadingAction === handover.id + "-rej"
+          const inclProductIds = (handover.includedProductIds || []) as string[]
+          const totalProducts = handover.project.products.length
+          const includedCount = inclProductIds.length || totalProducts
+          const isPartial = inclProductIds.length > 0 && includedCount < totalProducts
 
           return (
-            <div key={handover.id} className="rounded-lg border border-amber-200 bg-white p-3 shadow-sm">
-              <div className="flex items-center gap-1 mb-1">
+            <div key={handover.id} className="rounded-lg border-l-[3px] border-l-amber-500 border border-amber-200 bg-white p-3 shadow-sm">
+              <div className="flex items-center gap-1 mb-0.5">
                 <span className="text-[10px] font-semibold text-red-600">Needs your review</span>
               </div>
 
@@ -289,25 +294,37 @@ function PendingHandoverColumn({
                 </div>
               )}
 
-              {/* Products */}
+              {/* Products — show included vs excluded for partial handovers */}
               <div className="mt-2 space-y-0.5">
-                {handover.project.products.slice(0, 5).map((product) => (
-                  <div key={product.id} className="flex items-center gap-1.5 text-[10px]">
-                    <svg className="w-3 h-3 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-gray-700 truncate">{product.description || product.partCode}</span>
-                    {product.quantity > 1 && (
-                      <span className="text-gray-400">x{product.quantity}</span>
-                    )}
-                  </div>
-                ))}
-                {handover.project.products.length > 5 && (
+                {handover.project.designCards.slice(0, 5).map((card) => {
+                  const included = inclProductIds.length === 0 || inclProductIds.includes(card.product.id)
+                  return (
+                    <div key={card.id} className="flex items-center gap-1.5 text-[10px]">
+                      {included ? (
+                        <svg className="w-3 h-3 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <span className="w-3 h-3 flex items-center justify-center text-gray-300 shrink-0">—</span>
+                      )}
+                      <span className={included ? "text-gray-700 truncate" : "text-gray-400 italic truncate"}>
+                        {card.product.partCode || card.product.description}
+                      </span>
+                    </div>
+                  )
+                })}
+                {handover.project.designCards.length > 5 && (
                   <div className="text-[10px] text-gray-400 pl-4">
-                    +{handover.project.products.length - 5} more
+                    +{handover.project.designCards.length - 5} more
                   </div>
                 )}
               </div>
+
+              {isPartial && (
+                <div className="mt-1 text-[10px] text-amber-600 font-medium">
+                  Partial: {includedCount}/{totalProducts} products
+                </div>
+              )}
 
               {/* Actions */}
               <div className="mt-3 flex gap-2">
