@@ -4,6 +4,15 @@ import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id"
 import { compare } from "bcryptjs"
 import { prisma } from "@/lib/db"
 
+// Helper to write debug logs to DB (since we can't see Vercel console logs)
+async function authLog(msg: string) {
+  try {
+    await prisma.suggestion.create({
+      data: { userName: "AUTH_DEBUG", category: "AUTH_DEBUG", message: msg },
+    })
+  } catch { /* ignore */ }
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   pages: {
@@ -15,7 +24,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   providers: [
     // Microsoft Entra ID (Azure AD) — for SSO with Microsoft Authenticator
-    // To enable: register an app in Azure portal and set env vars
     ...(process.env.AZURE_AD_CLIENT_ID
       ? [
           MicrosoftEntraID({
@@ -26,7 +34,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         ]
       : []),
 
-    // Email/password fallback — works immediately with existing users
+    // Email/password fallback
     Credentials({
       name: "Email & Password",
       credentials: {
@@ -35,22 +43,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         try {
-          if (!credentials?.email || !credentials?.password) return null
+          if (!credentials?.email || !credentials?.password) {
+            await authLog("authorize: missing credentials")
+            return null
+          }
 
           const email = String(credentials.email).trim()
           const password = String(credentials.password)
 
-          // Use explicit select to avoid querying columns that may not exist in DB
           const user = await prisma.user.findUnique({
             where: { email },
             select: { id: true, name: true, email: true, passwordHash: true, role: true },
           })
 
-          if (!user || !user.passwordHash) return null
+          if (!user || !user.passwordHash) {
+            await authLog(`authorize: user not found or no hash for ${email}`)
+            return null
+          }
 
           const isValid = await compare(password, user.passwordHash)
-          if (!isValid) return null
+          if (!isValid) {
+            await authLog(`authorize: password mismatch for ${email}`)
+            return null
+          }
 
+          await authLog(`authorize: SUCCESS for ${email}`)
           return {
             id: user.id,
             name: user.name,
@@ -58,7 +75,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             role: user.role,
           }
         } catch (err) {
-          console.error("[AUTH] authorize error:", err)
+          await authLog(`authorize: EXCEPTION ${String(err)}`)
           return null
         }
       },
@@ -66,28 +83,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user, account }) {
-      // On first sign-in, add user info to token
       if (user) {
+        await authLog(`jwt callback: user=${user.email}, id=${user.id}`)
         token.id = user.id
         token.role = (user as { role?: string }).role || "STAFF"
-        // department may not exist in DB yet — use explicit select
-        try {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: user.email! },
-            select: { department: true },
-          })
-          token.department = dbUser?.department || null
-        } catch {
-          token.department = null
-        }
+        token.department = null // Skip DB query for department — will fix with db:push later
       }
 
-      // For Microsoft SSO — match or create user in our database
       if (account?.provider === "microsoft-entra-id" && user?.email) {
         try {
           let dbUser = await prisma.user.findUnique({
             where: { email: user.email },
-            select: { id: true, role: true, department: true },
+            select: { id: true, role: true },
           })
 
           if (!dbUser) {
@@ -98,15 +105,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 passwordHash: "",
                 role: "STAFF",
               },
-              select: { id: true, role: true, department: true },
+              select: { id: true, role: true },
             })
           }
 
           token.id = dbUser.id
           token.role = dbUser.role
-          token.department = dbUser.department
         } catch (err) {
-          console.error("[AUTH] JWT callback SSO error:", err)
+          await authLog(`jwt SSO error: ${String(err)}`)
         }
       }
 
