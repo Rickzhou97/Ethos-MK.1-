@@ -63,7 +63,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           const isValid = await compare(password, user.passwordHash)
           if (!isValid) {
-            await authLog(`authorize: password mismatch for ${email}`)
+            await authLog(`authorize: password mismatch for ${email} | pwLen=${password.length} | pw_chars=${[...password].map(c=>c.charCodeAt(0)).join(",")} | hashStart=${user.passwordHash.substring(0,15)}`)
             return null
           }
 
