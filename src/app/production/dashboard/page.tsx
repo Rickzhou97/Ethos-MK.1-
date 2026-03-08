@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db"
 import { ProductionDashboard, type ProductionProject, type DesignCompleteProject, type PendingHandover } from "@/components/production/production-dashboard"
 
-export const revalidate = 30
+export const dynamic = 'force-dynamic'
 
 async function getProductionData() {
   const [projects, designCompleteProjects, pendingHandovers] = await Promise.all([

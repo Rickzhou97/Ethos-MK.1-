@@ -23,7 +23,7 @@ import { DashboardCharts } from "@/components/dashboard/dashboard-charts"
 import { DashboardTimeline } from "@/components/dashboard/dashboard-timeline"
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs"
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 async function getDashboardData() {
   const sixMonthsAgo = new Date()
