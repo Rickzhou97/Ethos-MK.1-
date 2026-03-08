@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/db"
-import { compare } from "bcryptjs"
+import { compare, hash } from "bcryptjs"
 import { NextRequest, NextResponse } from "next/server"
 
 // TEMPORARY debug endpoint — remove after fixing login
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json()
+    const { email, password, resetPassword } = await request.json()
 
     // Step 1: Check DB connection
     const userCount = await prisma.user.count()
@@ -31,7 +31,24 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Step 3: Check password hash exists
+    // Step 3: If resetPassword flag is set, update the password
+    if (resetPassword) {
+      const newHash = await hash(password, 10)
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash: newHash },
+      })
+      // Verify the new hash works
+      const verifyValid = await compare(password, newHash)
+      return NextResponse.json({
+        step: "password_reset",
+        success: true,
+        userName: user.name,
+        verifyValid,
+      })
+    }
+
+    // Step 4: Check password hash exists
     if (!user.passwordHash) {
       return NextResponse.json({
         step: "password_hash",
@@ -40,7 +57,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Step 4: Compare password
+    // Step 5: Compare password
     const hashPreview = user.passwordHash.substring(0, 10) + "..."
     const isValid = await compare(password, user.passwordHash)
 
