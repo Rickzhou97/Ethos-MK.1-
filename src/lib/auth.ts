@@ -4,15 +4,6 @@ import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id"
 import { compare } from "bcryptjs"
 import { prisma } from "@/lib/db"
 
-// Helper to write debug logs to DB (since we can't see Vercel console logs)
-async function authLog(msg: string) {
-  try {
-    await prisma.suggestion.create({
-      data: { userName: "AUTH_DEBUG", category: "AUTH_DEBUG", message: msg },
-    })
-  } catch { /* ignore */ }
-}
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   pages: {
@@ -34,7 +25,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         ]
       : []),
 
-    // Email/password fallback
+    // Email/password fallback — works immediately with existing users
     Credentials({
       name: "Email & Password",
       credentials: {
@@ -42,78 +33,60 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        try {
-          if (!credentials?.email || !credentials?.password) {
-            await authLog("authorize: missing credentials")
-            return null
-          }
+        if (!credentials?.email || !credentials?.password) return null
 
-          const email = String(credentials.email).trim()
-          const password = String(credentials.password)
+        const email = String(credentials.email).trim()
+        const password = String(credentials.password)
 
-          const user = await prisma.user.findUnique({
-            where: { email },
-            select: { id: true, name: true, email: true, passwordHash: true, role: true },
-          })
+        const user = await prisma.user.findUnique({
+          where: { email },
+        })
 
-          if (!user || !user.passwordHash) {
-            await authLog(`authorize: user not found or no hash for ${email}`)
-            return null
-          }
+        if (!user || !user.passwordHash) return null
 
-          const isValid = await compare(password, user.passwordHash)
-          if (!isValid) {
-            await authLog(`authorize: password mismatch for ${email} | pwLen=${password.length} | pw_chars=${[...password].map(c=>c.charCodeAt(0)).join(",")} | hashStart=${user.passwordHash.substring(0,15)}`)
-            return null
-          }
+        const isValid = await compare(password, user.passwordHash)
+        if (!isValid) return null
 
-          await authLog(`authorize: SUCCESS for ${email}`)
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-          }
-        } catch (err) {
-          await authLog(`authorize: EXCEPTION ${String(err)}`)
-          return null
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          department: user.department,
         }
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user, account }) {
+      // On first sign-in, add user info to token
       if (user) {
-        await authLog(`jwt callback: user=${user.email}, id=${user.id}`)
         token.id = user.id
         token.role = (user as { role?: string }).role || "STAFF"
-        token.department = null // Skip DB query for department — will fix with db:push later
+        token.department = (user as { department?: string | null }).department || null
       }
 
+      // For Microsoft SSO — match or create user in our database
       if (account?.provider === "microsoft-entra-id" && user?.email) {
-        try {
-          let dbUser = await prisma.user.findUnique({
-            where: { email: user.email },
-            select: { id: true, role: true },
+        let dbUser = await prisma.user.findUnique({
+          where: { email: user.email },
+        })
+
+        if (!dbUser) {
+          // Auto-create user from Microsoft account
+          dbUser = await prisma.user.create({
+            data: {
+              email: user.email,
+              name: user.name || user.email.split("@")[0],
+              passwordHash: "", // No password needed for SSO
+              role: "STAFF", // Default role — admin can upgrade
+            },
           })
-
-          if (!dbUser) {
-            dbUser = await prisma.user.create({
-              data: {
-                email: user.email,
-                name: user.name || user.email.split("@")[0],
-                passwordHash: "",
-                role: "STAFF",
-              },
-              select: { id: true, role: true },
-            })
-          }
-
-          token.id = dbUser.id
-          token.role = dbUser.role
-        } catch (err) {
-          await authLog(`jwt SSO error: ${String(err)}`)
         }
+
+        token.id = dbUser.id
+        token.role = dbUser.role
+        token.department = dbUser.department
       }
 
       return token
