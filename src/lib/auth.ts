@@ -34,51 +34,65 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          console.error("[AUTH] Missing email or password in credentials")
-          return null
-        }
-
-        const email = credentials.email as string
-        console.log("[AUTH] Login attempt for:", email)
-
-        let user
+        // Write debug info to DB so we can query it via debug endpoint
+        const debugLog: string[] = []
         try {
-          user = await prisma.user.findUnique({
+          debugLog.push(`credentials keys: ${Object.keys(credentials || {}).join(",")}`)
+          debugLog.push(`email type: ${typeof credentials?.email}, value: ${String(credentials?.email)}`)
+          debugLog.push(`password type: ${typeof credentials?.password}, length: ${String(credentials?.password || "").length}`)
+
+          if (!credentials?.email || !credentials?.password) {
+            debugLog.push("FAIL: missing email or password")
+            return null
+          }
+
+          const email = String(credentials.email).trim()
+          const password = String(credentials.password)
+          debugLog.push(`parsed email: "${email}", password length: ${password.length}`)
+
+          const user = await prisma.user.findUnique({
             where: { email },
+            select: { id: true, name: true, email: true, passwordHash: true, role: true, department: true },
           })
-        } catch (dbError) {
-          console.error("[AUTH] Database error finding user:", dbError)
+          debugLog.push(`user found: ${!!user}, name: ${user?.name || "N/A"}`)
+
+          if (!user || !user.passwordHash) {
+            debugLog.push(`FAIL: user=${!!user}, hasHash=${!!user?.passwordHash}`)
+            return null
+          }
+
+          debugLog.push(`hash preview: ${user.passwordHash.substring(0, 10)}..., length: ${user.passwordHash.length}`)
+
+          const isValid = await compare(password, user.passwordHash)
+          debugLog.push(`compare result: ${isValid}`)
+
+          if (!isValid) {
+            debugLog.push("FAIL: password mismatch")
+            return null
+          }
+
+          debugLog.push("SUCCESS")
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            department: user.department,
+          }
+        } catch (err) {
+          debugLog.push(`EXCEPTION: ${String(err)}`)
           return null
-        }
-
-        if (!user) {
-          console.error("[AUTH] No user found with email:", email)
-          return null
-        }
-
-        if (!user.passwordHash) {
-          console.error("[AUTH] User has no passwordHash:", email)
-          return null
-        }
-
-        const isValid = await compare(
-          credentials.password as string,
-          user.passwordHash
-        )
-
-        if (!isValid) {
-          console.error("[AUTH] Password mismatch for:", email)
-          return null
-        }
-
-        console.log("[AUTH] Login successful for:", email)
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          department: user.department,
+        } finally {
+          // Write debug log to suggestions table for inspection
+          try {
+            await prisma.suggestion.create({
+              data: {
+                userName: "AUTH_DEBUG",
+                category: "AUTH_DEBUG",
+                message: debugLog.join(" | "),
+              },
+            })
+          } catch { /* ignore write failures */ }
         }
       },
     }),

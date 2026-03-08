@@ -2,6 +2,20 @@ import { prisma } from "@/lib/db"
 import { compare, hash } from "bcryptjs"
 import { NextRequest, NextResponse } from "next/server"
 
+// GET: Read auth debug logs from suggestions table
+export async function GET() {
+  try {
+    const logs = await prisma.suggestion.findMany({
+      where: { category: "AUTH_DEBUG" },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    })
+    return NextResponse.json({ logs })
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 })
+  }
+}
+
 // TEMPORARY debug endpoint — remove after fixing login
 export async function POST(request: NextRequest) {
   try {
