@@ -39,8 +39,12 @@ export function LayoutProvider({ children }: { children: ReactNode }) {
   // Load theme + font size from localStorage on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem("ethos-theme") as ThemeMode | null
-    if (savedTheme === "cyberpunk" || savedTheme === "sage") {
+    if (savedTheme === "cyberpunk") {
       setTheme(savedTheme)
+    }
+    // Clear sage theme if previously saved
+    if (savedTheme === "sage") {
+      localStorage.setItem("ethos-theme", "light")
     }
     const savedSize = localStorage.getItem("ethos-font-size") as FontSize | null
     if (savedSize === "small" || savedSize === "large") {

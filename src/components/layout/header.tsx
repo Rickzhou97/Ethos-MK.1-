@@ -1,7 +1,7 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
-import { Search, Bell, LogOut, Zap, Leaf, Minus, Plus, Type } from "lucide-react"
+import { Search, Bell, LogOut, Zap, Minus, Plus, Type } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useRef, useState } from "react"
 import { useSession, signOut } from "next-auth/react"
@@ -51,17 +51,7 @@ export function Header() {
         <span className="hidden md:block text-sm font-medium italic text-gray-400">Health, Wealth and Success!</span>
       </div>
       <div className="flex items-center gap-2 sm:gap-4">
-        <button
-          onClick={() => setTheme(theme === "sage" ? "light" : "sage")}
-          className={`relative p-2 transition-all font-bold text-xs ${
-            theme === "sage"
-              ? "bg-[#00B140] text-white hover:bg-[#009935] rounded-md border-2 border-[#008C2E] shadow-[0_2px_8px_rgba(0,177,64,0.4)]"
-              : "text-gray-400 hover:bg-gray-50 hover:text-gray-600 rounded-lg"
-          }`}
-          title={theme === "sage" ? "Switch to normal mode" : "Activate Sage mode"}
-        >
-          <Leaf className="h-5 w-5" />
-        </button>
+        {/* Sage theme button disabled */}
         <button
           onClick={() => setTheme(theme === "cyberpunk" ? "light" : "cyberpunk")}
           className={`relative p-2 transition-all font-bold text-xs ${
