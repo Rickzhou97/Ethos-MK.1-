@@ -31,15 +31,20 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Step 3: If resetPassword flag is set, update the password
+    // Step 3: If resetPassword flag is set, update the password via raw SQL
     if (resetPassword) {
       const newHash = await hash(password, 10)
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { passwordHash: newHash },
+      await prisma.$executeRawUnsafe(
+        `UPDATE "users" SET "passwordHash" = $1 WHERE "id" = $2`,
+        newHash,
+        user.id
+      )
+      // Re-fetch to verify
+      const updated = await prisma.user.findUnique({
+        where: { email },
+        select: { passwordHash: true },
       })
-      // Verify the new hash works
-      const verifyValid = await compare(password, newHash)
+      const verifyValid = updated ? await compare(password, updated.passwordHash) : false
       return NextResponse.json({
         step: "password_reset",
         success: true,
