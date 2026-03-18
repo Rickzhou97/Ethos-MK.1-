@@ -2191,7 +2191,7 @@ model DocumentAnnotation {
 
 model CrewEquipment {
   id           String   @id @default(cuid())
-  crewId       String
+  crewId       String?
   name         String
   type         String   @default("TOOL") // VEHICLE, PLANT, TOOL
   registration String?
@@ -2200,7 +2200,7 @@ model CrewEquipment {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  crew InstallCrew @relation(fields: [crewId], references: [id], onDelete: Cascade)
+  crew InstallCrew? @relation(fields: [crewId], references: [id], onDelete: SetNull)
 
   @@index([crewId])
   @@map("crew_equipment")
