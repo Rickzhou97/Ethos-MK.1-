@@ -428,6 +428,9 @@ model Project {
   // Production module relations
   productionTasks ProductionTask[]
 
+  // Installation module relations
+  installationTasks InstallationTask[]
+
   // Activity log
   projectNotes ProjectNote[]
 
@@ -536,6 +539,9 @@ model NonConformanceReport {
   originStage   ProductionStage?
   returnToStage ProductionStage?
 
+  // Installation NCR fields
+  installOriginStage InstallationStage?
+
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
@@ -552,6 +558,7 @@ enum NcrRootCause {
   DESIGN_ERROR
   PRODUCTION_ERROR
   MATERIAL_DEFECT
+  INSTALLATION_ERROR
   OTHER
 }
 
@@ -872,6 +879,12 @@ model Product {
   // Production module relation
   productionTasks ProductionTask[]
 
+  // Installation module relation
+  installationTasks InstallationTask[]
+
+  // Document annotations (Design Visualizer)
+  annotations DocumentAnnotation[]
+
   @@index([projectId])
   @@index([currentDepartment])
   @@index([productionStatus])
@@ -1062,6 +1075,9 @@ model Document {
   // Relations
   project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   product Product? @relation(fields: [productId], references: [id])
+
+  // Design Visualizer annotations
+  annotations DocumentAnnotation[]
 
   @@index([projectId])
   @@index([productId])
@@ -1648,6 +1664,8 @@ enum WorkerRole {
   PAINTER
   PACKER
   SUPERVISOR
+  INSTALLER
+  SITE_SUPERVISOR
 }
 
 // ============================================================
@@ -1661,6 +1679,9 @@ model Worker {
   isAvailable Boolean    @default(true)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+
+  // Installation crew assignments
+  crewAssignments InstallCrewMember[]
 
   @@map("workers")
 }
@@ -2036,4 +2057,120 @@ model SageBomOperation {
   @@index([stockCode])
   @@index([operationRef])
   @@map("sage_bom_operations")
+}
+
+// ============================================================
+// INSTALLATION MODULE — Crews, Tasks, Stages
+// ============================================================
+
+enum InstallationStage {
+  SITE_PREP
+  DELIVERY
+  INSTALL
+  CONNECTIONS
+  TESTING
+  HANDOVER
+  COMPLETED
+}
+
+model InstallCrew {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  isActive  Boolean  @default(true)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members InstallCrewMember[]
+  tasks   InstallationTask[]
+
+  @@map("install_crews")
+}
+
+model InstallCrewMember {
+  id        String    @id @default(cuid())
+  crewId    String
+  workerId  String
+  role      String?   // "Lead", "Installer", "Apprentice"
+  startDate DateTime  @default(now())
+  endDate   DateTime? // null = currently active
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  crew   InstallCrew @relation(fields: [crewId], references: [id], onDelete: Cascade)
+  worker Worker      @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([crewId])
+  @@index([workerId])
+  @@map("install_crew_members")
+}
+
+model InstallationTask {
+  id               String            @id @default(cuid())
+  productId        String
+  projectId        String
+  crewId           String?
+  stage            InstallationStage
+  status           TaskStatus        @default(PENDING)
+  queuePosition    Int               @default(0)
+  assignedTo       String?
+  notes            String?
+  estimatedMins    Int?
+  actualMins       Int?
+  startedAt        DateTime?
+  completedAt      DateTime?
+
+  // Inspection fields
+  inspectedBy      String?
+  inspectedAt      DateTime?
+  inspectionStatus InspectionStatus?
+
+  // NCR link
+  ncrId            String?
+
+  // Site-specific fields
+  siteNotes        String?
+  weatherCondition String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  crew    InstallCrew? @relation(fields: [crewId], references: [id])
+
+  @@index([productId])
+  @@index([projectId])
+  @@index([crewId])
+  @@index([stage])
+  @@index([status])
+  @@index([stage, status, queuePosition])
+  @@map("installation_tasks")
+}
+
+// ============================================================
+// DESIGN VISUALIZER — Document Annotations
+// ============================================================
+
+model DocumentAnnotation {
+  id         String   @id @default(cuid())
+  documentId String
+  productId  String?
+  pageNumber Int      @default(1)
+  xPercent   Decimal  @db.Decimal(5, 2)
+  yPercent   Decimal  @db.Decimal(5, 2)
+  label      String?
+  notes      String?
+  pinType    String   @default("PRODUCT") // PRODUCT, MEASUREMENT, NOTE
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  product  Product? @relation(fields: [productId], references: [id])
+
+  @@index([documentId])
+  @@index([productId])
+  @@map("document_annotations")
 }
