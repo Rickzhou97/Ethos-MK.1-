@@ -5,8 +5,9 @@ import type { MapProject, MapCrew } from "@/components/installation/installation
 
 export const dynamic = 'force-dynamic'
 
-async function getInstallationProjects() {
-  return prisma.project.findMany({
+export default async function InstallationPage() {
+  // Fetch projects in installation with tasks and coordinates
+  const projects = await prisma.project.findMany({
     where: { projectStatus: "INSTALLATION" },
     orderBy: [{ priority: "asc" }, { orderReceived: "asc" }],
     select: {
@@ -19,6 +20,8 @@ async function getInstallationProjects() {
       contractValue: true,
       targetCompletion: true,
       siteLocation: true,
+      siteLatitude: true,
+      siteLongitude: true,
       p2Date: true,
       p3Date: true,
       p4Date: true,
@@ -26,18 +29,36 @@ async function getInstallationProjects() {
       coordinator: { select: { name: true } },
       projectManager: { select: { name: true } },
       _count: { select: { products: true } },
+      installationTasks: {
+        select: {
+          id: true,
+          stage: true,
+          status: true,
+          inspectionStatus: true,
+          crew: { select: { id: true, name: true, code: true } },
+        },
+      },
     },
   })
-}
 
-export default async function InstallationPage() {
-  const projects = await getInstallationProjects()
+  // Fetch crews with members and task counts
+  const crews = await prisma.installCrew.findMany({
+    where: { isActive: true },
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      members: {
+        where: { endDate: null },
+        select: { worker: { select: { name: true } } },
+      },
+      _count: { select: { tasks: true } },
+    },
+    orderBy: { name: "asc" },
+  })
+
   const serialized: DeptProject[] = JSON.parse(JSON.stringify(projects))
 
-  // Build map-compatible project data
-  // (no siteLatitude/siteLongitude or installationTasks in schema yet —
-  //  the map component handles geocoding from siteLocation strings and
-  //  gracefully shows empty states for missing data)
   const mapProjects: MapProject[] = projects.map((p) => ({
     id: p.id,
     projectNumber: p.projectNumber,
@@ -45,17 +66,28 @@ export default async function InstallationPage() {
     projectStatus: p.projectStatus,
     departmentStatus: p.departmentStatus,
     siteLocation: p.siteLocation ?? null,
-    siteLatitude: null,
-    siteLongitude: null,
+    siteLatitude: p.siteLatitude ? Number(p.siteLatitude) : null,
+    siteLongitude: p.siteLongitude ? Number(p.siteLongitude) : null,
     priority: p.priority ?? null,
     targetCompletion: p.targetCompletion ? p.targetCompletion.toISOString() : null,
     customer: p.customer ?? null,
     _count: { products: p._count?.products ?? 0 },
-    installationTasks: [],
+    installationTasks: p.installationTasks.map((t) => ({
+      id: t.id,
+      stage: t.stage,
+      status: t.status,
+      inspectionStatus: t.inspectionStatus,
+      crew: t.crew,
+    })),
   }))
 
-  // No Crew model in schema yet — pass empty array; the map handles this gracefully
-  const mapCrews: MapCrew[] = []
+  const mapCrews: MapCrew[] = crews.map((c) => ({
+    id: c.id,
+    name: c.name,
+    code: c.code,
+    members: c.members.map((m) => ({ worker: { name: m.worker.name } })),
+    _count: { tasks: c._count.tasks },
+  }))
 
   return (
     <div className="space-y-4">
@@ -67,10 +99,10 @@ export default async function InstallationPage() {
           </p>
         </div>
         <div className="flex items-center gap-3 text-[10px] text-gray-500">
-          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-gray-300" /> To Do</span>
-          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-blue-400" /> Ongoing</span>
-          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-amber-400" /> Review</span>
-          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-green-400" /> Done</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-blue-500" /> Active</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-amber-500" /> Pending</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-green-500" /> Complete</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-gray-800" /> MME HQ</span>
         </div>
       </div>
 

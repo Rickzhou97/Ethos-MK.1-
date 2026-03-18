@@ -387,6 +387,8 @@ model Project {
 
   // Location / delivery
   siteLocation    String?
+  siteLatitude    Decimal?  @db.Decimal(9, 6)
+  siteLongitude   Decimal?  @db.Decimal(9, 6)
   deliveryType    String?
   projectRegion   String?
   notes           String?
