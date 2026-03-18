@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db"
 import { DepartmentBoard, type DeptProject } from "@/components/departments/department-board"
+import InstallationMap from "@/components/installation/installation-map"
+import type { MapProject, MapCrew } from "@/components/installation/installation-map"
 
 export const dynamic = 'force-dynamic'
 
@@ -16,12 +18,14 @@ async function getInstallationProjects() {
       priority: true,
       contractValue: true,
       targetCompletion: true,
+      siteLocation: true,
       p2Date: true,
       p3Date: true,
       p4Date: true,
       customer: { select: { name: true } },
       coordinator: { select: { name: true } },
       projectManager: { select: { name: true } },
+      _count: { select: { products: true } },
     },
   })
 }
@@ -29,6 +33,29 @@ async function getInstallationProjects() {
 export default async function InstallationPage() {
   const projects = await getInstallationProjects()
   const serialized: DeptProject[] = JSON.parse(JSON.stringify(projects))
+
+  // Build map-compatible project data
+  // (no siteLatitude/siteLongitude or installationTasks in schema yet —
+  //  the map component handles geocoding from siteLocation strings and
+  //  gracefully shows empty states for missing data)
+  const mapProjects: MapProject[] = projects.map((p) => ({
+    id: p.id,
+    projectNumber: p.projectNumber,
+    name: p.name,
+    projectStatus: p.projectStatus,
+    departmentStatus: p.departmentStatus,
+    siteLocation: p.siteLocation ?? null,
+    siteLatitude: null,
+    siteLongitude: null,
+    priority: p.priority ?? null,
+    targetCompletion: p.targetCompletion ? p.targetCompletion.toISOString() : null,
+    customer: p.customer ?? null,
+    _count: { products: p._count?.products ?? 0 },
+    installationTasks: [],
+  }))
+
+  // No Crew model in schema yet — pass empty array; the map handles this gracefully
+  const mapCrews: MapCrew[] = []
 
   return (
     <div className="space-y-4">
@@ -47,6 +74,10 @@ export default async function InstallationPage() {
         </div>
       </div>
 
+      {/* Interactive UK map */}
+      <InstallationMap projects={mapProjects} crews={mapCrews} />
+
+      {/* Existing kanban board */}
       <DepartmentBoard
         projects={serialized}
         departmentLabel="Installation"
