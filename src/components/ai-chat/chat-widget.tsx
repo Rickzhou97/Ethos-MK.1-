@@ -12,7 +12,11 @@ import {
   Trash2,
   Maximize2,
   Minimize2,
+  PanelRight,
+  MessageCircle,
 } from "lucide-react"
+
+type ViewMode = "float" | "sidebar" | "fullscreen"
 
 interface Message {
   id: string
@@ -23,7 +27,7 @@ interface Message {
 
 export function ChatWidget() {
   const [open, setOpen] = useState(false)
-  const [expanded, setExpanded] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>("float")
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
@@ -42,21 +46,21 @@ export function ChatWidget() {
 
   useEffect(() => {
     if (open && inputRef.current) {
-      inputRef.current.focus()
+      setTimeout(() => inputRef.current?.focus(), 100)
     }
-  }, [open])
+  }, [open, viewMode])
 
-  // Close expanded on Escape
+  // Escape key handling
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (expanded) setExpanded(false)
+        if (viewMode === "fullscreen") setViewMode("float")
         else if (open) setOpen(false)
       }
     }
     window.addEventListener("keydown", handleEsc)
     return () => window.removeEventListener("keydown", handleEsc)
-  }, [open, expanded])
+  }, [open, viewMode])
 
   const sendMessage = async () => {
     const text = input.trim()
@@ -72,6 +76,11 @@ export function ChatWidget() {
     setMessages((prev) => [...prev, userMsg])
     setInput("")
     setLoading(true)
+
+    // Reset textarea height
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto"
+    }
 
     try {
       const chatHistory = [...messages, userMsg].map((m) => ({
@@ -123,6 +132,40 @@ export function ChatWidget() {
     setMessages([])
   }
 
+  // View mode button styles
+  const modeBtn = (mode: ViewMode, active: boolean) =>
+    cn(
+      "rounded-md p-1.5 transition-colors",
+      active
+        ? isCyber
+          ? "bg-[#FCE300]/20 text-[#FCE300]"
+          : "bg-neutral-200 text-neutral-900"
+        : isCyber
+          ? "hover:bg-[#FCE300]/10 text-neutral-500"
+          : "hover:bg-neutral-100 text-neutral-400"
+    )
+
+  // Panel position/size classes based on view mode
+  const panelClasses = cn(
+    "fixed z-[999] flex flex-col overflow-hidden shadow-2xl transition-all duration-300 ease-in-out",
+    // Theme
+    isCyber
+      ? "bg-[#1A1A1E] border border-[#FCE300]/30"
+      : "bg-white border border-neutral-200",
+    // View mode specific
+    viewMode === "float" && "bottom-6 right-6 w-[400px] h-[580px] rounded-2xl",
+    viewMode === "sidebar" && "top-0 right-0 bottom-0 w-[420px] sm:w-[480px] rounded-l-2xl border-r-0",
+    viewMode === "fullscreen" && "inset-0 sm:inset-6 md:inset-10 lg:inset-16 rounded-none sm:rounded-2xl",
+    // Mobile: always full screen
+    "max-sm:!inset-0 max-sm:!w-full max-sm:!h-full max-sm:!rounded-none",
+    // Open/close
+    open
+      ? "opacity-100 translate-x-0 translate-y-0 scale-100"
+      : viewMode === "sidebar"
+        ? "opacity-0 translate-x-full pointer-events-none"
+        : "opacity-0 scale-95 translate-y-4 pointer-events-none"
+  )
+
   return (
     <>
       {/* Floating trigger button */}
@@ -133,40 +176,28 @@ export function ChatWidget() {
           isCyber
             ? "bg-[#FCE300] text-[#1A1A1E] hover:bg-[#e6cf00]"
             : "bg-neutral-900 text-white hover:bg-neutral-800",
-          open && "rotate-90 opacity-0 pointer-events-none"
+          open && "!opacity-0 !pointer-events-none !scale-75"
         )}
       >
         <Sparkles className="h-5 w-5" />
       </button>
 
-      {/* Backdrop for expanded mode */}
-      {open && expanded && (
+      {/* Backdrop for fullscreen and sidebar */}
+      {open && (viewMode === "fullscreen" || viewMode === "sidebar") && (
         <div
-          className="fixed inset-0 z-[998] bg-black/40 backdrop-blur-sm transition-opacity"
-          onClick={() => setExpanded(false)}
+          className={cn(
+            "fixed inset-0 z-[998] transition-opacity duration-300",
+            viewMode === "fullscreen" ? "bg-black/50 backdrop-blur-sm" : "bg-black/20"
+          )}
+          onClick={() => {
+            if (viewMode === "fullscreen") setViewMode("float")
+            else setOpen(false)
+          }}
         />
       )}
 
       {/* Chat panel */}
-      <div
-        className={cn(
-          "fixed z-[999] flex flex-col overflow-hidden shadow-2xl transition-all duration-300",
-          // Expanded vs compact sizing
-          expanded
-            ? "inset-4 sm:inset-8 md:inset-12 lg:left-[15%] lg:right-[15%] lg:top-8 lg:bottom-8 rounded-2xl"
-            : "bottom-6 right-6 w-[380px] h-[560px] rounded-2xl",
-          // Mobile always full screen
-          "max-sm:bottom-0 max-sm:right-0 max-sm:left-0 max-sm:top-0 max-sm:w-full max-sm:h-full max-sm:rounded-none",
-          // Theme
-          isCyber
-            ? "bg-[#1A1A1E] border border-[#FCE300]/30"
-            : "bg-white border border-neutral-200",
-          // Open/close animation
-          open
-            ? "opacity-100 scale-100 translate-y-0"
-            : "opacity-0 scale-95 translate-y-4 pointer-events-none"
-        )}
-      >
+      <div className={panelClasses}>
         {/* Header */}
         <div
           className={cn(
@@ -176,14 +207,14 @@ export function ChatWidget() {
               : "border-neutral-100 bg-neutral-50"
           )}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <div
               className={cn(
-                "flex h-7 w-7 items-center justify-center rounded-lg",
+                "flex h-8 w-8 items-center justify-center rounded-lg",
                 isCyber ? "bg-[#FCE300] text-[#1A1A1E]" : "bg-neutral-900 text-white"
               )}
             >
-              <Sparkles className="h-3.5 w-3.5" />
+              <Sparkles className="h-4 w-4" />
             </div>
             <div>
               <h3
@@ -197,14 +228,49 @@ export function ChatWidget() {
               <p
                 className={cn(
                   "text-[10px] mt-0.5",
-                  isCyber ? "text-neutral-400" : "text-neutral-500"
+                  isCyber ? "text-neutral-500" : "text-neutral-400"
                 )}
               >
-                {expanded ? "Full view · Press Esc to minimize" : "Ask me anything"}
+                {viewMode === "fullscreen"
+                  ? "Full screen · Esc to close"
+                  : viewMode === "sidebar"
+                    ? "Side panel"
+                    : "Ask me anything"}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1">
+
+          <div className="flex items-center gap-0.5">
+            {/* View mode switcher */}
+            <div
+              className={cn(
+                "flex items-center gap-0.5 rounded-lg p-0.5 mr-1",
+                isCyber ? "bg-[#2A2A2E]" : "bg-neutral-100"
+              )}
+            >
+              <button
+                onClick={() => setViewMode("float")}
+                className={modeBtn("float", viewMode === "float")}
+                title="Float window"
+              >
+                <MessageCircle className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setViewMode("sidebar")}
+                className={cn(modeBtn("sidebar", viewMode === "sidebar"), "max-sm:hidden")}
+                title="Side panel"
+              >
+                <PanelRight className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setViewMode("fullscreen")}
+                className={cn(modeBtn("fullscreen", viewMode === "fullscreen"), "max-sm:hidden")}
+                title="Full screen"
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
             {messages.length > 0 && (
               <button
                 onClick={clearChat}
@@ -220,23 +286,7 @@ export function ChatWidget() {
               </button>
             )}
             <button
-              onClick={() => setExpanded(!expanded)}
-              className={cn(
-                "rounded-lg p-1.5 transition-colors max-sm:hidden",
-                isCyber
-                  ? "hover:bg-[#FCE300]/10 text-neutral-400"
-                  : "hover:bg-neutral-100 text-neutral-400"
-              )}
-              title={expanded ? "Minimize" : "Expand"}
-            >
-              {expanded ? (
-                <Minimize2 className="h-4 w-4" />
-              ) : (
-                <Maximize2 className="h-4 w-4" />
-              )}
-            </button>
-            <button
-              onClick={() => { setOpen(false); setExpanded(false) }}
+              onClick={() => { setOpen(false); setViewMode("float") }}
               className={cn(
                 "rounded-lg p-1.5 transition-colors",
                 isCyber
@@ -250,25 +300,29 @@ export function ChatWidget() {
         </div>
 
         {/* Messages area */}
-        <div className={cn(
-          "flex-1 overflow-y-auto px-4 py-3 space-y-3",
-          expanded && "px-6 md:px-12 lg:px-20 py-4"
-        )}>
+        <div
+          className={cn(
+            "flex-1 overflow-y-auto px-4 py-3 space-y-3",
+            viewMode === "fullscreen" && "px-6 md:px-16 lg:px-24 py-4"
+          )}
+        >
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center px-6">
               <div
                 className={cn(
-                  "flex h-12 w-12 items-center justify-center rounded-2xl mb-3",
+                  "flex items-center justify-center rounded-2xl mb-4",
+                  viewMode === "fullscreen" ? "h-16 w-16" : "h-12 w-12",
                   isCyber
                     ? "bg-[#FCE300]/10 text-[#FCE300]"
                     : "bg-neutral-100 text-neutral-400"
                 )}
               >
-                <MessageSquare className="h-6 w-6" />
+                <MessageSquare className={viewMode === "fullscreen" ? "h-8 w-8" : "h-6 w-6"} />
               </div>
               <p
                 className={cn(
-                  "text-sm font-medium",
+                  "font-medium",
+                  viewMode === "fullscreen" ? "text-lg" : "text-sm",
                   isCyber ? "text-neutral-300" : "text-neutral-600"
                 )}
               >
@@ -276,23 +330,32 @@ export function ChatWidget() {
               </p>
               <p
                 className={cn(
-                  "text-xs mt-1",
+                  "mt-1",
+                  viewMode === "fullscreen" ? "text-sm" : "text-xs",
                   isCyber ? "text-neutral-500" : "text-neutral-400"
                 )}
               >
-                I have access to your project data — ask about projects, production, or anything else
+                I have access to your projects, design cards, production data, and more
               </p>
 
               {/* Quick suggestions */}
-              <div className={cn(
-                "flex flex-wrap gap-2 mt-4 justify-center",
-                expanded && "max-w-xl"
-              )}>
+              <div
+                className={cn(
+                  "flex flex-wrap gap-2 mt-5 justify-center",
+                  viewMode === "fullscreen" && "max-w-2xl gap-3"
+                )}
+              >
                 {[
                   "How many active projects do we have?",
+                  "Show designer workload",
                   "What are the production stages?",
-                  "Show me projects in production",
                   "Which projects are high priority?",
+                  ...(viewMode === "fullscreen"
+                    ? [
+                        "Plan design work for next week",
+                        "Show open NCRs",
+                      ]
+                    : []),
                 ].map((suggestion) => (
                   <button
                     key={suggestion}
@@ -301,7 +364,10 @@ export function ChatWidget() {
                       inputRef.current?.focus()
                     }}
                     className={cn(
-                      "text-xs px-3 py-1.5 rounded-full border transition-colors",
+                      "rounded-full border transition-colors",
+                      viewMode === "fullscreen"
+                        ? "text-sm px-4 py-2"
+                        : "text-xs px-3 py-1.5",
                       isCyber
                         ? "border-[#FCE300]/20 text-neutral-400 hover:bg-[#FCE300]/10 hover:text-[#FCE300]"
                         : "border-neutral-200 text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
@@ -320,13 +386,15 @@ export function ChatWidget() {
               className={cn(
                 "flex",
                 msg.role === "user" ? "justify-end" : "justify-start",
-                expanded && "max-w-3xl mx-auto w-full"
+                viewMode === "fullscreen" && "max-w-4xl mx-auto w-full"
               )}
             >
               <div
                 className={cn(
-                  "rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
-                  expanded ? "max-w-[75%]" : "max-w-[85%]",
+                  "rounded-2xl px-3.5 py-2.5 leading-relaxed",
+                  viewMode === "fullscreen"
+                    ? "max-w-[70%] text-[15px]"
+                    : "max-w-[85%] text-sm",
                   msg.role === "user"
                     ? isCyber
                       ? "bg-[#FCE300] text-[#1A1A1E] rounded-br-md"
@@ -342,10 +410,12 @@ export function ChatWidget() {
           ))}
 
           {loading && (
-            <div className={cn(
-              "flex justify-start",
-              expanded && "max-w-3xl mx-auto w-full"
-            )}>
+            <div
+              className={cn(
+                "flex justify-start",
+                viewMode === "fullscreen" && "max-w-4xl mx-auto w-full"
+              )}
+            >
               <div
                 className={cn(
                   "rounded-2xl rounded-bl-md px-4 py-3",
@@ -353,27 +423,16 @@ export function ChatWidget() {
                 )}
               >
                 <div className="flex gap-1">
-                  <span
-                    className={cn(
-                      "h-2 w-2 rounded-full animate-bounce",
-                      isCyber ? "bg-[#FCE300]" : "bg-neutral-400"
-                    )}
-                    style={{ animationDelay: "0ms" }}
-                  />
-                  <span
-                    className={cn(
-                      "h-2 w-2 rounded-full animate-bounce",
-                      isCyber ? "bg-[#FCE300]" : "bg-neutral-400"
-                    )}
-                    style={{ animationDelay: "150ms" }}
-                  />
-                  <span
-                    className={cn(
-                      "h-2 w-2 rounded-full animate-bounce",
-                      isCyber ? "bg-[#FCE300]" : "bg-neutral-400"
-                    )}
-                    style={{ animationDelay: "300ms" }}
-                  />
+                  {[0, 150, 300].map((delay) => (
+                    <span
+                      key={delay}
+                      className={cn(
+                        "h-2 w-2 rounded-full animate-bounce",
+                        isCyber ? "bg-[#FCE300]" : "bg-neutral-400"
+                      )}
+                      style={{ animationDelay: `${delay}ms` }}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -387,13 +446,13 @@ export function ChatWidget() {
           className={cn(
             "border-t px-3 py-3 shrink-0",
             isCyber ? "border-[#FCE300]/20" : "border-neutral-100",
-            expanded && "px-6 md:px-12 lg:px-20"
+            viewMode === "fullscreen" && "px-6 md:px-16 lg:px-24"
           )}
         >
           <div
             className={cn(
               "flex items-end gap-2 rounded-xl border px-3 py-2",
-              expanded && "max-w-3xl mx-auto",
+              viewMode === "fullscreen" && "max-w-4xl mx-auto",
               isCyber
                 ? "border-[#FCE300]/20 bg-[#2A2A2E] focus-within:border-[#FCE300]/50"
                 : "border-neutral-200 bg-neutral-50 focus-within:border-neutral-300"
@@ -404,11 +463,13 @@ export function ChatWidget() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type a message..."
+              placeholder="Ask about projects, design, production..."
               rows={1}
               className={cn(
-                "flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-neutral-400",
-                expanded ? "max-h-[200px]" : "max-h-[100px]",
+                "flex-1 resize-none bg-transparent outline-none placeholder:text-neutral-400",
+                viewMode === "fullscreen"
+                  ? "text-[15px] max-h-[200px]"
+                  : "text-sm max-h-[100px]",
                 isCyber ? "text-neutral-200" : "text-neutral-800"
               )}
               style={{
@@ -418,7 +479,7 @@ export function ChatWidget() {
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement
                 target.style.height = "auto"
-                const maxH = expanded ? 200 : 100
+                const maxH = viewMode === "fullscreen" ? 200 : 100
                 target.style.height = Math.min(target.scrollHeight, maxH) + "px"
               }}
             />
@@ -426,7 +487,8 @@ export function ChatWidget() {
               onClick={sendMessage}
               disabled={!input.trim() || loading}
               className={cn(
-                "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors disabled:opacity-30",
+                "flex shrink-0 items-center justify-center rounded-lg transition-colors disabled:opacity-30",
+                viewMode === "fullscreen" ? "h-8 w-8" : "h-7 w-7",
                 isCyber
                   ? "bg-[#FCE300] text-[#1A1A1E] hover:bg-[#e6cf00]"
                   : "bg-neutral-900 text-white hover:bg-neutral-700"
@@ -454,7 +516,6 @@ export function ChatWidget() {
 }
 
 function MessageContent({ content }: { content: string }) {
-  // Simple markdown-like rendering: bold, code, line breaks
   const parts = content.split(/(\*\*.*?\*\*|`.*?`|\n)/g)
 
   return (
