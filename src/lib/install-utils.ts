@@ -104,3 +104,20 @@ export const CREW_COLORS: Record<number, { bg: string; text: string; border: str
   3: { bg: "bg-orange-100", text: "text-orange-700", border: "border-orange-400" },
   4: { bg: "bg-rose-100", text: "text-rose-700", border: "border-rose-400" },
 }
+
+// Equipment types
+export const EQUIPMENT_TYPES = ["VEHICLE", "PLANT", "TOOL"] as const
+export const EQUIPMENT_TYPE_LABELS: Record<string, string> = {
+  VEHICLE: "Vehicle",
+  PLANT: "Plant",
+  TOOL: "Tool",
+}
+
+// Instruction types
+export const INSTRUCTION_TYPES = ["METHOD_STATEMENT", "RISK_ASSESSMENT", "DRAWING", "OTHER"] as const
+export const INSTRUCTION_TYPE_LABELS: Record<string, string> = {
+  METHOD_STATEMENT: "Method Statement",
+  RISK_ASSESSMENT: "Risk Assessment",
+  DRAWING: "Drawing",
+  OTHER: "Other",
+}

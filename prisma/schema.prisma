@@ -1079,6 +1079,9 @@ model Document {
   // Design Visualizer annotations
   annotations DocumentAnnotation[]
 
+  // Installation instructions
+  crewInstructions CrewInstruction[]
+
   @@index([projectId])
   @@index([productId])
   @@index([documentType])
@@ -2082,8 +2085,10 @@ model InstallCrew {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members InstallCrewMember[]
-  tasks   InstallationTask[]
+  members      InstallCrewMember[]
+  tasks        InstallationTask[]
+  equipment    CrewEquipment[]
+  instructions CrewInstruction[]
 
   @@map("install_crews")
 }
@@ -2173,4 +2178,43 @@ model DocumentAnnotation {
   @@index([documentId])
   @@index([productId])
   @@map("document_annotations")
+}
+
+// ============================================================
+// CREW EQUIPMENT & INSTRUCTIONS
+// ============================================================
+
+model CrewEquipment {
+  id           String   @id @default(cuid())
+  crewId       String
+  name         String
+  type         String   @default("TOOL") // VEHICLE, PLANT, TOOL
+  registration String?
+  notes        String?
+  isAvailable  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  crew InstallCrew @relation(fields: [crewId], references: [id], onDelete: Cascade)
+
+  @@index([crewId])
+  @@map("crew_equipment")
+}
+
+model CrewInstruction {
+  id         String   @id @default(cuid())
+  crewId     String
+  title      String
+  type       String   @default("OTHER") // METHOD_STATEMENT, RISK_ASSESSMENT, DRAWING, OTHER
+  documentId String?
+  fileUrl    String?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  crew     InstallCrew @relation(fields: [crewId], references: [id], onDelete: Cascade)
+  document Document?   @relation(fields: [documentId], references: [id])
+
+  @@index([crewId])
+  @@map("crew_instructions")
 }

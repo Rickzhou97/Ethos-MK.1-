@@ -1,26 +1,37 @@
 import { prisma } from "@/lib/db"
-import { InstallWorkshopView, type InstallWorkshopData, type InstallCrew } from "@/components/installation/install-workshop-view"
+import { InstallWorkshopView } from "@/components/installation/install-workshop-view"
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 
-async function getWorkshopData(stage: string, crewId?: string) {
-  const where: any = { stage: stage as any }
-  if (crewId) where.crewId = crewId
+export default async function InstallWorkshopPage() {
+  const crews = await prisma.installCrew.findMany({
+    where: { isActive: true },
+    include: {
+      members: {
+        where: { endDate: null },
+        include: { worker: { select: { id: true, name: true, role: true } } },
+        orderBy: { startDate: "asc" },
+      },
+      equipment: { orderBy: { name: "asc" } },
+      instructions: {
+        include: { document: { select: { filename: true, filePath: true } } },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+    orderBy: { name: "asc" },
+  })
 
-  const tasks = await prisma.installationTask.findMany({
-    where,
+  const allTasks = await prisma.installationTask.findMany({
+    where: { crewId: { not: null } },
     include: {
       product: {
         select: {
-          id: true,
           partCode: true,
           description: true,
-          productJobNumber: true,
           quantity: true,
           installTargetDate: true,
           project: {
             select: {
-              id: true,
               projectNumber: true,
               name: true,
               priority: true,
@@ -30,69 +41,27 @@ async function getWorkshopData(stage: string, crewId?: string) {
           },
         },
       },
-      crew: {
-        select: {
-          id: true,
-          name: true,
-          code: true,
-        },
-      },
     },
     orderBy: { queuePosition: "asc" },
   })
 
-  // Calculate stats
-  const now = new Date()
-  const completedToday = tasks.filter((t) => {
-    if (!t.completedAt) return false
-    const d = new Date(t.completedAt)
-    return (
-      d.getFullYear() === now.getFullYear() &&
-      d.getMonth() === now.getMonth() &&
-      d.getDate() === now.getDate()
-    )
-  })
-
-  return {
-    tasks,
-    stats: {
-      activeCount: tasks.filter((t) => t.status === "IN_PROGRESS").length,
-      pendingCount: tasks.filter((t) => t.status === "PENDING" || t.status === "REWORK").length,
-      completedTodayCount: completedToday.length,
-      awaitingInspectionCount: tasks.filter(
-        (t) => t.status === "COMPLETED" && t.inspectionStatus === "PENDING"
-      ).length,
-      totalCount: tasks.length,
-    },
+  // Group tasks by crewId
+  const tasksByCrewId: Record<string, typeof allTasks> = {}
+  for (const task of allTasks) {
+    if (task.crewId) {
+      if (!tasksByCrewId[task.crewId]) tasksByCrewId[task.crewId] = []
+      tasksByCrewId[task.crewId].push(task)
+    }
   }
-}
 
-async function getCrews() {
-  return prisma.installCrew.findMany({
-    where: { isActive: true },
-    orderBy: { name: "asc" },
-    select: {
-      id: true,
-      name: true,
-      code: true,
-    },
-  })
-}
-
-export default async function InstallWorkshopPage() {
-  const [initialData, crews] = await Promise.all([
-    getWorkshopData("SITE_PREP"),
-    getCrews(),
-  ])
-
-  const serializedData: InstallWorkshopData = JSON.parse(JSON.stringify(initialData))
-  const serializedCrews: InstallCrew[] = JSON.parse(JSON.stringify(crews))
+  // Serialize to strip Prisma types / Date objects
+  const serializedCrews = JSON.parse(JSON.stringify(crews))
+  const serializedTasks = JSON.parse(JSON.stringify(tasksByCrewId))
 
   return (
     <InstallWorkshopView
-      initialData={serializedData}
-      initialStage="SITE_PREP"
       crews={serializedCrews}
+      tasksByCrewId={serializedTasks}
     />
   )
 }

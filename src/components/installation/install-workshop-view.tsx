@@ -1,27 +1,70 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   INSTALL_STAGES,
   INSTALL_STAGE_DISPLAY_NAMES,
-  INSTALL_STAGE_BORDER_COLORS,
 } from "@/lib/install-utils"
-import { useLayout } from "@/components/layout/layout-context"
-import { MapPin, Clock, Users } from "lucide-react"
-import { InstallNcrDialog, type InstallNcrData } from "./install-ncr-dialog"
+import {
+  Users,
+  X,
+  Plus,
+  Truck,
+  Wrench,
+  HardHat,
+  FileText,
+  Check,
+  Circle,
+  AlertCircle,
+  ChevronDown,
+  MapPin,
+  ExternalLink,
+} from "lucide-react"
 
 // ─── Types ───
 
-export type InstallTaskProduct = {
+type CrewMember = {
   id: string
+  role: string | null
+  worker: { id: string; name: string; role: string }
+}
+
+type CrewEquipment = {
+  id: string
+  name: string
+  type: string
+  registration: string | null
+  notes: string | null
+  isAvailable: boolean
+}
+
+type CrewInstruction = {
+  id: string
+  title: string
+  type: string
+  fileUrl: string | null
+  notes: string | null
+  document: { filename: string; filePath: string } | null
+}
+
+type Crew = {
+  id: string
+  name: string
+  code: string
+  isActive: boolean
+  members: CrewMember[]
+  equipment: CrewEquipment[]
+  instructions: CrewInstruction[]
+}
+
+type TaskProduct = {
   partCode: string
   description: string
-  productJobNumber: string | null
   quantity: number
   installTargetDate: string | null
   project: {
-    id: string
     projectNumber: string
     name: string
     priority: string
@@ -30,611 +73,788 @@ export type InstallTaskProduct = {
   }
 }
 
-export type InstallTask = {
+type InstallTask = {
   id: string
   productId: string
   projectId: string
-  crewId: string | null
   stage: string
   status: string
-  queuePosition: number
   assignedTo: string | null
-  notes: string | null
-  estimatedMins: number | null
-  actualMins: number | null
   startedAt: string | null
   completedAt: string | null
-  inspectedBy: string | null
-  inspectedAt: string | null
   inspectionStatus: string | null
   ncrId: string | null
-  siteNotes: string | null
-  weatherCondition: string | null
-  createdAt: string
-  product: InstallTaskProduct
-  crew: { id: string; name: string; code: string } | null
+  product: TaskProduct
 }
 
-export type InstallWorkshopStats = {
-  activeCount: number
-  pendingCount: number
-  completedTodayCount: number
-  awaitingInspectionCount: number
-  totalCount: number
+interface TeamDashboardProps {
+  crews: Crew[]
+  tasksByCrewId: Record<string, InstallTask[]>
 }
 
-export type InstallWorkshopData = {
-  tasks: InstallTask[]
-  stats: InstallWorkshopStats
+// ─── Cell Status Helpers ───
+
+type CellInfo = {
+  dot: string
+  label: string
+  color: string
+  bgColor: string
+  actionable: "start" | "complete" | "inspect" | "none"
 }
 
-export type InstallCrew = {
-  id: string
-  name: string
-  code: string
-}
-
-// ─── Theme helpers ───
-
-type AppTheme = "light" | "cyberpunk" | "sage"
-type ThemeColor = "cyan" | "amber" | "green" | "slate"
-
-function getLaneStyles(themeColor: ThemeColor, appTheme: AppTheme) {
-  const base = {
-    cyan:  { border: "border-cyan-500",  accent: "text-cyan-600",  line: "bg-cyan-500" },
-    amber: { border: "border-amber-500", accent: "text-amber-600", line: "bg-amber-500" },
-    green: { border: "border-green-500", accent: "text-green-600", line: "bg-green-500" },
-    slate: { border: "border-slate-400", accent: "text-slate-600", line: "bg-slate-400" },
-  }[themeColor]
-
-  if (appTheme === "cyberpunk") {
-    const accentMap: Record<ThemeColor, string> = {
-      cyan: "text-cyan-400", amber: "text-amber-400", green: "text-green-400", slate: "text-slate-400",
-    }
-    const borderMap: Record<ThemeColor, string> = {
-      cyan: "border-cyan-700", amber: "border-amber-700", green: "border-green-700", slate: "border-slate-600",
-    }
-    return {
-      ...base,
-      accent: accentMap[themeColor],
-      laneBg: "bg-[#1A1A1E]",
-      cardBg: "bg-[#2A2A30]",
-      cardBorder: borderMap[themeColor],
-      titleText: "text-white",
-      subtitleText: "text-gray-500",
-      bodyText: "text-gray-300",
-      mutedText: "text-gray-500",
-      emptyText: "text-gray-600",
-    }
+function getCellInfo(task: InstallTask | undefined): CellInfo {
+  if (!task) {
+    return { dot: "", label: "\u2014", color: "text-gray-400", bgColor: "bg-gray-50", actionable: "none" }
   }
-
-  if (appTheme === "sage") {
-    const accentMap: Record<ThemeColor, string> = {
-      cyan: "text-cyan-500", amber: "text-amber-500", green: "text-green-500", slate: "text-slate-400",
-    }
-    const borderMap: Record<ThemeColor, string> = {
-      cyan: "border-cyan-700", amber: "border-amber-700", green: "border-green-700", slate: "border-slate-600",
-    }
-    return {
-      ...base,
-      accent: accentMap[themeColor],
-      laneBg: "bg-[#2D2D2D]",
-      cardBg: "bg-[#3A3A3A]",
-      cardBorder: borderMap[themeColor],
-      titleText: "text-white",
-      subtitleText: "text-gray-400",
-      bodyText: "text-gray-200",
-      mutedText: "text-gray-400",
-      emptyText: "text-gray-500",
-    }
+  if (task.status === "PENDING") {
+    return { dot: "bg-yellow-400", label: "Ready", color: "text-yellow-700", bgColor: "bg-yellow-50", actionable: "start" }
   }
-
-  // Light theme
-  const bgMap: Record<ThemeColor, string> = {
-    cyan: "bg-cyan-50", amber: "bg-amber-50", green: "bg-green-50", slate: "bg-slate-50",
+  if (task.status === "IN_PROGRESS") {
+    return { dot: "bg-blue-500", label: "Live", color: "text-blue-700", bgColor: "bg-blue-50", actionable: "complete" }
   }
-  const cardBorderMap: Record<ThemeColor, string> = {
-    cyan: "border-cyan-200", amber: "border-amber-200", green: "border-green-200", slate: "border-slate-200",
+  if (task.status === "REWORK") {
+    return { dot: "bg-red-500", label: "Rework", color: "text-red-700", bgColor: "bg-red-50", actionable: "start" }
   }
-  return {
-    ...base,
-    laneBg: bgMap[themeColor],
-    cardBg: "bg-white",
-    cardBorder: cardBorderMap[themeColor],
-    titleText: "text-gray-900",
-    subtitleText: "text-gray-500",
-    bodyText: "text-gray-700",
-    mutedText: "text-gray-500",
-    emptyText: "text-gray-400",
+  if (task.status === "COMPLETED" && task.inspectionStatus === "PENDING") {
+    return { dot: "bg-green-500", label: "Inspect", color: "text-green-700", bgColor: "bg-green-50", actionable: "inspect" }
   }
+  if (task.status === "COMPLETED" && task.inspectionStatus === "ACCEPTED") {
+    return { dot: "", label: "Done", color: "text-green-600", bgColor: "bg-green-50/50", actionable: "none" }
+  }
+  if (task.status === "COMPLETED" && task.inspectionStatus === "REJECTED") {
+    return { dot: "", label: "NCR", color: "text-red-600", bgColor: "bg-red-50", actionable: "none" }
+  }
+  return { dot: "bg-gray-400", label: task.status, color: "text-gray-600", bgColor: "bg-gray-50", actionable: "none" }
 }
 
 // ─── Main Component ───
 
-export function InstallWorkshopView({
-  initialData,
-  initialStage,
-  crews,
-}: {
-  initialData: InstallWorkshopData
-  initialStage: string
-  crews: InstallCrew[]
-}) {
-  const [activeStage, setActiveStage] = useState(initialStage)
-  const [selectedCrewId, setSelectedCrewId] = useState<string | null>(null)
-  const [data, setData] = useState(initialData)
-  const [loading, setLoading] = useState(false)
-  const { theme: appTheme } = useLayout()
+export function InstallWorkshopView({ crews, tasksByCrewId }: TeamDashboardProps) {
+  const router = useRouter()
+  const [selectedCrewId, setSelectedCrewId] = useState<string>(crews[0]?.id || "")
+  const [localTasks, setLocalTasks] = useState<Record<string, InstallTask[]>>(tasksByCrewId)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [openCell, setOpenCell] = useState<string | null>(null)
 
-  // Split tasks into lanes
-  const liveTasks = data.tasks.filter((t) => t.status === "IN_PROGRESS")
-  const readyTasks = data.tasks.filter(
-    (t) => t.status === "PENDING" || t.status === "REWORK"
-  )
-  const completedTasks = data.tasks.filter(
-    (t) => t.status === "COMPLETED" && t.inspectionStatus === "PENDING"
-  )
+  // Member add form
+  const [showAddMember, setShowAddMember] = useState(false)
+  const [availableWorkers, setAvailableWorkers] = useState<Array<{ id: string; name: string; role: string }>>([])
+  const [newMemberWorkerId, setNewMemberWorkerId] = useState("")
+  const [newMemberRole, setNewMemberRole] = useState("Installer")
+  const [loadingWorkers, setLoadingWorkers] = useState(false)
 
-  const fetchStageData = useCallback(async (stage: string, crewId: string | null) => {
-    setLoading(true)
+  // Equipment add form
+  const [showAddEquipment, setShowAddEquipment] = useState(false)
+  const [eqName, setEqName] = useState("")
+  const [eqType, setEqType] = useState("TOOL")
+  const [eqRegistration, setEqRegistration] = useState("")
+  const [eqNotes, setEqNotes] = useState("")
+
+  // Instruction add form
+  const [showAddInstruction, setShowAddInstruction] = useState(false)
+  const [instrTitle, setInstrTitle] = useState("")
+  const [instrType, setInstrType] = useState("OTHER")
+  const [instrFileUrl, setInstrFileUrl] = useState("")
+  const [instrNotes, setInstrNotes] = useState("")
+
+  const selectedCrew = crews.find((c) => c.id === selectedCrewId)
+  const crewTasks = localTasks[selectedCrewId] || []
+
+  // Build unique products from tasks
+  const productMap = new Map<string, { product: TaskProduct; productId: string; tasks: Map<string, InstallTask> }>()
+  for (const task of crewTasks) {
+    if (!productMap.has(task.productId)) {
+      productMap.set(task.productId, { product: task.product, productId: task.productId, tasks: new Map() })
+    }
+    productMap.get(task.productId)!.tasks.set(task.stage, task)
+  }
+  const productRows = Array.from(productMap.values())
+
+  // Refresh tasks for current crew
+  const refreshTasks = useCallback(async (crewId: string) => {
     try {
-      const params = new URLSearchParams()
-      if (crewId) params.set("crewId", crewId)
-      const url = `/api/installation/workshop/${stage}${params.toString() ? `?${params}` : ""}`
-      const res = await fetch(url)
+      const res = await fetch(`/api/installation/tasks?crewId=${crewId}`)
       if (res.ok) {
         const json = await res.json()
-        setData({
-          tasks: json.tasks || [],
-          stats: json.stats,
-        })
+        setLocalTasks((prev) => ({ ...prev, [crewId]: json.tasks || json }))
       }
     } catch (err) {
-      console.error("Failed to fetch installation workshop data:", err)
-    } finally {
-      setLoading(false)
+      console.error("Failed to refresh tasks:", err)
     }
   }, [])
 
-  const handleStageChange = (stage: string) => {
-    setActiveStage(stage)
-    fetchStageData(stage, selectedCrewId)
-  }
-
-  const handleCrewChange = (crewId: string | null) => {
-    setSelectedCrewId(crewId)
-    fetchStageData(activeStage, crewId)
-  }
-
-  const refresh = () => fetchStageData(activeStage, selectedCrewId)
-
-  return (
-    <div className="space-y-4">
-      {/* Crew selector tabs */}
-      <div className="flex items-center gap-1 overflow-x-auto">
-        <button
-          onClick={() => handleCrewChange(null)}
-          className={cn(
-            "px-3 py-1.5 text-xs font-medium rounded-full transition-colors flex items-center gap-1.5",
-            selectedCrewId === null
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          )}
-        >
-          <Users className="h-3 w-3" />
-          All Crews
-        </button>
-        {crews.map((crew) => (
-          <button
-            key={crew.id}
-            onClick={() => handleCrewChange(crew.id)}
-            className={cn(
-              "px-3 py-1.5 text-xs font-medium rounded-full transition-colors",
-              selectedCrewId === crew.id
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            )}
-          >
-            {crew.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Stage Tabs */}
-      <div className="flex items-center gap-1 overflow-x-auto border-b border-gray-200">
-        {INSTALL_STAGES.map((stage) => {
-          const isActive = stage === activeStage
-          const borderColor = INSTALL_STAGE_BORDER_COLORS[stage]
-
-          return (
-            <button
-              key={stage}
-              onClick={() => handleStageChange(stage)}
-              className={cn(
-                "px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
-                isActive
-                  ? `${borderColor.replace("border-t-", "border-")} text-gray-900`
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              )}
-            >
-              {INSTALL_STAGE_DISPLAY_NAMES[stage]}
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Stats bar */}
-      <div className="flex items-center gap-4 text-xs text-gray-500 px-1 flex-wrap">
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-cyan-400" />
-          {liveTasks.length} live
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-amber-400" />
-          {readyTasks.length} ready
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-green-400" />
-          {completedTasks.length} awaiting inspection
-        </span>
-        <span className="text-gray-400">|</span>
-        <span>{data.stats.totalCount} total</span>
-      </div>
-
-      {loading && (
-        <div className="flex items-center justify-center py-16">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
-        </div>
-      )}
-
-      {!loading && (
-        <div className="space-y-6">
-          {/* Row 1: LIVE (left) | divider | COMPLETED (right) */}
-          <div className="flex gap-0 min-h-[200px]">
-            <div className="flex-1 min-w-0">
-              <SwimLane
-                title="LIVE"
-                subtitle="Active work in progress"
-                themeColor="cyan"
-                tasks={liveTasks}
-                cardType="live"
-                onAction={refresh}
-                appTheme={appTheme}
-              />
-            </div>
-
-            {/* Vertical divider */}
-            <div className="w-px bg-gray-300 mx-3 self-stretch" />
-
-            <div className="flex-1 min-w-0">
-              <SwimLane
-                title="COMPLETED"
-                subtitle="Work done, awaiting inspection"
-                themeColor="green"
-                tasks={completedTasks}
-                cardType="completed"
-                onAction={refresh}
-                appTheme={appTheme}
-              />
-            </div>
-          </div>
-
-          {/* Row 2: READY TO START — full width */}
-          <SwimLane
-            title="READY TO START"
-            subtitle="Stage reached, awaiting start"
-            themeColor="amber"
-            tasks={readyTasks}
-            cardType="ready"
-            onAction={refresh}
-            appTheme={appTheme}
-          />
-
-          {/* Row 3: ALLOCATED — placeholder */}
-          <AllocatedLane appTheme={appTheme} activeStage={activeStage} />
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─── Swim Lane ───
-
-function SwimLane({
-  title,
-  subtitle,
-  themeColor,
-  tasks,
-  cardType,
-  onAction,
-  appTheme,
-}: {
-  title: string
-  subtitle: string
-  themeColor: ThemeColor
-  tasks: InstallTask[]
-  cardType: "live" | "ready" | "completed"
-  onAction: () => void
-  appTheme: AppTheme
-}) {
-  const styles = getLaneStyles(themeColor, appTheme)
-
-  return (
-    <div className={cn("rounded-lg border-2 overflow-hidden h-full", styles.border, styles.laneBg)}>
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3">
-        <div className="flex-1">
-          <h3 className={cn("text-sm font-bold uppercase tracking-wider", styles.accent)}>
-            {title}
-          </h3>
-          <p className={cn("text-[10px] mt-0.5", styles.subtitleText)}>{subtitle}</p>
-        </div>
-        <span className={cn("text-xs font-semibold", styles.accent)}>
-          {tasks.length}
-        </span>
-      </div>
-
-      {/* Horizontal line */}
-      <div className={cn("h-0.5", styles.line)} />
-
-      {/* Cards — horizontal scroll */}
-      <div className="flex gap-3 p-3 overflow-x-auto min-h-[140px]">
-        {tasks.length === 0 && (
-          <div className={cn("flex flex-col items-center justify-center w-full gap-2", styles.emptyText)}>
-            <span className="text-lg font-semibold italic opacity-40">All clear</span>
-            <span className="text-xs">No tasks</span>
-          </div>
-        )}
-        {tasks.map((task) => (
-          <InstallTaskCard
-            key={task.id}
-            task={task}
-            cardType={cardType}
-            themeColor={themeColor}
-            onAction={onAction}
-            appTheme={appTheme}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ─── Allocated Lane (placeholder) ───
-
-function AllocatedLane({
-  appTheme,
-  activeStage,
-}: {
-  appTheme: AppTheme
-  activeStage: string
-}) {
-  const styles = getLaneStyles("slate", appTheme)
-
-  return (
-    <div className={cn("rounded-lg border-2 overflow-hidden", styles.border, styles.laneBg)}>
-      <div className="flex items-center gap-3 px-4 py-3">
-        <div className="flex-1">
-          <h3 className={cn("text-sm font-bold uppercase tracking-wider", styles.accent)}>
-            ALLOCATED
-          </h3>
-          <p className={cn("text-[10px] mt-0.5", styles.subtitleText)}>
-            Allocated to {INSTALL_STAGE_DISPLAY_NAMES[activeStage] || activeStage}, previous stage not finished
-          </p>
-        </div>
-        <span className={cn("text-xs font-semibold", styles.accent)}>0</span>
-      </div>
-
-      <div className={cn("h-0.5", styles.line)} />
-
-      <div className="flex gap-3 p-3 overflow-x-auto min-h-[140px]">
-        <div className={cn("flex flex-col items-center justify-center w-full gap-2", styles.emptyText)}>
-          <span className="text-lg font-semibold italic opacity-40">All clear</span>
-          <span className="text-xs">No allocated items</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Elapsed time helper ───
-
-function formatElapsed(startedAt: string | null): string {
-  if (!startedAt) return ""
-  const start = new Date(startedAt).getTime()
-  const now = Date.now()
-  const diffMs = now - start
-  const mins = Math.floor(diffMs / 60000)
-  const hours = Math.floor(mins / 60)
-  const days = Math.floor(hours / 24)
-  if (days > 0) return `${days}d ${hours % 24}h`
-  if (hours > 0) return `${hours}h ${mins % 60}m`
-  return `${mins}m`
-}
-
-// ─── Task Card ───
-
-function InstallTaskCard({
-  task,
-  cardType,
-  themeColor,
-  onAction,
-  appTheme,
-}: {
-  task: InstallTask
-  cardType: "live" | "ready" | "completed"
-  themeColor: ThemeColor
-  onAction: () => void
-  appTheme: AppTheme
-}) {
-  const [actionLoading, setActionLoading] = useState(false)
-  const [ncrOpen, setNcrOpen] = useState(false)
-  const styles = getLaneStyles(themeColor, appTheme)
-
-  const project = task.product.project
-
-  async function handleStart() {
+  // Task actions
+  async function handleStart(taskId: string) {
     const assignedTo = prompt("Assign to (worker name):")
     if (!assignedTo) return
-    setActionLoading(true)
+    setActionLoading(taskId)
     try {
-      const res = await fetch(`/api/installation/tasks/${task.id}/start`, {
+      const res = await fetch(`/api/installation/tasks/${taskId}/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ assignedTo }),
       })
-      if (res.ok) onAction()
+      if (res.ok) {
+        setOpenCell(null)
+        await refreshTasks(selectedCrewId)
+      }
     } finally {
-      setActionLoading(false)
+      setActionLoading(null)
     }
   }
 
-  async function handleComplete() {
-    setActionLoading(true)
+  async function handleComplete(taskId: string) {
+    setActionLoading(taskId)
     try {
-      const res = await fetch(`/api/installation/tasks/${task.id}/complete`, {
-        method: "POST",
-      })
-      if (res.ok) onAction()
+      const res = await fetch(`/api/installation/tasks/${taskId}/complete`, { method: "POST" })
+      if (res.ok) {
+        setOpenCell(null)
+        await refreshTasks(selectedCrewId)
+      }
     } finally {
-      setActionLoading(false)
+      setActionLoading(null)
     }
   }
 
-  async function handleApprove() {
-    setActionLoading(true)
+  async function handleInspect(taskId: string, decision: "ACCEPTED" | "REJECTED") {
+    setActionLoading(taskId)
     try {
-      const res = await fetch(`/api/installation/tasks/${task.id}/inspect`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ decision: "ACCEPTED", inspectedBy: "Workshop Inspector" }),
-      })
-      if (res.ok) onAction()
-    } finally {
-      setActionLoading(false)
-    }
-  }
-
-  async function handleReject(ncrData: InstallNcrData) {
-    setNcrOpen(false)
-    setActionLoading(true)
-    try {
-      const res = await fetch(`/api/installation/tasks/${task.id}/inspect`, {
+      const res = await fetch(`/api/installation/tasks/${taskId}/inspect`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          decision: "REJECTED",
-          inspectedBy: "Workshop Inspector",
-          ...ncrData,
-        }),
+        body: JSON.stringify({ decision, inspectedBy: "Workshop Inspector" }),
       })
-      if (res.ok) onAction()
+      if (res.ok) {
+        setOpenCell(null)
+        await refreshTasks(selectedCrewId)
+      }
     } finally {
-      setActionLoading(false)
+      setActionLoading(null)
     }
+  }
+
+  // Member actions
+  async function fetchWorkers() {
+    setLoadingWorkers(true)
+    try {
+      const res = await fetch("/api/production/workers")
+      if (res.ok) {
+        const json = await res.json()
+        setAvailableWorkers(json.workers || json)
+      }
+    } finally {
+      setLoadingWorkers(false)
+    }
+  }
+
+  async function handleAddMember() {
+    if (!newMemberWorkerId) return
+    try {
+      const res = await fetch(`/api/installation/crews/${selectedCrewId}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workerId: newMemberWorkerId, role: newMemberRole }),
+      })
+      if (res.ok) {
+        setShowAddMember(false)
+        setNewMemberWorkerId("")
+        router.refresh()
+      }
+    } catch (err) {
+      console.error("Failed to add member:", err)
+    }
+  }
+
+  async function handleRemoveMember(memberId: string) {
+    try {
+      const res = await fetch(`/api/installation/crews/${selectedCrewId}/members/${memberId}`, {
+        method: "DELETE",
+      })
+      if (res.ok) router.refresh()
+    } catch (err) {
+      console.error("Failed to remove member:", err)
+    }
+  }
+
+  // Equipment actions
+  async function handleAddEquipment() {
+    if (!eqName.trim()) return
+    try {
+      const res = await fetch(`/api/installation/crews/${selectedCrewId}/equipment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: eqName, type: eqType, registration: eqRegistration || null, notes: eqNotes || null }),
+      })
+      if (res.ok) {
+        setShowAddEquipment(false)
+        setEqName("")
+        setEqRegistration("")
+        setEqNotes("")
+        router.refresh()
+      }
+    } catch (err) {
+      console.error("Failed to add equipment:", err)
+    }
+  }
+
+  async function handleRemoveEquipment(eqId: string) {
+    try {
+      const res = await fetch(`/api/installation/crews/${selectedCrewId}/equipment/${eqId}`, {
+        method: "DELETE",
+      })
+      if (res.ok) router.refresh()
+    } catch (err) {
+      console.error("Failed to remove equipment:", err)
+    }
+  }
+
+  // Instruction actions
+  async function handleAddInstruction() {
+    if (!instrTitle.trim()) return
+    try {
+      const res = await fetch(`/api/installation/crews/${selectedCrewId}/instructions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: instrTitle, type: instrType, fileUrl: instrFileUrl || null, notes: instrNotes || null }),
+      })
+      if (res.ok) {
+        setShowAddInstruction(false)
+        setInstrTitle("")
+        setInstrFileUrl("")
+        setInstrNotes("")
+        router.refresh()
+      }
+    } catch (err) {
+      console.error("Failed to add instruction:", err)
+    }
+  }
+
+  async function handleRemoveInstruction(instrId: string) {
+    try {
+      const res = await fetch(`/api/installation/crews/${selectedCrewId}/instructions/${instrId}`, {
+        method: "DELETE",
+      })
+      if (res.ok) router.refresh()
+    } catch (err) {
+      console.error("Failed to remove instruction:", err)
+    }
+  }
+
+  const roleBadge = (role: string | null) => {
+    const r = role || "Installer"
+    const colors: Record<string, string> = {
+      Lead: "bg-blue-100 text-blue-700",
+      Installer: "bg-green-100 text-green-700",
+      Apprentice: "bg-amber-100 text-amber-700",
+    }
+    return colors[r] || "bg-gray-100 text-gray-700"
+  }
+
+  const typeIcon = (type: string) => {
+    if (type === "VEHICLE") return <Truck className="h-4 w-4 text-blue-500" />
+    if (type === "PLANT") return <HardHat className="h-4 w-4 text-amber-500" />
+    return <Wrench className="h-4 w-4 text-gray-500" />
+  }
+
+  const instrTypeBadge = (type: string) => {
+    const colors: Record<string, string> = {
+      METHOD_STATEMENT: "bg-blue-100 text-blue-700",
+      RISK_ASSESSMENT: "bg-orange-100 text-orange-700",
+      DRAWING: "bg-purple-100 text-purple-700",
+      OTHER: "bg-gray-100 text-gray-700",
+    }
+    return colors[type] || "bg-gray-100 text-gray-700"
   }
 
   return (
-    <>
-      <div className={cn(
-        "shrink-0 w-[220px] rounded-lg border p-3 flex flex-col gap-2 shadow-sm",
-        styles.cardBg, styles.cardBorder
-      )}>
-        {/* Product info */}
-        <div>
-          <div className={cn("text-xs font-semibold truncate", styles.bodyText)}>
-            {task.product.description}
-          </div>
-          <div className={cn("text-[10px] font-mono mt-0.5", styles.mutedText)}>
-            {task.product.productJobNumber || task.product.partCode}
-          </div>
-        </div>
-
-        {/* Project & customer */}
-        <div className={cn("text-[10px] space-y-0.5", styles.mutedText)}>
-          <div className="truncate">{project.projectNumber} — {project.name}</div>
-          <div className="truncate">{project.customer?.name || "No customer"}</div>
-        </div>
-
-        {/* Assigned worker */}
-        <div className={cn("text-[10px]", styles.mutedText)}>
-          {task.assignedTo || "Unassigned"}
-        </div>
-
-        {/* Site location */}
-        {project.siteLocation && (
-          <div className={cn("text-[10px] flex items-center gap-1", styles.mutedText)}>
-            <MapPin className="h-2.5 w-2.5 shrink-0" />
-            <span className="truncate">{project.siteLocation}</span>
-          </div>
-        )}
-
-        {/* Divider */}
-        <div className="border-t border-gray-200" />
-
-        {/* Card-specific content + action */}
-        {cardType === "live" && (
-          <div className="flex items-center gap-1 text-[10px] text-cyan-600">
-            <Clock className="h-2.5 w-2.5" />
-            <span>{formatElapsed(task.startedAt)} elapsed</span>
-          </div>
-        )}
-
-        {cardType === "ready" && task.status === "REWORK" && (
-          <div className="text-[10px] font-semibold text-purple-500 uppercase">Rework</div>
-        )}
-
-        <div className="mt-auto pt-1">
-          {cardType === "ready" && (
-            <button
-              onClick={handleStart}
-              disabled={actionLoading}
-              className="w-full rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-400 disabled:opacity-50 transition-colors"
-            >
-              {actionLoading ? "Starting..." : "Start"}
-            </button>
-          )}
-
-          {cardType === "live" && (
-            <button
-              onClick={handleComplete}
-              disabled={actionLoading}
-              className="w-full rounded-md bg-cyan-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-cyan-400 disabled:opacity-50 transition-colors"
-            >
-              {actionLoading ? "Completing..." : "Complete"}
-            </button>
-          )}
-
-          {cardType === "completed" && (
-            <div className="flex gap-1.5">
-              <button
-                onClick={handleApprove}
-                disabled={actionLoading}
-                className="flex-1 rounded-md bg-green-600 px-2 py-1.5 text-xs font-semibold text-white hover:bg-green-500 disabled:opacity-50 transition-colors"
-              >
-                {actionLoading ? "..." : "Approve"}
-              </button>
-              <button
-                onClick={() => setNcrOpen(true)}
-                disabled={actionLoading}
-                className={cn(
-                  "rounded-md border border-red-500 px-2 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors",
-                  appTheme !== "light" && "hover:bg-red-950"
-                )}
-              >
-                Reject
-              </button>
-            </div>
-          )}
-        </div>
+    <div className="space-y-6">
+      {/* Crew Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        {crews.map((crew) => (
+          <button
+            key={crew.id}
+            onClick={() => setSelectedCrewId(crew.id)}
+            className={cn(
+              "px-4 py-2 text-sm font-medium rounded-full transition-colors whitespace-nowrap flex items-center gap-2",
+              selectedCrewId === crew.id
+                ? "bg-blue-600 text-white shadow-sm"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            )}
+          >
+            <Users className="h-3.5 w-3.5" />
+            {crew.name}
+            <span className={cn(
+              "text-xs px-1.5 py-0.5 rounded-full",
+              selectedCrewId === crew.id ? "bg-blue-500 text-blue-100" : "bg-gray-200 text-gray-500"
+            )}>
+              {(localTasks[crew.id] || []).length}
+            </span>
+          </button>
+        ))}
       </div>
 
-      {/* NCR Dialog */}
-      <InstallNcrDialog
-        open={ncrOpen}
-        onClose={() => setNcrOpen(false)}
-        onSubmit={handleReject}
-      />
-    </>
+      {!selectedCrew ? (
+        <div className="text-center text-gray-400 py-16">No crews available</div>
+      ) : (
+        <>
+          {/* Section 1: Task Matrix */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+              <h2 className="text-sm font-semibold text-gray-900">Task Matrix</h2>
+              <p className="text-xs text-gray-500 mt-0.5">{selectedCrew.name} ({selectedCrew.code}) - {productRows.length} product{productRows.length !== 1 ? "s" : ""} assigned</p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap sticky left-0 bg-gray-50 z-10 min-w-[220px]">
+                      Product
+                    </th>
+                    <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap min-w-[120px]">
+                      Project
+                    </th>
+                    {INSTALL_STAGES.map((stage) => (
+                      <th
+                        key={stage}
+                        className="text-center px-3 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap min-w-[100px]"
+                      >
+                        {INSTALL_STAGE_DISPLAY_NAMES[stage]}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {productRows.length === 0 && (
+                    <tr>
+                      <td colSpan={2 + INSTALL_STAGES.length} className="text-center py-12 text-gray-400">
+                        No tasks assigned to this crew
+                      </td>
+                    </tr>
+                  )}
+                  {productRows.map(({ product, productId, tasks: taskMap }, rowIdx) => (
+                    <tr
+                      key={productId}
+                      className={cn(
+                        "border-b border-gray-100 hover:bg-gray-50/50 transition-colors",
+                        rowIdx % 2 === 1 && "bg-gray-50/30"
+                      )}
+                    >
+                      {/* Product column */}
+                      <td className="px-4 py-3 sticky left-0 bg-white z-10">
+                        <div className="font-medium text-gray-900 text-sm leading-tight">{product.description}</div>
+                        <div className="text-xs text-gray-400 font-mono mt-0.5">{product.partCode}</div>
+                        {product.project.siteLocation && (
+                          <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                            <MapPin className="h-2.5 w-2.5" />
+                            {product.project.siteLocation}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Project column */}
+                      <td className="px-3 py-3">
+                        <div className="text-xs font-medium text-gray-700">{product.project.projectNumber}</div>
+                        <div className="text-xs text-gray-400 truncate max-w-[120px]">{product.project.name}</div>
+                      </td>
+
+                      {/* Stage columns */}
+                      {INSTALL_STAGES.map((stage) => {
+                        const task = taskMap.get(stage)
+                        const cell = getCellInfo(task)
+                        const cellKey = `${productId}-${stage}`
+                        const isOpen = openCell === cellKey
+                        const isLoading = task && actionLoading === task.id
+
+                        return (
+                          <td key={stage} className="px-2 py-2 text-center relative">
+                            <button
+                              onClick={() => {
+                                if (!task || cell.actionable === "none") return
+                                setOpenCell(isOpen ? null : cellKey)
+                              }}
+                              disabled={!task || cell.actionable === "none"}
+                              className={cn(
+                                "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors w-full justify-center",
+                                cell.bgColor,
+                                cell.color,
+                                task && cell.actionable !== "none" && "hover:ring-1 hover:ring-gray-300 cursor-pointer",
+                                !task && "cursor-default"
+                              )}
+                            >
+                              {cell.dot && <span className={cn("w-2 h-2 rounded-full shrink-0", cell.dot)} />}
+                              {cell.label === "Done" && <Check className="h-3 w-3 text-green-600" />}
+                              {cell.label === "NCR" && <X className="h-3 w-3 text-red-600" />}
+                              <span>{cell.label}</span>
+                              {task && cell.actionable !== "none" && <ChevronDown className="h-2.5 w-2.5 opacity-50" />}
+                            </button>
+
+                            {/* Action dropdown */}
+                            {isOpen && task && (
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 z-20 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-2 min-w-[140px]">
+                                {cell.actionable === "start" && (
+                                  <button
+                                    onClick={() => handleStart(task.id)}
+                                    disabled={!!isLoading}
+                                    className="w-full text-left px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 rounded-md disabled:opacity-50"
+                                  >
+                                    {isLoading ? "Starting..." : "Start Task"}
+                                  </button>
+                                )}
+                                {cell.actionable === "complete" && (
+                                  <button
+                                    onClick={() => handleComplete(task.id)}
+                                    disabled={!!isLoading}
+                                    className="w-full text-left px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 rounded-md disabled:opacity-50"
+                                  >
+                                    {isLoading ? "Completing..." : "Complete Task"}
+                                  </button>
+                                )}
+                                {cell.actionable === "inspect" && (
+                                  <div className="space-y-1">
+                                    <button
+                                      onClick={() => handleInspect(task.id, "ACCEPTED")}
+                                      disabled={!!isLoading}
+                                      className="w-full text-left px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-50 rounded-md disabled:opacity-50"
+                                    >
+                                      {isLoading ? "..." : "Approve"}
+                                    </button>
+                                    <button
+                                      onClick={() => handleInspect(task.id, "REJECTED")}
+                                      disabled={!!isLoading}
+                                      className="w-full text-left px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 rounded-md disabled:opacity-50"
+                                    >
+                                      {isLoading ? "..." : "Reject (NCR)"}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Section 2 & 3: Team Members + Equipment side by side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Section 2: Team Members */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-semibold text-gray-900">Team Members</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">{selectedCrew.members.length} active member{selectedCrew.members.length !== 1 ? "s" : ""}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowAddMember(true)
+                    if (availableWorkers.length === 0) fetchWorkers()
+                  }}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Member
+                </button>
+              </div>
+
+              <div className="p-4 space-y-2">
+                {selectedCrew.members.length === 0 && (
+                  <div className="text-center text-gray-400 py-6 text-sm">No members assigned</div>
+                )}
+                {selectedCrew.members.map((member) => (
+                  <div key={member.id} className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600">
+                        {member.worker.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{member.worker.name}</div>
+                        <div className="text-xs text-gray-400">{member.worker.role}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", roleBadge(member.role))}>
+                        {member.role || "Installer"}
+                      </span>
+                      <button
+                        onClick={() => handleRemoveMember(member.id)}
+                        className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                        title="Remove member"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add member inline form */}
+                {showAddMember && (
+                  <div className="border border-blue-200 rounded-lg p-3 bg-blue-50/30 space-y-2 mt-2">
+                    <div className="text-xs font-medium text-gray-700">Add Team Member</div>
+                    <select
+                      value={newMemberWorkerId}
+                      onChange={(e) => setNewMemberWorkerId(e.target.value)}
+                      className="w-full text-xs border border-gray-300 rounded-md px-2.5 py-1.5 bg-white"
+                    >
+                      <option value="">
+                        {loadingWorkers ? "Loading workers..." : "Select a worker"}
+                      </option>
+                      {availableWorkers.map((w) => (
+                        <option key={w.id} value={w.id}>
+                          {w.name} ({w.role})
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={newMemberRole}
+                      onChange={(e) => setNewMemberRole(e.target.value)}
+                      className="w-full text-xs border border-gray-300 rounded-md px-2.5 py-1.5 bg-white"
+                    >
+                      <option value="Lead">Lead</option>
+                      <option value="Installer">Installer</option>
+                      <option value="Apprentice">Apprentice</option>
+                    </select>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleAddMember}
+                        className="flex-1 text-xs font-medium bg-blue-600 text-white rounded-md px-3 py-1.5 hover:bg-blue-500 transition-colors"
+                      >
+                        Add
+                      </button>
+                      <button
+                        onClick={() => setShowAddMember(false)}
+                        className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Section 3: Vehicles & Equipment */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <div>
+                  <h2 className="text-sm font-semibold text-gray-900">Vehicles & Equipment</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">{selectedCrew.equipment.length} item{selectedCrew.equipment.length !== 1 ? "s" : ""}</p>
+                </div>
+                <button
+                  onClick={() => setShowAddEquipment(true)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Equipment
+                </button>
+              </div>
+
+              <div className="p-4 space-y-2">
+                {selectedCrew.equipment.length === 0 && (
+                  <div className="text-center text-gray-400 py-6 text-sm">No equipment assigned</div>
+                )}
+                {selectedCrew.equipment.map((eq) => (
+                  <div key={eq.id} className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3">
+                      {typeIcon(eq.type)}
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{eq.name}</div>
+                        <div className="text-xs text-gray-400">
+                          {eq.registration && <span>{eq.registration} &middot; </span>}
+                          {eq.notes || eq.type}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "text-xs px-2 py-0.5 rounded-full font-medium",
+                        eq.isAvailable ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      )}>
+                        {eq.isAvailable ? "Available" : "In Use"}
+                      </span>
+                      <button
+                        onClick={() => handleRemoveEquipment(eq.id)}
+                        className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                        title="Remove equipment"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add equipment inline form */}
+                {showAddEquipment && (
+                  <div className="border border-blue-200 rounded-lg p-3 bg-blue-50/30 space-y-2 mt-2">
+                    <div className="text-xs font-medium text-gray-700">Add Equipment</div>
+                    <input
+                      type="text"
+                      placeholder="Equipment name"
+                      value={eqName}
+                      onChange={(e) => setEqName(e.target.value)}
+                      className="w-full text-xs border border-gray-300 rounded-md px-2.5 py-1.5 bg-white"
+                    />
+                    <select
+                      value={eqType}
+                      onChange={(e) => setEqType(e.target.value)}
+                      className="w-full text-xs border border-gray-300 rounded-md px-2.5 py-1.5 bg-white"
+                    >
+                      <option value="VEHICLE">Vehicle</option>
+                      <option value="PLANT">Plant</option>
+                      <option value="TOOL">Tool</option>
+                    </select>
+                    <input
+                      type="text"
+                      placeholder="Registration (optional)"
+                      value={eqRegistration}
+                      onChange={(e) => setEqRegistration(e.target.value)}
+                      className="w-full text-xs border border-gray-300 rounded-md px-2.5 py-1.5 bg-white"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Notes (optional)"
+                      value={eqNotes}
+                      onChange={(e) => setEqNotes(e.target.value)}
+                      className="w-full text-xs border border-gray-300 rounded-md px-2.5 py-1.5 bg-white"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleAddEquipment}
+                        className="flex-1 text-xs font-medium bg-blue-600 text-white rounded-md px-3 py-1.5 hover:bg-blue-500 transition-colors"
+                      >
+                        Add
+                      </button>
+                      <button
+                        onClick={() => setShowAddEquipment(false)}
+                        className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Installation Instructions */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">Installation Instructions</h2>
+                <p className="text-xs text-gray-500 mt-0.5">{selectedCrew.instructions.length} document{selectedCrew.instructions.length !== 1 ? "s" : ""}</p>
+              </div>
+              <button
+                onClick={() => setShowAddInstruction(true)}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add Instruction
+              </button>
+            </div>
+
+            <div className="p-4 space-y-2">
+              {selectedCrew.instructions.length === 0 && (
+                <div className="text-center text-gray-400 py-6 text-sm">No instructions attached</div>
+              )}
+              {selectedCrew.instructions.map((instr) => (
+                <div key={instr.id} className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-4 w-4 text-gray-400" />
+                    <div>
+                      <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                        {instr.title}
+                        <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", instrTypeBadge(instr.type))}>
+                          {instr.type.replace(/_/g, " ")}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {instr.document?.filename || instr.notes || "No file attached"}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {(instr.fileUrl || instr.document?.filePath) && (
+                      <a
+                        href={instr.fileUrl || instr.document?.filePath || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                        title="Open document"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                    <button
+                      onClick={() => handleRemoveInstruction(instr.id)}
+                      className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                      title="Remove instruction"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Add instruction inline form */}
+              {showAddInstruction && (
+                <div className="border border-blue-200 rounded-lg p-3 bg-blue-50/30 space-y-2 mt-2">
+                  <div className="text-xs font-medium text-gray-700">Add Instruction</div>
+                  <input
+                    type="text"
+                    placeholder="Title"
+                    value={instrTitle}
+                    onChange={(e) => setInstrTitle(e.target.value)}
+                    className="w-full text-xs border border-gray-300 rounded-md px-2.5 py-1.5 bg-white"
+                  />
+                  <select
+                    value={instrType}
+                    onChange={(e) => setInstrType(e.target.value)}
+                    className="w-full text-xs border border-gray-300 rounded-md px-2.5 py-1.5 bg-white"
+                  >
+                    <option value="METHOD_STATEMENT">Method Statement</option>
+                    <option value="RISK_ASSESSMENT">Risk Assessment</option>
+                    <option value="DRAWING">Drawing</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="File URL (optional)"
+                    value={instrFileUrl}
+                    onChange={(e) => setInstrFileUrl(e.target.value)}
+                    className="w-full text-xs border border-gray-300 rounded-md px-2.5 py-1.5 bg-white"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Notes (optional)"
+                    value={instrNotes}
+                    onChange={(e) => setInstrNotes(e.target.value)}
+                    className="w-full text-xs border border-gray-300 rounded-md px-2.5 py-1.5 bg-white"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleAddInstruction}
+                      className="flex-1 text-xs font-medium bg-blue-600 text-white rounded-md px-3 py-1.5 hover:bg-blue-500 transition-colors"
+                    >
+                      Add
+                    </button>
+                    <button
+                      onClick={() => setShowAddInstruction(false)}
+                      className="text-xs text-gray-500 hover:text-gray-700 px-3 py-1.5"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   )
 }
