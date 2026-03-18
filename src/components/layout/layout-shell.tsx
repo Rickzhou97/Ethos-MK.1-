@@ -5,6 +5,7 @@ import { useLayout } from "./layout-context"
 import { usePathname } from "next/navigation"
 import { Sidebar } from "./sidebar"
 import { Header } from "./header"
+import { ChatWidget } from "@/components/ai-chat/chat-widget"
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const { collapsed, theme } = useLayout()
@@ -31,6 +32,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
         <Header />
         <main className={cn("p-3 sm:p-4 md:p-6 overflow-x-hidden", isCyber && "cyber-graffiti-bg", isSage && "sage-watermark-bg")}>{children}</main>
       </div>
+      <ChatWidget />
     </div>
   )
 }
