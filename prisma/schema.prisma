@@ -2082,6 +2082,10 @@ model InstallCrew {
   code      String   @unique
   isActive  Boolean  @default(true)
   notes     String?
+
+  // Finance
+  budget    Decimal? @db.Decimal(12, 2) // allocated budget
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -2089,6 +2093,7 @@ model InstallCrew {
   tasks        InstallationTask[]
   equipment    CrewEquipment[]
   instructions CrewInstruction[]
+  expenses     CrewExpense[]
 
   @@map("install_crews")
 }
@@ -2217,4 +2222,30 @@ model CrewInstruction {
 
   @@index([crewId])
   @@map("crew_instructions")
+}
+
+// ============================================================
+// CREW FINANCE — Expenses & Cost Tracking
+// ============================================================
+
+model CrewExpense {
+  id          String   @id @default(cuid())
+  crewId      String
+  category    String   // FUEL, MATERIALS, HIRE, ACCOMMODATION, TRAVEL, SUBSISTENCE, PPE, OTHER
+  description String
+  amount      Decimal  @db.Decimal(10, 2)
+  date        DateTime @default(now())
+  receiptRef  String?  // receipt number or reference
+  claimedBy   String?  // who submitted the expense
+  approved    Boolean  @default(false)
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  crew InstallCrew @relation(fields: [crewId], references: [id], onDelete: Cascade)
+
+  @@index([crewId])
+  @@index([date])
+  @@index([category])
+  @@map("crew_expenses")
 }

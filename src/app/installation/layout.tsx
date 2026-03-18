@@ -8,7 +8,6 @@ const tabs = [
   { label: "Board", href: "/installation" },
   { label: "Workshop", href: "/installation/workshop" },
   { label: "Crews", href: "/installation/crews" },
-  { label: "Visualizer", href: "/installation/visualizer" },
 ]
 
 export default function InstallationLayout({ children }: { children: React.ReactNode }) {

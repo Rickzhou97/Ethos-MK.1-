@@ -121,3 +121,17 @@ export const INSTRUCTION_TYPE_LABELS: Record<string, string> = {
   DRAWING: "Drawing",
   OTHER: "Other",
 }
+
+// Expense categories
+export const EXPENSE_CATEGORIES = ["FUEL", "MATERIALS", "HIRE", "ACCOMMODATION", "TRAVEL", "SUBSISTENCE", "PPE", "OTHER"] as const
+
+export const EXPENSE_CATEGORY_COLORS: Record<string, string> = {
+  FUEL: "bg-blue-100 text-blue-700",
+  MATERIALS: "bg-amber-100 text-amber-700",
+  HIRE: "bg-purple-100 text-purple-700",
+  ACCOMMODATION: "bg-green-100 text-green-700",
+  TRAVEL: "bg-cyan-100 text-cyan-700",
+  SUBSISTENCE: "bg-orange-100 text-orange-700",
+  PPE: "bg-gray-100 text-gray-700",
+  OTHER: "bg-slate-100 text-slate-700",
+}
