@@ -8,6 +8,7 @@ const tabs = [
   { label: "Board", href: "/production" },
   { label: "Dashboard", href: "/production/dashboard" },
   { label: "Workshop", href: "/production/workshop" },
+  { label: "Factory Digital Twin", href: "/production/digital-twin" },
 ]
 
 export default function ProductionLayout({ children }: { children: React.ReactNode }) {
