@@ -2,12 +2,12 @@ import { prisma } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 
 const INSTALLATION_STAGES = [
-  "SITE_PREP",
-  "DELIVERY",
-  "INSTALL",
-  "CONNECTIONS",
-  "TESTING",
-  "HANDOVER",
+  "PREPARATION",
+  "CIVIL_WORKS",
+  "LIFTING",
+  "INSTALLATION",
+  "SEALING",
+  "INSPECTION",
 ]
 
 export async function GET(

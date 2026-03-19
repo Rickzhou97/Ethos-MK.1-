@@ -49,12 +49,12 @@ const HEADER_HEIGHT = 40
 const LEFT_WIDTH = 280
 
 const STAGE_COLORS: Record<string, string> = {
-  SITE_PREP: "#f97316",
-  DELIVERY: "#3b82f6",
-  INSTALL: "#6366f1",
-  CONNECTIONS: "#a855f7",
-  TESTING: "#f59e0b",
-  HANDOVER: "#22c55e",
+  PREPARATION: "#f97316",
+  CIVIL_WORKS: "#3b82f6",
+  LIFTING: "#8b5cf6",
+  INSTALLATION: "#6366f1",
+  SEALING: "#06b6d4",
+  INSPECTION: "#22c55e",
 }
 
 // ─── Helpers ───

@@ -2069,12 +2069,12 @@ model SageBomOperation {
 // ============================================================
 
 enum InstallationStage {
-  SITE_PREP
-  DELIVERY
-  INSTALL
-  CONNECTIONS
-  TESTING
-  HANDOVER
+  PREPARATION
+  CIVIL_WORKS
+  LIFTING
+  INSTALLATION
+  SEALING
+  INSPECTION
   COMPLETED
 }
 

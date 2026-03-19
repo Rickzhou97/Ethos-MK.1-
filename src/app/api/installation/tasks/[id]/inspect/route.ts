@@ -4,12 +4,12 @@ import { logAudit } from "@/lib/audit"
 import { revalidatePath } from "next/cache"
 
 const INSTALLATION_STAGES = [
-  "SITE_PREP",
-  "DELIVERY",
-  "INSTALL",
-  "CONNECTIONS",
-  "TESTING",
-  "HANDOVER",
+  "PREPARATION",
+  "CIVIL_WORKS",
+  "LIFTING",
+  "INSTALLATION",
+  "SEALING",
+  "INSPECTION",
 ] as const
 
 function getNextStage(currentStage: string): string | null {
@@ -101,7 +101,7 @@ export async function POST(
         data: { installStatus: nextStage },
       })
     } else {
-      // HANDOVER (last stage) — mark installation complete
+      // INSPECTION (last stage) — mark installation complete
       await prisma.product.update({
         where: { id: task.productId },
         data: {

@@ -3,53 +3,63 @@
 // ============================================================
 
 export const INSTALL_STAGES = [
-  "SITE_PREP",
-  "DELIVERY",
-  "INSTALL",
-  "CONNECTIONS",
-  "TESTING",
-  "HANDOVER",
+  "PREPARATION",
+  "CIVIL_WORKS",
+  "LIFTING",
+  "INSTALLATION",
+  "SEALING",
+  "INSPECTION",
 ] as const
 
 export type InstallStage = (typeof INSTALL_STAGES)[number]
 
 export const INSTALL_STAGE_DISPLAY_NAMES: Record<string, string> = {
-  SITE_PREP: "Site Prep",
-  DELIVERY: "Delivery",
-  INSTALL: "Install",
-  CONNECTIONS: "Connections",
-  TESTING: "Testing",
-  HANDOVER: "Handover",
+  PREPARATION: "Preparation",
+  CIVIL_WORKS: "Civil Works",
+  LIFTING: "Lifting",
+  INSTALLATION: "Installation",
+  SEALING: "Sealing",
+  INSPECTION: "Inspection",
   COMPLETED: "Completed",
 }
 
+export const INSTALL_STAGE_COLORS_HEX: Record<string, string> = {
+  PREPARATION: "#f97316",   // orange
+  CIVIL_WORKS: "#3b82f6",   // blue
+  LIFTING: "#8b5cf6",       // violet
+  INSTALLATION: "#6366f1",  // indigo
+  SEALING: "#06b6d4",       // cyan
+  INSPECTION: "#22c55e",    // green
+  COMPLETED: "#10b981",     // emerald
+}
+
 export const INSTALL_STAGE_BORDER_COLORS: Record<string, string> = {
-  SITE_PREP: "border-t-orange-500",
-  DELIVERY: "border-t-blue-500",
-  INSTALL: "border-t-indigo-500",
-  CONNECTIONS: "border-t-purple-500",
-  TESTING: "border-t-amber-500",
-  HANDOVER: "border-t-green-500",
+  PREPARATION: "border-t-orange-500",
+  CIVIL_WORKS: "border-t-blue-500",
+  LIFTING: "border-t-violet-500",
+  INSTALLATION: "border-t-indigo-500",
+  SEALING: "border-t-cyan-500",
+  INSPECTION: "border-t-green-500",
   COMPLETED: "border-t-emerald-500",
 }
 
 export const INSTALL_STAGE_BG_TINTS: Record<string, string> = {
-  SITE_PREP: "bg-orange-50",
-  DELIVERY: "bg-blue-50",
-  INSTALL: "bg-indigo-50",
-  CONNECTIONS: "bg-purple-50",
-  TESTING: "bg-amber-50",
-  HANDOVER: "bg-green-50",
+  PREPARATION: "bg-orange-50",
+  CIVIL_WORKS: "bg-blue-50",
+  LIFTING: "bg-violet-50",
+  INSTALLATION: "bg-indigo-50",
+  SEALING: "bg-cyan-50",
+  INSPECTION: "bg-green-50",
   COMPLETED: "bg-emerald-50",
 }
 
 export const INSTALL_STAGE_TEXT_COLORS: Record<string, string> = {
-  SITE_PREP: "text-orange-700",
-  DELIVERY: "text-blue-700",
-  INSTALL: "text-indigo-700",
-  CONNECTIONS: "text-purple-700",
-  TESTING: "text-amber-700",
-  HANDOVER: "text-green-700",
+  PREPARATION: "text-orange-700",
+  CIVIL_WORKS: "text-blue-700",
+  LIFTING: "text-violet-700",
+  INSTALLATION: "text-indigo-700",
+  SEALING: "text-cyan-700",
+  INSPECTION: "text-green-700",
   COMPLETED: "text-emerald-700",
 }
 
