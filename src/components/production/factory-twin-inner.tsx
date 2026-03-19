@@ -655,7 +655,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
 
   // ── SHOT BLAST ENCLOSED ROOMS ──
   // Shot blast 1 (x:4, z:-1, w:12, d:8, h:6) — enclosed with solid walls
-  const sbWallMat = new THREE.MeshStandardMaterial({ color: 0x555560, metalness: 0.3, roughness: 0.7, side: THREE.DoubleSide })
+  const sbWallMat = new THREE.MeshStandardMaterial({ color: 0xe8e8ec, metalness: 0.1, roughness: 0.8, side: THREE.DoubleSide })
   const sbWalls = [
     // Back wall
     { geo: new THREE.PlaneGeometry(12, 6), pos: [4, 3, -5] as [number,number,number], rot: [0, 0, 0] as [number,number,number] },
@@ -711,6 +711,7 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
     stage: string; zoneName: string; x: number; y: number
     active: number; pending: number; completedToday: number
     tasks: DigitalTwinTask[]
+    allTasks: DigitalTwinTask[]
   } | null>(null)
 
   // Calculate global stats
@@ -1112,6 +1113,7 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
             pending,
             completedToday,
             tasks: stageTasks.slice(0, 6),
+            allTasks: stageTasks,
           })
         } else {
           // Non-production zone (office, gate, etc.) — show simple tooltip
@@ -1124,6 +1126,7 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
             pending: 0,
             completedToday: 0,
             tasks: [],
+            allTasks: [],
           })
         }
       } else {
@@ -1475,59 +1478,75 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                   </span>
                 </div>
 
-                {/* Task table */}
-                {hoverData.tasks.length > 0 ? (
-                  <div className="px-3 py-2">
-                    <table className="w-full text-[10px]">
-                      <thead>
-                        <tr className="text-white/40 uppercase tracking-wider">
-                          <th className="text-left py-1 px-1 font-semibold">Product</th>
-                          <th className="text-left py-1 px-1 font-semibold">Project</th>
-                          <th className="text-left py-1 px-1 font-semibold">Status</th>
-                          <th className="text-left py-1 px-1 font-semibold">Worker</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {hoverData.tasks.map((task, i) => (
-                          <tr key={task.id} className={i % 2 === 0 ? "bg-white/[0.02]" : ""}>
-                            <td className="py-1 px-1 text-white/80 truncate max-w-[120px]" title={task.product.description}>
-                              {task.product.partCode || task.product.description.slice(0, 20)}
-                            </td>
-                            <td className="py-1 px-1 text-white/60">
-                              {task.product.project.projectNumber}
-                            </td>
-                            <td className="py-1 px-1">
-                              {task.status === "IN_PROGRESS" ? (
-                                <span className="inline-flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block" />
-                                  <span className="text-blue-400">Live</span>
-                                </span>
-                              ) : task.status === "PENDING" ? (
-                                <span className="inline-flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
-                                  <span className="text-amber-400">Ready</span>
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                                  <span className="text-green-400">Done</span>
-                                </span>
-                              )}
-                            </td>
-                            <td className="py-1 px-1 text-white/50">
-                              {task.assignedTo || "\u2014"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {remainingCount > 0 && (
-                      <div className="text-white/30 text-[10px] mt-1 px-1">+{remainingCount} more in queue</div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="px-4 py-3 text-white/30 text-[11px]">No tasks at this stage</div>
-                )}
+                {/* Mini swimlane motherboard — 3 lanes */}
+                {(() => {
+                  const allTasks = hoverData.allTasks || []
+                  const live = allTasks.filter((t: any) => t.status === "IN_PROGRESS")
+                  const ready = allTasks.filter((t: any) => t.status === "PENDING" || t.status === "REWORK")
+                  const completed = allTasks.filter((t: any) => t.status === "COMPLETED")
+
+                  const renderCard = (t: any) => (
+                    <div key={t.id} className="shrink-0 w-[110px] rounded-md border border-white/10 bg-white/[0.04] px-2 py-1.5">
+                      <div className="text-[10px] font-semibold text-white/90 truncate">{t.product.description.slice(0, 22)}</div>
+                      <div className="text-[9px] text-white/40 truncate">{t.product.partCode} · {t.product.project.projectNumber}</div>
+                    </div>
+                  )
+
+                  return (
+                    <div className="px-3 py-2 space-y-2">
+                      {/* LIVE lane */}
+                      <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/[0.06] p-2">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                          <span className="text-[9px] font-bold text-cyan-400 uppercase tracking-wider">Live</span>
+                          <span className="text-[9px] text-white/30 ml-auto">{live.length}</span>
+                        </div>
+                        {live.length > 0 ? (
+                          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+                            {live.slice(0, 5).map(renderCard)}
+                            {live.length > 5 && <div className="text-[9px] text-white/30 self-center shrink-0">+{live.length - 5}</div>}
+                          </div>
+                        ) : (
+                          <div className="text-[9px] text-white/20 italic">No active work</div>
+                        )}
+                      </div>
+
+                      {/* READY lane */}
+                      <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.06] p-2">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                          <span className="text-[9px] font-bold text-amber-400 uppercase tracking-wider">Ready to Start</span>
+                          <span className="text-[9px] text-white/30 ml-auto">{ready.length}</span>
+                        </div>
+                        {ready.length > 0 ? (
+                          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+                            {ready.slice(0, 5).map(renderCard)}
+                            {ready.length > 5 && <div className="text-[9px] text-white/30 self-center shrink-0">+{ready.length - 5}</div>}
+                          </div>
+                        ) : (
+                          <div className="text-[9px] text-white/20 italic">No jobs waiting</div>
+                        )}
+                      </div>
+
+                      {/* COMPLETED lane */}
+                      <div className="rounded-lg border border-green-500/30 bg-green-500/[0.06] p-2">
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                          <span className="text-[9px] font-bold text-green-400 uppercase tracking-wider">Completed</span>
+                          <span className="text-[9px] text-white/30 ml-auto">{completed.length}</span>
+                        </div>
+                        {completed.length > 0 ? (
+                          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+                            {completed.slice(0, 5).map(renderCard)}
+                            {completed.length > 5 && <div className="text-[9px] text-white/30 self-center shrink-0">+{completed.length - 5}</div>}
+                          </div>
+                        ) : (
+                          <div className="text-[9px] text-white/20 italic">None completed</div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })()}
               </>
             ) : (
               <div className="px-4 py-3 text-white/40 text-[11px]">Non-production zone</div>
