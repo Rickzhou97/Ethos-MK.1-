@@ -112,7 +112,15 @@ function isToday(dateStr: string | null): boolean {
 }
 
 // ═══════ FACTORY DETAIL BUILDER ═══════
-function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: number) {
+interface FactoryRefs {
+  walls: THREE.Mesh[]
+  roofPanels: THREE.Mesh[]
+  trusses: THREE.Object3D[]
+  ridgeBeam: THREE.Mesh | null
+}
+
+function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: number): FactoryRefs {
+  const refs: FactoryRefs = { walls: [], roofPanels: [], trusses: [], ridgeBeam: null }
   const HALF_W = W / 2
   const HALF_L = L / 2
 
@@ -135,31 +143,31 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   const westWall = new THREE.Mesh(makeWallPanel(L, WALL_H), wallMat)
   westWall.position.set(-HALF_W, WALL_H / 2, 0)
   westWall.rotation.y = Math.PI / 2
-  scene.add(westWall)
+  scene.add(westWall); refs.walls.push(westWall)
 
   // East wall (x = +HALF_W)
   const eastWall = new THREE.Mesh(makeWallPanel(L, WALL_H), wallMat)
   eastWall.position.set(HALF_W, WALL_H / 2, 0)
   eastWall.rotation.y = -Math.PI / 2
-  scene.add(eastWall)
+  scene.add(eastWall); refs.walls.push(eastWall)
 
   // North wall (z = +HALF_L) — with gap for gate
   const northWallLeft = new THREE.Mesh(makeWallPanel(HALF_W - 5, WALL_H), wallMat)
   northWallLeft.position.set(-HALF_W / 2 - 2.5, WALL_H / 2, HALF_L)
-  scene.add(northWallLeft)
+  scene.add(northWallLeft); refs.walls.push(northWallLeft)
 
   const northWallRight = new THREE.Mesh(makeWallPanel(HALF_W - 3, WALL_H), wallMat)
   northWallRight.position.set(HALF_W / 2 + 1.5, WALL_H / 2, HALF_L)
-  scene.add(northWallRight)
+  scene.add(northWallRight); refs.walls.push(northWallRight)
 
   // South wall (z = -HALF_L) — with gap for yard door
   const southWallLeft = new THREE.Mesh(makeWallPanel(HALF_W - 4, WALL_H), wallMat)
   southWallLeft.position.set(-HALF_W / 2 - 2, WALL_H / 2, -HALF_L)
-  scene.add(southWallLeft)
+  scene.add(southWallLeft); refs.walls.push(southWallLeft)
 
   const southWallRight = new THREE.Mesh(makeWallPanel(HALF_W - 4, WALL_H), wallMat)
   southWallRight.position.set(HALF_W / 2 + 2, WALL_H / 2, -HALF_L)
-  scene.add(southWallRight)
+  scene.add(southWallRight); refs.walls.push(southWallRight)
 
   // ── STEEL PORTAL FRAME COLUMNS ──
   const columnMat = new THREE.MeshStandardMaterial({ color: 0x444444, metalness: 0.6, roughness: 0.4 })
@@ -208,14 +216,15 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
       pts.push(new THREE.Vector3(bxR, by, z), new THREE.Vector3(bxR, tyR, z))
     }
     const trussGeo = new THREE.BufferGeometry().setFromPoints(pts)
-    scene.add(new THREE.LineSegments(trussGeo, trussMat))
+    const trussObj = new THREE.LineSegments(trussGeo, trussMat)
+    scene.add(trussObj); refs.trusses.push(trussObj)
   }
 
   // Roof ridge beam
   const ridgeGeo = new THREE.BoxGeometry(0.1, 0.1, L)
   const ridge = new THREE.Mesh(ridgeGeo, columnMat)
   ridge.position.set(0, WALL_H + 1.5, 0)
-  scene.add(ridge)
+  scene.add(ridge); refs.ridgeBeam = ridge
 
   // Roof panels (translucent)
   const roofPanelMat = new THREE.MeshStandardMaterial({ color: 0x667788, transparent: true, opacity: 0.08, side: THREE.DoubleSide, metalness: 0.3 })
@@ -232,12 +241,12 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   roofLeft.rotation.z = 0
   roofLeft.rotation.y = 0
   roofLeft.position.y = WALL_H + 0.7
-  scene.add(roofLeft)
+  scene.add(roofLeft); refs.roofPanels.push(roofLeft)
 
   const roofRight = new THREE.Mesh(new THREE.PlaneGeometry(HALF_W + 1, L + 2), roofPanelMat)
   roofRight.rotation.x = -Math.PI / 2
   roofRight.position.set(HALF_W / 2, WALL_H + 0.7, 0)
-  scene.add(roofRight)
+  scene.add(roofRight); refs.roofPanels.push(roofRight)
 
   // ── ROLLER SHUTTER DOORS ──
   function makeShutter(sw: number, sh: number) {
@@ -630,12 +639,16 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
     stripe.position.set(cp.x, 0.25, cp.z)
     scene.add(stripe)
   }
+
+  return refs
 }
 
 export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
   const mountRef = useRef<HTMLDivElement>(null)
   const hoverRef = useRef<HTMLDivElement>(null)
   const [walkthroughMode, setWalkthroughMode] = useState(false)
+  const [viewMode, setViewMode] = useState<"realistic" | "no-roof" | "xray">("no-roof")
+  const factoryRefsRef = useRef<FactoryRefs | null>(null)
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
   const controlsRef = useRef<any>(null)
   const [hoverData, setHoverData] = useState<{
@@ -871,7 +884,13 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
     }
 
     // ═══════ ADD REALISTIC FACTORY DETAILS ═══════
-    addFactoryDetails(scene, W, L, WALL_H)
+    const fRefs = addFactoryDetails(scene, W, L, WALL_H)
+    factoryRefsRef.current = fRefs
+
+    // Apply initial view mode (no-roof by default — best overview)
+    fRefs.roofPanels.forEach(r => r.visible = false)
+    fRefs.trusses.forEach(t => t.visible = false)
+    if (fRefs.ridgeBeam) fRefs.ridgeBeam.visible = false
 
     // Steel frame products in bays
     const prodPositions = [
@@ -1182,6 +1201,51 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
           <span className="text-white font-bold">{workers.length}</span>
         </div>
         <div className="flex-1" />
+
+        {/* View mode buttons */}
+        <div className="flex items-center gap-1 bg-white/5 rounded-md p-0.5">
+          {([
+            { mode: "realistic" as const, label: "Solid" },
+            { mode: "no-roof" as const, label: "No Roof" },
+            { mode: "xray" as const, label: "X-Ray" },
+          ]).map(({ mode, label }) => (
+            <button
+              key={mode}
+              className={`px-2.5 py-1 rounded text-[10px] font-semibold transition-all ${
+                viewMode === mode
+                  ? "bg-blue-500 text-white shadow-sm"
+                  : "text-white/50 hover:text-white/80 hover:bg-white/5"
+              }`}
+              onClick={() => {
+                setViewMode(mode)
+                const fr = factoryRefsRef.current
+                if (!fr) return
+                if (mode === "realistic") {
+                  // Solid walls, roof visible
+                  fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).opacity = 1; (w.material as THREE.MeshStandardMaterial).transparent = false })
+                  fr.roofPanels.forEach(r => { r.visible = true; (r.material as THREE.MeshStandardMaterial).opacity = 0.5; (r.material as THREE.MeshStandardMaterial).transparent = true })
+                  fr.trusses.forEach(t => t.visible = true)
+                  if (fr.ridgeBeam) fr.ridgeBeam.visible = true
+                } else if (mode === "no-roof") {
+                  // Walls solid, no roof
+                  fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).opacity = 1; (w.material as THREE.MeshStandardMaterial).transparent = false })
+                  fr.roofPanels.forEach(r => r.visible = false)
+                  fr.trusses.forEach(t => t.visible = false)
+                  if (fr.ridgeBeam) fr.ridgeBeam.visible = false
+                } else {
+                  // X-Ray: transparent walls, no roof
+                  fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).transparent = true; (w.material as THREE.MeshStandardMaterial).opacity = 0.08 })
+                  fr.roofPanels.forEach(r => r.visible = false)
+                  fr.trusses.forEach(t => t.visible = true)
+                  if (fr.ridgeBeam) fr.ridgeBeam.visible = true
+                }
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <button
           className={`px-3 py-1 rounded text-[10px] font-semibold border transition-all ${
             walkthroughMode
