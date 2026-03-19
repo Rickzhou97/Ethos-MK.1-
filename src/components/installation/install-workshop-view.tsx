@@ -28,7 +28,10 @@ import {
   Eye,
   Package,
   StickyNote,
+  BarChart3,
+  Table2,
 } from "lucide-react"
+import { GanttChart } from "./gantt-chart"
 
 // ─── Types ───
 
@@ -179,6 +182,7 @@ export function InstallWorkshopView({ crews, tasksByCrewId, drawingDocuments }: 
   const [localTasks, setLocalTasks] = useState<Record<string, InstallTask[]>>(tasksByCrewId)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [openCell, setOpenCell] = useState<string | null>(null)
+  const [matrixView, setMatrixView] = useState<"gantt" | "table">("gantt")
 
   // Member add form
   const [showAddMember, setShowAddMember] = useState(false)
@@ -599,147 +603,187 @@ export function InstallWorkshopView({ crews, tasksByCrewId, drawingDocuments }: 
         <div className="text-center text-gray-400 py-16">No crews available</div>
       ) : (
         <>
-          {/* Section 1: Task Matrix */}
+          {/* Section 1: Project Programme */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
-              <h2 className="text-sm font-semibold text-gray-900">Task Matrix</h2>
-              <p className="text-xs text-gray-500 mt-0.5">{selectedCrew.name} ({selectedCrew.code}) - {productRows.length} product{productRows.length !== 1 ? "s" : ""} assigned</p>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap sticky left-0 bg-gray-50 z-10 min-w-[220px]">
-                      Product
-                    </th>
-                    <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap min-w-[120px]">
-                      Project
-                    </th>
-                    {INSTALL_STAGES.map((stage) => (
-                      <th
-                        key={stage}
-                        className="text-center px-3 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap min-w-[100px]"
-                      >
-                        {INSTALL_STAGE_DISPLAY_NAMES[stage]}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {productRows.length === 0 && (
-                    <tr>
-                      <td colSpan={2 + INSTALL_STAGES.length} className="text-center py-12 text-gray-400">
-                        No tasks assigned to this crew
-                      </td>
-                    </tr>
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">Project Programme</h2>
+                <p className="text-xs text-gray-500 mt-0.5">{selectedCrew.name} ({selectedCrew.code}) - {productRows.length} product{productRows.length !== 1 ? "s" : ""} assigned</p>
+              </div>
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+                <button
+                  onClick={() => setMatrixView("gantt")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+                    matrixView === "gantt" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
                   )}
-                  {productRows.map(({ product, productId, tasks: taskMap }, rowIdx) => (
-                    <tr
-                      key={productId}
-                      className={cn(
-                        "border-b border-gray-100 hover:bg-gray-50/50 transition-colors",
-                        rowIdx % 2 === 1 && "bg-gray-50/30"
-                      )}
-                    >
-                      {/* Product column */}
-                      <td className="px-4 py-3 sticky left-0 bg-white z-10">
-                        <div className="font-medium text-gray-900 text-sm leading-tight">{product.description}</div>
-                        <div className="text-xs text-gray-400 font-mono mt-0.5">{product.partCode}</div>
-                        {product.project.siteLocation && (
-                          <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                            <MapPin className="h-2.5 w-2.5" />
-                            {product.project.siteLocation}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Project column */}
-                      <td className="px-3 py-3">
-                        <div className="text-xs font-medium text-gray-700">{product.project.projectNumber}</div>
-                        <div className="text-xs text-gray-400 truncate max-w-[120px]">{product.project.name}</div>
-                      </td>
-
-                      {/* Stage columns */}
-                      {INSTALL_STAGES.map((stage) => {
-                        const task = taskMap.get(stage)
-                        const cell = getCellInfo(task)
-                        const cellKey = `${productId}-${stage}`
-                        const isOpen = openCell === cellKey
-                        const isLoading = task && actionLoading === task.id
-
-                        return (
-                          <td key={stage} className="px-2 py-2 text-center relative">
-                            <button
-                              onClick={() => {
-                                if (!task || cell.actionable === "none") return
-                                setOpenCell(isOpen ? null : cellKey)
-                              }}
-                              disabled={!task || cell.actionable === "none"}
-                              className={cn(
-                                "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors w-full justify-center",
-                                cell.bgColor,
-                                cell.color,
-                                task && cell.actionable !== "none" && "hover:ring-1 hover:ring-gray-300 cursor-pointer",
-                                !task && "cursor-default"
-                              )}
-                            >
-                              {cell.dot && <span className={cn("w-2 h-2 rounded-full shrink-0", cell.dot)} />}
-                              {cell.label === "Done" && <Check className="h-3 w-3 text-green-600" />}
-                              {cell.label === "NCR" && <X className="h-3 w-3 text-red-600" />}
-                              <span>{cell.label}</span>
-                              {task && cell.actionable !== "none" && <ChevronDown className="h-2.5 w-2.5 opacity-50" />}
-                            </button>
-
-                            {/* Action dropdown */}
-                            {isOpen && task && (
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 z-20 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-2 min-w-[140px]">
-                                {cell.actionable === "start" && (
-                                  <button
-                                    onClick={() => handleStart(task.id)}
-                                    disabled={!!isLoading}
-                                    className="w-full text-left px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 rounded-md disabled:opacity-50"
-                                  >
-                                    {isLoading ? "Starting..." : "Start Task"}
-                                  </button>
-                                )}
-                                {cell.actionable === "complete" && (
-                                  <button
-                                    onClick={() => handleComplete(task.id)}
-                                    disabled={!!isLoading}
-                                    className="w-full text-left px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 rounded-md disabled:opacity-50"
-                                  >
-                                    {isLoading ? "Completing..." : "Complete Task"}
-                                  </button>
-                                )}
-                                {cell.actionable === "inspect" && (
-                                  <div className="space-y-1">
-                                    <button
-                                      onClick={() => handleInspect(task.id, "ACCEPTED")}
-                                      disabled={!!isLoading}
-                                      className="w-full text-left px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-50 rounded-md disabled:opacity-50"
-                                    >
-                                      {isLoading ? "..." : "Approve"}
-                                    </button>
-                                    <button
-                                      onClick={() => handleInspect(task.id, "REJECTED")}
-                                      disabled={!!isLoading}
-                                      className="w-full text-left px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 rounded-md disabled:opacity-50"
-                                    >
-                                      {isLoading ? "..." : "Reject (NCR)"}
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                >
+                  <BarChart3 className="h-3.5 w-3.5" /> Gantt
+                </button>
+                <button
+                  onClick={() => setMatrixView("table")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+                    matrixView === "table" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
+                  )}
+                >
+                  <Table2 className="h-3.5 w-3.5" /> Table
+                </button>
+              </div>
             </div>
+
+            {matrixView === "gantt" ? (
+              <div className="p-4">
+                <GanttChart
+                  productRows={productRows.map(({ product, productId, tasks: taskMap }) => ({
+                    productId,
+                    product,
+                    tasks: taskMap,
+                  }))}
+                  onTaskAction={(taskId, action) => {
+                    if (action === "start") handleStart(taskId)
+                    else if (action === "complete") handleComplete(taskId)
+                    else if (action === "approve") handleInspect(taskId, "ACCEPTED")
+                    else if (action === "reject") handleInspect(taskId, "REJECTED")
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap sticky left-0 bg-gray-50 z-10 min-w-[220px]">
+                        Product
+                      </th>
+                      <th className="text-left px-3 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap min-w-[120px]">
+                        Project
+                      </th>
+                      {INSTALL_STAGES.map((stage) => (
+                        <th
+                          key={stage}
+                          className="text-center px-3 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap min-w-[100px]"
+                        >
+                          {INSTALL_STAGE_DISPLAY_NAMES[stage]}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productRows.length === 0 && (
+                      <tr>
+                        <td colSpan={2 + INSTALL_STAGES.length} className="text-center py-12 text-gray-400">
+                          No tasks assigned to this crew
+                        </td>
+                      </tr>
+                    )}
+                    {productRows.map(({ product, productId, tasks: taskMap }, rowIdx) => (
+                      <tr
+                        key={productId}
+                        className={cn(
+                          "border-b border-gray-100 hover:bg-gray-50/50 transition-colors",
+                          rowIdx % 2 === 1 && "bg-gray-50/30"
+                        )}
+                      >
+                        {/* Product column */}
+                        <td className="px-4 py-3 sticky left-0 bg-white z-10">
+                          <div className="font-medium text-gray-900 text-sm leading-tight">{product.description}</div>
+                          <div className="text-xs text-gray-400 font-mono mt-0.5">{product.partCode}</div>
+                          {product.project.siteLocation && (
+                            <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                              <MapPin className="h-2.5 w-2.5" />
+                              {product.project.siteLocation}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Project column */}
+                        <td className="px-3 py-3">
+                          <div className="text-xs font-medium text-gray-700">{product.project.projectNumber}</div>
+                          <div className="text-xs text-gray-400 truncate max-w-[120px]">{product.project.name}</div>
+                        </td>
+
+                        {/* Stage columns */}
+                        {INSTALL_STAGES.map((stage) => {
+                          const task = taskMap.get(stage)
+                          const cell = getCellInfo(task)
+                          const cellKey = `${productId}-${stage}`
+                          const isOpen = openCell === cellKey
+                          const isLoading = task && actionLoading === task.id
+
+                          return (
+                            <td key={stage} className="px-2 py-2 text-center relative">
+                              <button
+                                onClick={() => {
+                                  if (!task || cell.actionable === "none") return
+                                  setOpenCell(isOpen ? null : cellKey)
+                                }}
+                                disabled={!task || cell.actionable === "none"}
+                                className={cn(
+                                  "inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors w-full justify-center",
+                                  cell.bgColor,
+                                  cell.color,
+                                  task && cell.actionable !== "none" && "hover:ring-1 hover:ring-gray-300 cursor-pointer",
+                                  !task && "cursor-default"
+                                )}
+                              >
+                                {cell.dot && <span className={cn("w-2 h-2 rounded-full shrink-0", cell.dot)} />}
+                                {cell.label === "Done" && <Check className="h-3 w-3 text-green-600" />}
+                                {cell.label === "NCR" && <X className="h-3 w-3 text-red-600" />}
+                                <span>{cell.label}</span>
+                                {task && cell.actionable !== "none" && <ChevronDown className="h-2.5 w-2.5 opacity-50" />}
+                              </button>
+
+                              {/* Action dropdown */}
+                              {isOpen && task && (
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 z-20 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 p-2 min-w-[140px]">
+                                  {cell.actionable === "start" && (
+                                    <button
+                                      onClick={() => handleStart(task.id)}
+                                      disabled={!!isLoading}
+                                      className="w-full text-left px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 rounded-md disabled:opacity-50"
+                                    >
+                                      {isLoading ? "Starting..." : "Start Task"}
+                                    </button>
+                                  )}
+                                  {cell.actionable === "complete" && (
+                                    <button
+                                      onClick={() => handleComplete(task.id)}
+                                      disabled={!!isLoading}
+                                      className="w-full text-left px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-50 rounded-md disabled:opacity-50"
+                                    >
+                                      {isLoading ? "Completing..." : "Complete Task"}
+                                    </button>
+                                  )}
+                                  {cell.actionable === "inspect" && (
+                                    <div className="space-y-1">
+                                      <button
+                                        onClick={() => handleInspect(task.id, "ACCEPTED")}
+                                        disabled={!!isLoading}
+                                        className="w-full text-left px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-green-50 rounded-md disabled:opacity-50"
+                                      >
+                                        {isLoading ? "..." : "Approve"}
+                                      </button>
+                                      <button
+                                        onClick={() => handleInspect(task.id, "REJECTED")}
+                                        disabled={!!isLoading}
+                                        className="w-full text-left px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 rounded-md disabled:opacity-50"
+                                      >
+                                        {isLoading ? "..." : "Reject (NCR)"}
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Section 2 & 3: Team Members + Equipment side by side */}
