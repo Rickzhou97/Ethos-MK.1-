@@ -106,6 +106,11 @@ export default function SiteModelPage({
 
   return (
     <div className="space-y-4">
+      <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 flex items-start gap-2">
+        <span className="shrink-0 mt-0.5">ℹ️</span>
+        <span>This is a simplified 3D massing model for visualisation purposes. When point cloud survey data becomes available, this model will be replaced with an accurate as-built representation of the site.</span>
+      </div>
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">
