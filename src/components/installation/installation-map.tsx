@@ -22,6 +22,7 @@ export interface MapProject {
     id: string
     stage: string
     status: string
+    inspectionStatus: string | null
     crew: { id: string; name: string; code: string } | null
   }>
 }

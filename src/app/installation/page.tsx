@@ -6,7 +6,6 @@ import type { MapProject, MapCrew } from "@/components/installation/installation
 export const dynamic = 'force-dynamic'
 
 export default async function InstallationPage() {
-  // Fetch projects in installation with tasks and coordinates
   const projects = await prisma.project.findMany({
     where: { projectStatus: "INSTALLATION" },
     orderBy: [{ priority: "asc" }, { orderReceived: "asc" }],
@@ -41,7 +40,6 @@ export default async function InstallationPage() {
     },
   })
 
-  // Fetch crews with members and task counts
   const crews = await prisma.installCrew.findMany({
     where: { isActive: true },
     select: {
@@ -59,35 +57,39 @@ export default async function InstallationPage() {
 
   const serialized: DeptProject[] = JSON.parse(JSON.stringify(projects))
 
-  const mapProjects: MapProject[] = projects.map((p) => ({
-    id: p.id,
-    projectNumber: p.projectNumber,
-    name: p.name,
-    projectStatus: p.projectStatus,
-    departmentStatus: p.departmentStatus,
-    siteLocation: p.siteLocation ?? null,
-    siteLatitude: p.siteLatitude ? Number(p.siteLatitude) : null,
-    siteLongitude: p.siteLongitude ? Number(p.siteLongitude) : null,
-    priority: p.priority ?? null,
-    targetCompletion: p.targetCompletion ? p.targetCompletion.toISOString() : null,
-    customer: p.customer ?? null,
-    _count: { products: p._count?.products ?? 0 },
-    installationTasks: p.installationTasks.map((t) => ({
-      id: t.id,
-      stage: t.stage,
-      status: t.status,
-      inspectionStatus: t.inspectionStatus,
-      crew: t.crew,
-    })),
-  }))
+  const mapProjects: MapProject[] = JSON.parse(JSON.stringify(
+    projects.map((p) => ({
+      id: p.id,
+      projectNumber: p.projectNumber,
+      name: p.name,
+      projectStatus: p.projectStatus,
+      departmentStatus: p.departmentStatus,
+      siteLocation: p.siteLocation ?? null,
+      siteLatitude: p.siteLatitude ? Number(p.siteLatitude) : null,
+      siteLongitude: p.siteLongitude ? Number(p.siteLongitude) : null,
+      priority: p.priority ?? null,
+      targetCompletion: p.targetCompletion ? p.targetCompletion.toISOString() : null,
+      customer: p.customer ?? null,
+      _count: { products: p._count?.products ?? 0 },
+      installationTasks: p.installationTasks.map((t) => ({
+        id: t.id,
+        stage: t.stage,
+        status: t.status,
+        inspectionStatus: t.inspectionStatus ?? null,
+        crew: t.crew,
+      })),
+    }))
+  ))
 
-  const mapCrews: MapCrew[] = crews.map((c) => ({
-    id: c.id,
-    name: c.name,
-    code: c.code,
-    members: c.members.map((m) => ({ worker: { name: m.worker.name } })),
-    _count: { tasks: c._count.tasks },
-  }))
+  const mapCrews: MapCrew[] = JSON.parse(JSON.stringify(
+    crews.map((c) => ({
+      id: c.id,
+      name: c.name,
+      code: c.code,
+      members: c.members.map((m) => ({ worker: { name: m.worker.name } })),
+      _count: { tasks: c._count.tasks },
+    }))
+  ))
 
   return (
     <div className="space-y-4">
@@ -106,10 +108,8 @@ export default async function InstallationPage() {
         </div>
       </div>
 
-      {/* Interactive UK map */}
       <InstallationMap projects={mapProjects} crews={mapCrews} />
 
-      {/* Existing kanban board */}
       <DepartmentBoard
         projects={serialized}
         departmentLabel="Installation"
