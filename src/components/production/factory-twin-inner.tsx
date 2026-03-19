@@ -516,16 +516,16 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
       // Hanging rod
       const rod = new THREE.Mesh(lightRodGeo, lightRodMat)
       rod.position.set(lx, WALL_H - 0.2, lz)
-      scene.add(rod)
+      scene.add(rod); refs.lights.push(rod)
       // Shade
       const shade = new THREE.Mesh(lightShadeGeo, lightShadeMat)
       shade.position.set(lx, WALL_H - 0.8, lz)
-      scene.add(shade)
+      scene.add(shade); refs.lights.push(shade)
       // Actual point lights (limited for performance)
       if (pointLightCount < maxPointLights) {
         const pl = new THREE.PointLight(0xfff5e0, 0.3, 18)
         pl.position.set(lx, WALL_H - 1.0, lz)
-        scene.add(pl)
+        scene.add(pl); refs.lights.push(pl)
         pointLightCount++
       }
     }
@@ -538,7 +538,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
     ductMat
   )
   mainExtractDuct.position.set(0, WALL_H - 0.5, 10)
-  scene.add(mainExtractDuct)
+  scene.add(mainExtractDuct); refs.ducts.push(mainExtractDuct)
 
   // Branch ducts from main to welding bays
   for (const wz of weldZones.slice(0, 4)) {
@@ -549,7 +549,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
     )
     branch.position.set(wz.x + branchLen / 2, WALL_H - 0.5, wz.z)
     branch.rotation.z = Math.PI / 2
-    scene.add(branch)
+    scene.add(branch); refs.ducts.push(branch)
   }
 
   // Branch duct to shot blast
@@ -559,7 +559,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   )
   sbBranch.position.set(4, WALL_H - 0.5, -1)
   sbBranch.rotation.z = Math.PI / 2
-  scene.add(sbBranch)
+  scene.add(sbBranch); refs.ducts.push(sbBranch)
 
   // ── 8. AMBIENT DETAILS ──
 
@@ -573,7 +573,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
     const pallet = new THREE.Mesh(palletGeo, palletMat)
     pallet.position.set(pp.x, 0.08, pp.z)
     pallet.castShadow = true
-    scene.add(pallet)
+    scene.add(pallet); refs.ambient.push(pallet)
   }
 
   // Scrap bin near cutting
@@ -583,7 +583,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   )
   scrapBin.position.set(-7, 0.6, -10)
   scrapBin.castShadow = true
-  scene.add(scrapBin)
+  scene.add(scrapBin); refs.ambient.push(scrapBin)
   // Label "SCRAP" (small sprite)
   const scrapCanvas = document.createElement("canvas")
   scrapCanvas.width = 128; scrapCanvas.height = 32
@@ -595,7 +595,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   const scrapSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(scrapCanvas), transparent: true }))
   scrapSprite.position.set(-7, 1.6, -10)
   scrapSprite.scale.set(1.5, 0.4, 1)
-  scene.add(scrapSprite)
+  scene.add(scrapSprite); refs.ambient.push(scrapSprite)
 
   // Fire extinguishers on walls
   const feGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.5, 8)
@@ -608,7 +608,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   for (const fe of fePositions) {
     const ext = new THREE.Mesh(feGeo, feMat)
     ext.position.set(fe.x, 1.2, fe.z)
-    scene.add(ext)
+    scene.add(ext); refs.ambient.push(ext)
   }
 
   // Safety signage (green exit signs, red fire signs) on walls
@@ -619,17 +619,17 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   // Exit signs near doors
   const exitSign1 = new THREE.Mesh(signGeo, exitSignMat)
   exitSign1.position.set(-8, 3.5, HALF_L - 0.3)
-  scene.add(exitSign1)
+  scene.add(exitSign1); refs.ambient.push(exitSign1)
   const exitSign2 = new THREE.Mesh(signGeo, exitSignMat)
   exitSign2.position.set(0, 3.5, -HALF_L + 0.3)
-  scene.add(exitSign2)
+  scene.add(exitSign2); refs.ambient.push(exitSign2)
 
   // Fire signs near extinguishers
   for (const fe of fePositions.slice(0, 3)) {
     const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.35, 0.35), fireSignMat)
     sign.position.set(fe.x + (fe.x < 0 ? 0.05 : -0.05), 2.0, fe.z)
     sign.rotation.y = fe.x < 0 ? Math.PI / 2 : -Math.PI / 2
-    scene.add(sign)
+    scene.add(sign); refs.ambient.push(sign)
   }
 
   // Parking/traffic cones near gate
@@ -643,14 +643,14 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
     const cone = new THREE.Mesh(coneGeo, coneMat)
     cone.position.set(cp.x, 0.2, cp.z)
     cone.castShadow = true
-    scene.add(cone)
+    scene.add(cone); refs.ambient.push(cone)
     // White stripe on cone
     const stripe = new THREE.Mesh(
       new THREE.CylinderGeometry(0.09, 0.1, 0.06, 8),
       new THREE.MeshBasicMaterial({ color: 0xffffff })
     )
     stripe.position.set(cp.x, 0.25, cp.z)
-    scene.add(stripe)
+    scene.add(stripe); refs.ambient.push(stripe)
   }
 
   // ── SHOT BLAST ENCLOSED ROOMS ──
@@ -705,6 +705,8 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
   const gridRef = useRef<THREE.GridHelper | null>(null)
   const zoneBoxesRef = useRef<THREE.Mesh[]>([])
   const zoneWireframesRef = useRef<THREE.LineSegments[]>([])
+  const floorLabelsRef = useRef<THREE.Mesh[]>([])
+  const labelsRef = useRef<THREE.Sprite[]>([])
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
   const controlsRef = useRef<any>(null)
   const [hoverData, setHoverData] = useState<{
@@ -729,9 +731,9 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
 
     // ═══════ THREE SETUP ═══════
     const scene = new THREE.Scene()
-    // Default to "clean" mode: light background
-    scene.background = new THREE.Color(0xd0d0d8)
-    scene.fog = new THREE.Fog(0xd0d0d8, 100, 200)
+    // Default to "clean" mode: bright white background
+    scene.background = new THREE.Color(0xe8ecf0)
+    scene.fog = new THREE.Fog(0xe8ecf0, 120, 220)
     sceneRef.current = scene
     scene.fog = new THREE.Fog(0x101020, 90, 160)
 
@@ -771,7 +773,7 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
     // Ground
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(150, 150),
-      new THREE.MeshStandardMaterial({ color: 0xc0c0c8 })
+      new THREE.MeshStandardMaterial({ color: 0xd8dce0 })
     )
     ground.rotation.x = -Math.PI / 2
     ground.receiveShadow = true
@@ -780,7 +782,7 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(W + 2, L + 2),
-      new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.9 })
+      new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.9 })
     )
     floor.rotation.x = -Math.PI / 2
     floor.position.set(0, 0.03, 0)
@@ -807,6 +809,7 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
     const zoneBoxes: THREE.Mesh[] = []
     const zoneWireframes: THREE.LineSegments[] = []
     const labels: THREE.Sprite[] = []
+    const floorLabels: THREE.Mesh[] = []
     let hoveredZoneId: string | null = null
 
     for (const z of ZONES) {
@@ -876,8 +879,34 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
       const labelSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: labelTexture, transparent: true, depthTest: false }))
       labelSprite.position.set(z.x, Math.max(z.h, 1) + 1.5, z.z)
       labelSprite.scale.set(Math.min(z.w * 0.9, 7), Math.min(z.w * 0.9, 7) * 0.16, 1)
+      labelSprite.visible = false // hidden in clean mode (default)
       scene.add(labelSprite)
       labels.push(labelSprite)
+
+      // Floor label (text printed on the ground — shown in clean mode)
+      const floorLblCanvas = document.createElement("canvas")
+      const floorLblW = 512, floorLblH = 128
+      floorLblCanvas.width = floorLblW
+      floorLblCanvas.height = floorLblH
+      const fCtx = floorLblCanvas.getContext("2d")!
+      fCtx.clearRect(0, 0, floorLblW, floorLblH)
+      const hexColor = "#" + col.getHexString()
+      fCtx.fillStyle = hexColor
+      fCtx.font = "bold 52px sans-serif"
+      fCtx.textAlign = "center"
+      fCtx.textBaseline = "middle"
+      const floorTxt = z.lb.length > 16 ? z.lb.slice(0, 16) + "\u2026" : z.lb
+      fCtx.fillText(floorTxt, floorLblW / 2, floorLblH / 2)
+
+      const floorLblTex = new THREE.CanvasTexture(floorLblCanvas)
+      const floorLblMat = new THREE.MeshBasicMaterial({ map: floorLblTex, transparent: true, depthTest: true, side: THREE.DoubleSide })
+      const floorLblScale = Math.min(z.w * 0.85, 6)
+      const floorLblMesh = new THREE.Mesh(new THREE.PlaneGeometry(floorLblScale, floorLblScale * 0.25), floorLblMat)
+      floorLblMesh.rotation.x = -Math.PI / 2
+      floorLblMesh.position.set(z.x, 0.12, z.z)
+      floorLblMesh.visible = true // shown in clean mode (default)
+      scene.add(floorLblMesh)
+      floorLabels.push(floorLblMesh)
 
       // Count badge (active task count) above zone
       if (stage && stageTasks.length > 0) {
@@ -957,6 +986,8 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
     // ═══════ ADD REALISTIC FACTORY DETAILS ═══════
     zoneBoxesRef.current = zoneBoxes
     zoneWireframesRef.current = zoneWireframes
+    floorLabelsRef.current = floorLabels
+    labelsRef.current = labels
 
     const fRefs = addFactoryDetails(scene, W, L, WALL_H)
     factoryRefsRef.current = fRefs
@@ -1314,13 +1345,15 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                 const grd = gridRef.current
                 const zb = zoneBoxesRef.current
                 const zw = zoneWireframesRef.current
+                const fl = floorLabelsRef.current
+                const lbls = mountRef.current?.querySelectorAll ? labels : []
 
                 if (mode === "realistic") {
-                  // Full solid factory — walls opaque, roof visible, all details
-                  if (sc) sc.background = new THREE.Color(0x101020)
-                  if (sc) sc.fog = new THREE.Fog(0x101020, 90, 160)
-                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x181828)
-                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x555555)
+                  // Full solid factory — bright industrial feel
+                  if (sc) sc.background = new THREE.Color(0x87ceeb)
+                  if (sc) sc.fog = new THREE.Fog(0x87ceeb, 100, 180)
+                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x999999)
+                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x888888)
                   if (grd) grd.visible = true
                   fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).opacity = 1; (w.material as THREE.MeshStandardMaterial).transparent = false })
                   fr.roofPanels.forEach(r => { r.visible = true; (r.material as THREE.MeshStandardMaterial).opacity = 0.5; (r.material as THREE.MeshStandardMaterial).transparent = true })
@@ -1334,12 +1367,14 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                   fr.floorMarkings.forEach(f => f.visible = true)
                   zb.forEach(b => b.visible = true)
                   zw.forEach(w => w.visible = true)
+                  fl.forEach(f => f.visible = false)
+                  labelsRef.current.forEach(l => l.visible = true)
                 } else if (mode === "no-roof") {
-                  // Solid walls, no roof/trusses — good overview
-                  if (sc) sc.background = new THREE.Color(0x101020)
-                  if (sc) sc.fog = new THREE.Fog(0x101020, 90, 160)
-                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x181828)
-                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x555555)
+                  // Solid walls, no roof — bright sky background
+                  if (sc) sc.background = new THREE.Color(0xbdd4e7)
+                  if (sc) sc.fog = new THREE.Fog(0xbdd4e7, 100, 180)
+                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x999999)
+                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x888888)
                   if (grd) grd.visible = true
                   fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).opacity = 1; (w.material as THREE.MeshStandardMaterial).transparent = false })
                   fr.roofPanels.forEach(r => r.visible = false)
@@ -1353,13 +1388,14 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                   fr.floorMarkings.forEach(f => f.visible = true)
                   zb.forEach(b => b.visible = true)
                   zw.forEach(w => w.visible = true)
+                  fl.forEach(f => f.visible = false)
+                  labelsRef.current.forEach(l => l.visible = true)
                 } else if (mode === "clean") {
-                  // Clean view — NO walls, NO roof, NO structure, NO transparent boxes.
-                  // White/light environment — only floor pads, labels, equipment
-                  if (sc) sc.background = new THREE.Color(0xd0d0d8)
-                  if (sc) sc.fog = new THREE.Fog(0xd0d0d8, 100, 200)
-                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0xc0c0c8)
-                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0xeeeeee)
+                  // Clean view — bright white, only zones + floor text labels
+                  if (sc) sc.background = new THREE.Color(0xe8ecf0)
+                  if (sc) sc.fog = new THREE.Fog(0xe8ecf0, 120, 220)
+                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0xd8dce0)
+                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0xf5f5f5)
                   if (grd) grd.visible = false
                   fr.walls.forEach(w => {
                     // Keep shot blast enclosed room walls visible
@@ -1376,12 +1412,14 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                   fr.floorMarkings.forEach(f => f.visible = true)
                   zb.forEach(b => b.visible = false)
                   zw.forEach(w => w.visible = false)
+                  fl.forEach(f => f.visible = true)
+                  labelsRef.current.forEach(l => l.visible = false)
                 } else {
-                  // X-Ray: transparent walls, trusses visible
-                  if (sc) sc.background = new THREE.Color(0x101020)
-                  if (sc) sc.fog = new THREE.Fog(0x101020, 90, 160)
-                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x181828)
-                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x555555)
+                  // X-Ray: transparent walls, trusses visible — lighter dark
+                  if (sc) sc.background = new THREE.Color(0x2a3040)
+                  if (sc) sc.fog = new THREE.Fog(0x2a3040, 100, 170)
+                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x3a4050)
+                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x666677)
                   if (grd) grd.visible = true
                   fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).transparent = true; (w.material as THREE.MeshStandardMaterial).opacity = 0.06 })
                   fr.roofPanels.forEach(r => r.visible = false)
@@ -1395,6 +1433,8 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                   fr.floorMarkings.forEach(f => f.visible = true)
                   zb.forEach(b => b.visible = true)
                   zw.forEach(w => w.visible = true)
+                  fl.forEach(f => f.visible = false)
+                  labelsRef.current.forEach(l => l.visible = true)
                 }
               }}
             >
