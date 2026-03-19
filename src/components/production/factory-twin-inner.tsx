@@ -271,23 +271,23 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   // Gate shutter (north wall gap)
   const gateShutter = makeShutter(8, WALL_H)
   gateShutter.position.set(-8, WALL_H / 2, HALF_L - 0.05)
-  scene.add(gateShutter)
+  track("shutters", gateShutter)
   // Horizontal lines on shutter
   const shutterLines1: THREE.Vector3[] = []
   for (let y = 0.3; y < WALL_H; y += 0.25) {
     shutterLines1.push(new THREE.Vector3(-12, y, HALF_L + 0.02), new THREE.Vector3(-4, y, HALF_L + 0.02))
   }
-  scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(shutterLines1), new THREE.LineBasicMaterial({ color: 0x667788 })))
+  track("shutters", new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(shutterLines1), new THREE.LineBasicMaterial({ color: 0x667788 })))
 
   // South yard door
   const yardShutter = makeShutter(8, WALL_H)
   yardShutter.position.set(0, WALL_H / 2, -HALF_L + 0.05)
-  scene.add(yardShutter)
+  track("shutters", yardShutter)
   const shutterLines2: THREE.Vector3[] = []
   for (let y = 0.3; y < WALL_H; y += 0.25) {
     shutterLines2.push(new THREE.Vector3(-4, y, -HALF_L + 0.07), new THREE.Vector3(4, y, -HALF_L + 0.07))
   }
-  scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(shutterLines2), new THREE.LineBasicMaterial({ color: 0x667788 })))
+  track("shutters", new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(shutterLines2), new THREE.LineBasicMaterial({ color: 0x667788 })))
 
   // ── 2. (No overhead crane — factory uses forklifts and HIAB for lifting) ──
 
@@ -298,18 +298,18 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   const aisleLine1 = new THREE.Mesh(new THREE.PlaneGeometry(0.12, L - 4), yellowLineMat)
   aisleLine1.rotation.x = -Math.PI / 2
   aisleLine1.position.set(3, 0.06, 0)
-  scene.add(aisleLine1)
+  track("floorMarkings", aisleLine1)
 
   const aisleLine2 = new THREE.Mesh(new THREE.PlaneGeometry(0.12, L - 4), yellowLineMat)
   aisleLine2.rotation.x = -Math.PI / 2
   aisleLine2.position.set(-3, 0.06, 0)
-  scene.add(aisleLine2)
+  track("floorMarkings", aisleLine2)
 
   // Cross aisle
   const crossLine = new THREE.Mesh(new THREE.PlaneGeometry(W - 4, 0.12), yellowLineMat)
   crossLine.rotation.x = -Math.PI / 2
   crossLine.position.set(0, 0.06, 3)
-  scene.add(crossLine)
+  track("floorMarkings", crossLine)
 
   // Flow direction arrows on floor
   const arrowMat = new THREE.MeshBasicMaterial({ color: 0xf5c518, side: THREE.DoubleSide })
@@ -324,7 +324,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
     arrow.rotation.x = -Math.PI / 2
     arrow.rotation.z = angle
     arrow.position.set(ax, 0.065, az)
-    scene.add(arrow)
+    track("floorMarkings", arrow)
   }
   // Arrows pointing south along main aisle
   for (let z = HALF_L - 8; z > -HALF_L + 8; z -= 8) {
@@ -344,7 +344,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
       )
       stripe.rotation.x = -Math.PI / 2
       stripe.position.set(hx - hw / 2 + i * 0.4 + 0.2, 0.065, hz)
-      scene.add(stripe)
+      track("floorMarkings", stripe)
     }
   }
   addHazardStripe(-8, HALF_L - 1, 8, 0.8) // Gate hazard
@@ -367,21 +367,21 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
     const bottle = new THREE.Mesh(gasBottleGeo, gasBottleMat)
     bottle.position.set(wz.x + 1.5, 0.5, wz.z + 1.2)
     bottle.castShadow = true
-    scene.add(bottle)
+    track("ambient", bottle)
     // Second bottle
     const bottle2 = new THREE.Mesh(gasBottleGeo, gasBottleMat)
     bottle2.position.set(wz.x + 1.5, 0.5, wz.z + 0.8)
-    scene.add(bottle2)
+    track("ambient", bottle2)
 
     // Fume extraction hood (inverted truncated cone)
     const hoodGeo = new THREE.CylinderGeometry(0.3, 0.8, 0.6, 8, 1, true)
     const hood = new THREE.Mesh(hoodGeo, hoodMat)
     hood.position.set(wz.x, 4.5, wz.z)
-    scene.add(hood)
+    track("ducts", hood)
     // Extraction pipe going up from hood
     const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2, 6), new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.4 }))
     pipe.position.set(wz.x, 5.8, wz.z)
-    scene.add(pipe)
+    track("ducts", pipe)
   }
 
   // --- Cutting bay: plasma table rails + band saw + steel rack ---
@@ -392,13 +392,13 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   )
   plasmaBase.position.set(-9, 0.85, -12)
   plasmaBase.castShadow = true
-  scene.add(plasmaBase)
+  track("ambient", plasmaBase)
   // Rails on plasma table
   const railMatC = new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.7 })
   for (const rz of [-12.8, -11.2]) {
     const r = new THREE.Mesh(new THREE.BoxGeometry(4, 0.06, 0.06), railMatC)
     r.position.set(-9, 0.95, rz)
-    scene.add(r)
+    track("ambient", r)
   }
 
   // Band saw (cylinder + frame)
@@ -408,13 +408,13 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   )
   sawBlade.position.set(-9, 1.5, -9)
   sawBlade.rotation.z = Math.PI / 2
-  scene.add(sawBlade)
+  track("ambient", sawBlade)
   const sawFrame = new THREE.Mesh(
     new THREE.BoxGeometry(0.8, 2, 0.6),
     new THREE.MeshStandardMaterial({ color: 0x556655, metalness: 0.3 })
   )
   sawFrame.position.set(-9, 1, -9)
-  scene.add(sawFrame)
+  track("ambient", sawFrame)
 
   // Steel rack storage (frame using line segments)
   const rackPts: THREE.Vector3[] = []
@@ -433,7 +433,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
       rackPts.push(new THREE.Vector3(rx + dx, 0, rz + dz), new THREE.Vector3(rx + dx, 3.6, rz + dz))
     }
   }
-  scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(rackPts), new THREE.LineBasicMaterial({ color: 0x888888 })))
+  track("ambient", new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(rackPts), new THREE.LineBasicMaterial({ color: 0x888888 })))
 
   // --- Fitting bays: jig stands + toolboxes ---
   const fitZones = [{ x: 9, z: 20 }, { x: 9, z: 14 }, { x: 9, z: 8 }]
@@ -444,7 +444,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
       new THREE.MeshStandardMaterial({ color: 0x666666, metalness: 0.5 })
     )
     jig.position.set(fz.x - 2, 0.6, fz.z + 1.5)
-    scene.add(jig)
+    track("ambient", jig)
 
     // Toolbox on wheels (red)
     const toolbox = new THREE.Mesh(
@@ -453,7 +453,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
     )
     toolbox.position.set(fz.x + 2, 0.4, fz.z - 1.5)
     toolbox.castShadow = true
-    scene.add(toolbox)
+    track("ambient", toolbox)
     // Wheels
     for (const wx of [-0.2, 0.2]) {
       const wheel = new THREE.Mesh(
@@ -462,7 +462,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
       )
       wheel.rotation.z = Math.PI / 2
       wheel.position.set(fz.x + 2 + wx, 0.05, fz.z - 1.5)
-      scene.add(wheel)
+      track("ambient", wheel)
     }
   }
 
@@ -473,17 +473,17 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   const bwLeft = new THREE.Mesh(new THREE.PlaneGeometry(6, 5), boothWallMat)
   bwLeft.position.set(2 - 9, 2.5, -26 - 3)
   bwLeft.rotation.y = 0
-  scene.add(bwLeft)
+  track("ambient", bwLeft)
   const bwRight = new THREE.Mesh(new THREE.PlaneGeometry(6, 5), boothWallMat)
   bwRight.position.set(2 - 9, 2.5, -26 + 3)
-  scene.add(bwRight)
+  track("ambient", bwRight)
 
   // Extraction ductwork along ceiling of paint bay
   const ductMat = new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.4, roughness: 0.5 })
   const mainDuct = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 16, 8), ductMat)
   mainDuct.position.set(2, 5.5, -26)
   mainDuct.rotation.z = Math.PI / 2
-  scene.add(mainDuct)
+  track("ducts", mainDuct)
 
   // Drying racks (frame structures)
   for (let dr = 0; dr < 3; dr++) {
@@ -499,7 +499,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
       dryRackPts.push(new THREE.Vector3(drx - 0.5, h, drz - 0.3), new THREE.Vector3(drx + 0.5, h, drz - 0.3))
       dryRackPts.push(new THREE.Vector3(drx - 0.5, h, drz + 0.3), new THREE.Vector3(drx + 0.5, h, drz + 0.3))
     }
-    scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(dryRackPts), new THREE.LineBasicMaterial({ color: 0x777777 })))
+    track("ambient", new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(dryRackPts), new THREE.LineBasicMaterial({ color: 0x777777 })))
   }
 
   // ── 5. LIGHTING RIGS ──
@@ -709,7 +709,17 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
   const labelsRef = useRef<THREE.Sprite[]>([])
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
   const controlsRef = useRef<any>(null)
+
+  // Hover data (follows mouse, clears on leave)
   const [hoverData, setHoverData] = useState<{
+    stage: string; zoneName: string; x: number; y: number
+    active: number; pending: number; completedToday: number
+    tasks: DigitalTwinTask[]
+    allTasks: DigitalTwinTask[]
+  } | null>(null)
+
+  // Pinned data (click to pin, stays until dismissed)
+  const [pinnedData, setPinnedData] = useState<{
     stage: string; zoneName: string; x: number; y: number
     active: number; pending: number; completedToday: number
     tasks: DigitalTwinTask[]
@@ -1092,7 +1102,7 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
       }
     }
 
-    // ═══════ RAYCASTER / HOVER ═══════
+    // ═══════ RAYCASTER / HOVER + CLICK ═══════
     const raycaster = new THREE.Raycaster()
     const mouse = new THREE.Vector2()
 
@@ -1190,8 +1200,52 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
       })
     }
 
+    // Click handler — pin the popup
+    function handleClick(e: MouseEvent) {
+      const hits = getHits(e)
+      if (hits.length > 0 && hits[0].object.userData.zone) {
+        const z = hits[0].object.userData.zone as ZoneDef
+        const stage = ZONE_STAGE_MAP[z.id]
+
+        if (stage) {
+          const stageTasks = tasksByStage[stage] || []
+          const active = stageTasks.filter(t => t.status === "IN_PROGRESS").length
+          const pending = stageTasks.filter(t => t.status === "PENDING").length
+          const completedToday = stageTasks.filter(t => t.status === "COMPLETED" && isToday(t.completedAt)).length
+
+          setPinnedData({
+            stage,
+            zoneName: z.lb,
+            x: Math.min(e.clientX + 16, (typeof window !== "undefined" ? window.innerWidth - 420 : 800)),
+            y: Math.min(e.clientY - 10, (typeof window !== "undefined" ? window.innerHeight - 400 : 500)),
+            active,
+            pending,
+            completedToday,
+            tasks: stageTasks.slice(0, 6),
+            allTasks: stageTasks,
+          })
+        } else {
+          setPinnedData({
+            stage: "",
+            zoneName: z.lb,
+            x: Math.min(e.clientX + 16, (typeof window !== "undefined" ? window.innerWidth - 420 : 800)),
+            y: Math.min(e.clientY - 10, (typeof window !== "undefined" ? window.innerHeight - 400 : 500)),
+            active: 0,
+            pending: 0,
+            completedToday: 0,
+            tasks: [],
+            allTasks: [],
+          })
+        }
+      } else {
+        // Clicked on empty space — dismiss pinned popup
+        setPinnedData(null)
+      }
+    }
+
     renderer.domElement.addEventListener("mousemove", handleMouseMove)
     renderer.domElement.addEventListener("mouseleave", handleMouseLeave)
+    renderer.domElement.addEventListener("click", handleClick)
 
     // ═══════ ANIMATION LOOP ═══════
     let animId: number
@@ -1236,6 +1290,7 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
       window.removeEventListener("resize", handleResize)
       renderer.domElement.removeEventListener("mousemove", handleMouseMove)
       renderer.domElement.removeEventListener("mouseleave", handleMouseLeave)
+      renderer.domElement.removeEventListener("click", handleClick)
       renderer.dispose()
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement)
@@ -1243,17 +1298,248 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
     }
   }, [tasksByStage])
 
-  // Position hover panel
-  const panelStyle: React.CSSProperties = hoverData
+  // Determine which data to show: pinned takes priority, otherwise hover (only if not pinned)
+  const displayData = pinnedData || hoverData
+  const isPinned = !!pinnedData
+
+  // Position panel
+  const panelStyle: React.CSSProperties = displayData
     ? {
         display: "block",
-        left: Math.min(hoverData.x + 16, (typeof window !== "undefined" ? window.innerWidth - 420 : 800)),
-        top: Math.min(hoverData.y - 10, (typeof window !== "undefined" ? window.innerHeight - 400 : 500)),
+        left: isPinned
+          ? displayData.x
+          : Math.min(displayData.x + 16, (typeof window !== "undefined" ? window.innerWidth - 420 : 800)),
+        top: isPinned
+          ? displayData.y
+          : Math.min(displayData.y - 10, (typeof window !== "undefined" ? window.innerHeight - 400 : 500)),
       }
     : { display: "none" }
 
-  const stageColor = hoverData?.stage ? (STAGE_CSS_COLORS[hoverData.stage] || "#64748b") : "#64748b"
-  const remainingCount = hoverData?.stage ? Math.max(0, (tasksByStage[hoverData.stage] || []).length - 6) : 0
+  const stageColor = displayData?.stage ? (STAGE_CSS_COLORS[displayData.stage] || "#64748b") : "#64748b"
+
+  // ═══════ VIEW MODE HANDLER (uses refs only, not local variables) ═══════
+  function applyViewMode(mode: "realistic" | "no-roof" | "clean" | "xray") {
+    setViewMode(mode)
+    const fr = factoryRefsRef.current
+    if (!fr) return
+
+    const sc = sceneRef.current
+    const gnd = groundRef.current
+    const flr = floorRef.current
+    const grd = gridRef.current
+    const zb = zoneBoxesRef.current
+    const zw = zoneWireframesRef.current
+    const fl = floorLabelsRef.current
+    const lbls = labelsRef.current
+
+    if (mode === "realistic") {
+      // Full solid factory — bright industrial feel
+      if (sc) sc.background = new THREE.Color(0x87ceeb)
+      if (sc) sc.fog = new THREE.Fog(0x87ceeb, 100, 180)
+      if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x999999)
+      if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x888888)
+      if (grd) grd.visible = true
+      fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).opacity = 1; (w.material as THREE.MeshStandardMaterial).transparent = false })
+      fr.roofPanels.forEach(r => { r.visible = true; (r.material as THREE.MeshStandardMaterial).opacity = 0.5; (r.material as THREE.MeshStandardMaterial).transparent = true })
+      fr.trusses.forEach(t => t.visible = true)
+      if (fr.ridgeBeam) fr.ridgeBeam.visible = true
+      fr.columns.forEach(c => c.visible = true)
+      fr.lights.forEach(l => l.visible = true)
+      fr.ducts.forEach(d => d.visible = true)
+      fr.ambient.forEach(a => a.visible = true)
+      fr.shutters.forEach(s => s.visible = true)
+      fr.floorMarkings.forEach(f => f.visible = true)
+      zb.forEach(b => b.visible = true)
+      zw.forEach(w => w.visible = true)
+      fl.forEach(f => f.visible = false)
+      lbls.forEach(l => l.visible = true)
+    } else if (mode === "no-roof") {
+      // Solid walls, no roof — bright sky background
+      if (sc) sc.background = new THREE.Color(0xbdd4e7)
+      if (sc) sc.fog = new THREE.Fog(0xbdd4e7, 100, 180)
+      if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x999999)
+      if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x888888)
+      if (grd) grd.visible = true
+      fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).opacity = 1; (w.material as THREE.MeshStandardMaterial).transparent = false })
+      fr.roofPanels.forEach(r => r.visible = false)
+      fr.trusses.forEach(t => t.visible = false)
+      if (fr.ridgeBeam) fr.ridgeBeam.visible = false
+      fr.columns.forEach(c => c.visible = true)
+      fr.lights.forEach(l => l.visible = false)
+      fr.ducts.forEach(d => d.visible = false)
+      fr.ambient.forEach(a => a.visible = true)
+      fr.shutters.forEach(s => s.visible = true)
+      fr.floorMarkings.forEach(f => f.visible = true)
+      zb.forEach(b => b.visible = true)
+      zw.forEach(w => w.visible = true)
+      fl.forEach(f => f.visible = false)
+      lbls.forEach(l => l.visible = true)
+    } else if (mode === "clean") {
+      // Clean view — bright white, only zones + floor text labels
+      if (sc) sc.background = new THREE.Color(0xe8ecf0)
+      if (sc) sc.fog = new THREE.Fog(0xe8ecf0, 120, 220)
+      if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0xd8dce0)
+      if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0xf5f5f5)
+      if (grd) grd.visible = false
+      fr.walls.forEach(w => {
+        // Keep shot blast enclosed room walls visible
+        w.visible = !!(w.userData?.shotBlastWall)
+      })
+      fr.roofPanels.forEach(r => r.visible = false)
+      fr.trusses.forEach(t => t.visible = false)
+      if (fr.ridgeBeam) fr.ridgeBeam.visible = false
+      fr.columns.forEach(c => c.visible = false)
+      fr.lights.forEach(l => l.visible = false)
+      fr.ducts.forEach(d => d.visible = false)
+      fr.ambient.forEach(a => a.visible = false)
+      fr.shutters.forEach(s => s.visible = false)
+      fr.floorMarkings.forEach(f => f.visible = true)
+      zb.forEach(b => b.visible = false)
+      zw.forEach(w => w.visible = false)
+      fl.forEach(f => f.visible = true)
+      lbls.forEach(l => l.visible = false)
+    } else {
+      // X-Ray: transparent walls, trusses visible — lighter dark
+      if (sc) sc.background = new THREE.Color(0x2a3040)
+      if (sc) sc.fog = new THREE.Fog(0x2a3040, 100, 170)
+      if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x3a4050)
+      if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x666677)
+      if (grd) grd.visible = true
+      fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).transparent = true; (w.material as THREE.MeshStandardMaterial).opacity = 0.06 })
+      fr.roofPanels.forEach(r => r.visible = false)
+      fr.trusses.forEach(t => t.visible = true)
+      if (fr.ridgeBeam) fr.ridgeBeam.visible = true
+      fr.columns.forEach(c => { c.visible = true; (c.material as THREE.MeshStandardMaterial).transparent = true; (c.material as THREE.MeshStandardMaterial).opacity = 0.3 })
+      fr.lights.forEach(l => l.visible = false)
+      fr.ducts.forEach(d => d.visible = false)
+      fr.ambient.forEach(a => a.visible = false)
+      fr.shutters.forEach(s => s.visible = false)
+      fr.floorMarkings.forEach(f => f.visible = true)
+      zb.forEach(b => b.visible = true)
+      zw.forEach(w => w.visible = true)
+      fl.forEach(f => f.visible = false)
+      lbls.forEach(l => l.visible = true)
+    }
+  }
+
+  // Helper to render the motherboard popup content
+  function renderPopupContent(data: NonNullable<typeof displayData>, pinned: boolean) {
+    const color = data.stage ? (STAGE_CSS_COLORS[data.stage] || "#64748b") : "#64748b"
+    return (
+      <div className="rounded-xl border border-white/[0.12] text-white min-w-[380px] max-w-[420px] overflow-hidden"
+           style={{ background: "rgba(10,10,26,0.96)", backdropFilter: "blur(14px)", boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}>
+        {/* Header */}
+        <div className="px-4 py-2.5 border-b border-white/10 flex items-center gap-2" style={{ borderTopColor: color, borderTopWidth: "3px", borderTopStyle: "solid" }}>
+          <div className="w-2.5 h-2.5 rounded-sm" style={{ background: color }} />
+          <span className="font-bold text-[13px]">
+            {data.stage ? STAGE_DISPLAY[data.stage] || data.stage : data.zoneName}
+          </span>
+          <span className="text-white/40 text-[11px] ml-1">({data.zoneName})</span>
+          {pinned && (
+            <button
+              className="ml-auto w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors text-sm font-bold"
+              onClick={(e) => { e.stopPropagation(); setPinnedData(null) }}
+              title="Close"
+            >
+              &times;
+            </button>
+          )}
+        </div>
+
+        {data.stage ? (
+          <>
+            {/* Stats row */}
+            <div className="px-4 py-2 flex items-center gap-4 text-[11px] border-b border-white/[0.06] bg-white/[0.02]">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
+                <span className="text-white/60">{data.active} Active</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
+                <span className="text-white/60">{data.pending} Pending</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                <span className="text-white/60">{data.completedToday} Done Today</span>
+              </span>
+            </div>
+
+            {/* Mini swimlane motherboard — 3 lanes */}
+            {(() => {
+              const allTasks = data.allTasks || []
+              const live = allTasks.filter((t: any) => t.status === "IN_PROGRESS")
+              const ready = allTasks.filter((t: any) => t.status === "PENDING" || t.status === "REWORK")
+              const completed = allTasks.filter((t: any) => t.status === "COMPLETED")
+
+              const renderCard = (t: any) => (
+                <div key={t.id} className="shrink-0 w-[110px] rounded-md border border-white/10 bg-white/[0.04] px-2 py-1.5">
+                  <div className="text-[10px] font-semibold text-white/90 truncate">{t.product.description.slice(0, 22)}</div>
+                  <div className="text-[9px] text-white/40 truncate">{t.product.partCode} · {t.product.project.projectNumber}</div>
+                </div>
+              )
+
+              return (
+                <div className="px-3 py-2 space-y-2">
+                  {/* LIVE lane */}
+                  <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/[0.06] p-2">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                      <span className="text-[9px] font-bold text-cyan-400 uppercase tracking-wider">Live</span>
+                      <span className="text-[9px] text-white/30 ml-auto">{live.length}</span>
+                    </div>
+                    {live.length > 0 ? (
+                      <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+                        {live.slice(0, 5).map(renderCard)}
+                        {live.length > 5 && <div className="text-[9px] text-white/30 self-center shrink-0">+{live.length - 5}</div>}
+                      </div>
+                    ) : (
+                      <div className="text-[9px] text-white/20 italic">No active work</div>
+                    )}
+                  </div>
+
+                  {/* READY lane */}
+                  <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.06] p-2">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      <span className="text-[9px] font-bold text-amber-400 uppercase tracking-wider">Ready to Start</span>
+                      <span className="text-[9px] text-white/30 ml-auto">{ready.length}</span>
+                    </div>
+                    {ready.length > 0 ? (
+                      <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+                        {ready.slice(0, 5).map(renderCard)}
+                        {ready.length > 5 && <div className="text-[9px] text-white/30 self-center shrink-0">+{ready.length - 5}</div>}
+                      </div>
+                    ) : (
+                      <div className="text-[9px] text-white/20 italic">No jobs waiting</div>
+                    )}
+                  </div>
+
+                  {/* COMPLETED lane */}
+                  <div className="rounded-lg border border-green-500/30 bg-green-500/[0.06] p-2">
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      <span className="text-[9px] font-bold text-green-400 uppercase tracking-wider">Completed</span>
+                      <span className="text-[9px] text-white/30 ml-auto">{completed.length}</span>
+                    </div>
+                    {completed.length > 0 ? (
+                      <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+                        {completed.slice(0, 5).map(renderCard)}
+                        {completed.length > 5 && <div className="text-[9px] text-white/30 self-center shrink-0">+{completed.length - 5}</div>}
+                      </div>
+                    ) : (
+                      <div className="text-[9px] text-white/20 italic">None completed</div>
+                    )}
+                  </div>
+                </div>
+              )
+            })()}
+          </>
+        ) : (
+          <div className="px-4 py-3 text-white/40 text-[11px]">Non-production zone</div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-[#101020]">
@@ -1331,112 +1617,7 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                   ? "bg-blue-500 text-white shadow-sm"
                   : "text-white/50 hover:text-white/80 hover:bg-white/5"
               }`}
-              onClick={() => {
-                setViewMode(mode)
-                const fr = factoryRefsRef.current
-                if (!fr) return
-                const scn = mountRef.current?.querySelector("canvas")?.parentElement
-                // Scene background + ground color changes
-                // We'll use a simple approach: toggle visibility groups
-
-                const sc = sceneRef.current
-                const gnd = groundRef.current
-                const flr = floorRef.current
-                const grd = gridRef.current
-                const zb = zoneBoxesRef.current
-                const zw = zoneWireframesRef.current
-                const fl = floorLabelsRef.current
-                const lbls = mountRef.current?.querySelectorAll ? labels : []
-
-                if (mode === "realistic") {
-                  // Full solid factory — bright industrial feel
-                  if (sc) sc.background = new THREE.Color(0x87ceeb)
-                  if (sc) sc.fog = new THREE.Fog(0x87ceeb, 100, 180)
-                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x999999)
-                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x888888)
-                  if (grd) grd.visible = true
-                  fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).opacity = 1; (w.material as THREE.MeshStandardMaterial).transparent = false })
-                  fr.roofPanels.forEach(r => { r.visible = true; (r.material as THREE.MeshStandardMaterial).opacity = 0.5; (r.material as THREE.MeshStandardMaterial).transparent = true })
-                  fr.trusses.forEach(t => t.visible = true)
-                  if (fr.ridgeBeam) fr.ridgeBeam.visible = true
-                  fr.columns.forEach(c => c.visible = true)
-                  fr.lights.forEach(l => l.visible = true)
-                  fr.ducts.forEach(d => d.visible = true)
-                  fr.ambient.forEach(a => a.visible = true)
-                  fr.shutters.forEach(s => s.visible = true)
-                  fr.floorMarkings.forEach(f => f.visible = true)
-                  zb.forEach(b => b.visible = true)
-                  zw.forEach(w => w.visible = true)
-                  fl.forEach(f => f.visible = false)
-                  labelsRef.current.forEach(l => l.visible = true)
-                } else if (mode === "no-roof") {
-                  // Solid walls, no roof — bright sky background
-                  if (sc) sc.background = new THREE.Color(0xbdd4e7)
-                  if (sc) sc.fog = new THREE.Fog(0xbdd4e7, 100, 180)
-                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x999999)
-                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x888888)
-                  if (grd) grd.visible = true
-                  fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).opacity = 1; (w.material as THREE.MeshStandardMaterial).transparent = false })
-                  fr.roofPanels.forEach(r => r.visible = false)
-                  fr.trusses.forEach(t => t.visible = false)
-                  if (fr.ridgeBeam) fr.ridgeBeam.visible = false
-                  fr.columns.forEach(c => c.visible = true)
-                  fr.lights.forEach(l => l.visible = false)
-                  fr.ducts.forEach(d => d.visible = false)
-                  fr.ambient.forEach(a => a.visible = true)
-                  fr.shutters.forEach(s => s.visible = true)
-                  fr.floorMarkings.forEach(f => f.visible = true)
-                  zb.forEach(b => b.visible = true)
-                  zw.forEach(w => w.visible = true)
-                  fl.forEach(f => f.visible = false)
-                  labelsRef.current.forEach(l => l.visible = true)
-                } else if (mode === "clean") {
-                  // Clean view — bright white, only zones + floor text labels
-                  if (sc) sc.background = new THREE.Color(0xe8ecf0)
-                  if (sc) sc.fog = new THREE.Fog(0xe8ecf0, 120, 220)
-                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0xd8dce0)
-                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0xf5f5f5)
-                  if (grd) grd.visible = false
-                  fr.walls.forEach(w => {
-                    // Keep shot blast enclosed room walls visible
-                    w.visible = !!(w.userData?.shotBlastWall)
-                  })
-                  fr.roofPanels.forEach(r => r.visible = false)
-                  fr.trusses.forEach(t => t.visible = false)
-                  if (fr.ridgeBeam) fr.ridgeBeam.visible = false
-                  fr.columns.forEach(c => c.visible = false)
-                  fr.lights.forEach(l => l.visible = false)
-                  fr.ducts.forEach(d => d.visible = false)
-                  fr.ambient.forEach(a => a.visible = false)
-                  fr.shutters.forEach(s => s.visible = false)
-                  fr.floorMarkings.forEach(f => f.visible = true)
-                  zb.forEach(b => b.visible = false)
-                  zw.forEach(w => w.visible = false)
-                  fl.forEach(f => f.visible = true)
-                  labelsRef.current.forEach(l => l.visible = false)
-                } else {
-                  // X-Ray: transparent walls, trusses visible — lighter dark
-                  if (sc) sc.background = new THREE.Color(0x2a3040)
-                  if (sc) sc.fog = new THREE.Fog(0x2a3040, 100, 170)
-                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x3a4050)
-                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x666677)
-                  if (grd) grd.visible = true
-                  fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).transparent = true; (w.material as THREE.MeshStandardMaterial).opacity = 0.06 })
-                  fr.roofPanels.forEach(r => r.visible = false)
-                  fr.trusses.forEach(t => t.visible = true)
-                  if (fr.ridgeBeam) fr.ridgeBeam.visible = true
-                  fr.columns.forEach(c => { c.visible = true; (c.material as THREE.MeshStandardMaterial).transparent = true; (c.material as THREE.MeshStandardMaterial).opacity = 0.3 })
-                  fr.lights.forEach(l => l.visible = false)
-                  fr.ducts.forEach(d => d.visible = false)
-                  fr.ambient.forEach(a => a.visible = false)
-                  fr.shutters.forEach(s => s.visible = false)
-                  fr.floorMarkings.forEach(f => f.visible = true)
-                  zb.forEach(b => b.visible = true)
-                  zw.forEach(w => w.visible = true)
-                  fl.forEach(f => f.visible = false)
-                  labelsRef.current.forEach(l => l.visible = true)
-                }
-              }}
+              onClick={() => applyViewMode(mode)}
             >
               {label}
             </button>
@@ -1475,125 +1656,41 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
           {walkthroughMode ? "Exit Walkthrough" : "Walkthrough"}
         </button>
         <div className="text-white/25 text-[9px]">
-          <b className="text-white/40">Drag</b> orbit &middot; <b className="text-white/40">Right-drag</b> pan &middot; <b className="text-white/40">Scroll</b> zoom
+          <b className="text-white/40">Drag</b> orbit &middot; <b className="text-white/40">Right-drag</b> pan &middot; <b className="text-white/40">Scroll</b> zoom &middot; <b className="text-white/40">Click</b> pin info
         </div>
       </div>
 
       {/* Three.js mount */}
       <div ref={mountRef} className="w-full h-full pt-10 pb-8" />
 
-      {/* Hover panel */}
-      <div
-        ref={hoverRef}
-        className="fixed z-[200] pointer-events-none"
-        style={panelStyle}
-      >
-        {hoverData && (
-          <div className="rounded-xl border border-white/[0.12] text-white min-w-[380px] max-w-[420px] overflow-hidden"
-               style={{ background: "rgba(10,10,26,0.96)", backdropFilter: "blur(14px)", boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}>
-            {/* Header */}
-            <div className="px-4 py-2.5 border-b border-white/10 flex items-center gap-2" style={{ borderTopColor: stageColor, borderTopWidth: "3px", borderTopStyle: "solid" }}>
-              <div className="w-2.5 h-2.5 rounded-sm" style={{ background: stageColor }} />
-              <span className="font-bold text-[13px]">
-                {hoverData.stage ? STAGE_DISPLAY[hoverData.stage] || hoverData.stage : hoverData.zoneName}
-              </span>
-              <span className="text-white/40 text-[11px] ml-1">({hoverData.zoneName})</span>
-            </div>
+      {/* Hover panel (only shown when no pinned popup) */}
+      {!pinnedData && hoverData && (
+        <div
+          ref={hoverRef}
+          className="fixed z-[200] pointer-events-none"
+          style={{
+            display: "block",
+            left: Math.min(hoverData.x + 16, (typeof window !== "undefined" ? window.innerWidth - 420 : 800)),
+            top: Math.min(hoverData.y - 10, (typeof window !== "undefined" ? window.innerHeight - 400 : 500)),
+          }}
+        >
+          {renderPopupContent(hoverData, false)}
+        </div>
+      )}
 
-            {hoverData.stage ? (
-              <>
-                {/* Stats row */}
-                <div className="px-4 py-2 flex items-center gap-4 text-[11px] border-b border-white/[0.06] bg-white/[0.02]">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
-                    <span className="text-white/60">{hoverData.active} Active</span>
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
-                    <span className="text-white/60">{hoverData.pending} Pending</span>
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
-                    <span className="text-white/60">{hoverData.completedToday} Done Today</span>
-                  </span>
-                </div>
-
-                {/* Mini swimlane motherboard — 3 lanes */}
-                {(() => {
-                  const allTasks = hoverData.allTasks || []
-                  const live = allTasks.filter((t: any) => t.status === "IN_PROGRESS")
-                  const ready = allTasks.filter((t: any) => t.status === "PENDING" || t.status === "REWORK")
-                  const completed = allTasks.filter((t: any) => t.status === "COMPLETED")
-
-                  const renderCard = (t: any) => (
-                    <div key={t.id} className="shrink-0 w-[110px] rounded-md border border-white/10 bg-white/[0.04] px-2 py-1.5">
-                      <div className="text-[10px] font-semibold text-white/90 truncate">{t.product.description.slice(0, 22)}</div>
-                      <div className="text-[9px] text-white/40 truncate">{t.product.partCode} · {t.product.project.projectNumber}</div>
-                    </div>
-                  )
-
-                  return (
-                    <div className="px-3 py-2 space-y-2">
-                      {/* LIVE lane */}
-                      <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/[0.06] p-2">
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                          <span className="text-[9px] font-bold text-cyan-400 uppercase tracking-wider">Live</span>
-                          <span className="text-[9px] text-white/30 ml-auto">{live.length}</span>
-                        </div>
-                        {live.length > 0 ? (
-                          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-                            {live.slice(0, 5).map(renderCard)}
-                            {live.length > 5 && <div className="text-[9px] text-white/30 self-center shrink-0">+{live.length - 5}</div>}
-                          </div>
-                        ) : (
-                          <div className="text-[9px] text-white/20 italic">No active work</div>
-                        )}
-                      </div>
-
-                      {/* READY lane */}
-                      <div className="rounded-lg border border-amber-400/30 bg-amber-400/[0.06] p-2">
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                          <span className="text-[9px] font-bold text-amber-400 uppercase tracking-wider">Ready to Start</span>
-                          <span className="text-[9px] text-white/30 ml-auto">{ready.length}</span>
-                        </div>
-                        {ready.length > 0 ? (
-                          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-                            {ready.slice(0, 5).map(renderCard)}
-                            {ready.length > 5 && <div className="text-[9px] text-white/30 self-center shrink-0">+{ready.length - 5}</div>}
-                          </div>
-                        ) : (
-                          <div className="text-[9px] text-white/20 italic">No jobs waiting</div>
-                        )}
-                      </div>
-
-                      {/* COMPLETED lane */}
-                      <div className="rounded-lg border border-green-500/30 bg-green-500/[0.06] p-2">
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                          <span className="text-[9px] font-bold text-green-400 uppercase tracking-wider">Completed</span>
-                          <span className="text-[9px] text-white/30 ml-auto">{completed.length}</span>
-                        </div>
-                        {completed.length > 0 ? (
-                          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-                            {completed.slice(0, 5).map(renderCard)}
-                            {completed.length > 5 && <div className="text-[9px] text-white/30 self-center shrink-0">+{completed.length - 5}</div>}
-                          </div>
-                        ) : (
-                          <div className="text-[9px] text-white/20 italic">None completed</div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })()}
-              </>
-            ) : (
-              <div className="px-4 py-3 text-white/40 text-[11px]">Non-production zone</div>
-            )}
-          </div>
-        )}
-      </div>
+      {/* Pinned panel (stays visible, has close button, allows pointer events) */}
+      {pinnedData && (
+        <div
+          className="fixed z-[200]"
+          style={{
+            display: "block",
+            left: pinnedData.x,
+            top: pinnedData.y,
+          }}
+        >
+          {renderPopupContent(pinnedData, true)}
+        </div>
+      )}
     </div>
   )
 }
