@@ -1,7 +1,7 @@
 "use client"
 
 import { Canvas, useFrame } from "@react-three/fiber"
-import { OrbitControls, Html, Grid } from "@react-three/drei"
+import { OrbitControls, Html } from "@react-three/drei"
 import { useRef, useState, useMemo } from "react"
 import * as THREE from "three"
 import type { SiteModelProps, InstallPoint } from "./site-model-viewer"
@@ -412,17 +412,7 @@ export default function SiteModelInner({ installPoints, onPointClick }: SiteMode
         ))}
 
         {/* Ground grid */}
-        <Grid
-          args={[100, 100]}
-          cellSize={1}
-          cellThickness={0.5}
-          cellColor="#d4d4d8"
-          sectionSize={5}
-          sectionThickness={1}
-          sectionColor="#a1a1aa"
-          fadeDistance={50}
-          position={[0, 0, 0]}
-        />
+        <gridHelper args={[100, 50, "#d4d4d8", "#e5e7eb"]} position={[0, 0.01, 0]} />
 
         {/* Camera controls */}
         <OrbitControls
