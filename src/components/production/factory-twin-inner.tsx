@@ -117,12 +117,25 @@ interface FactoryRefs {
   roofPanels: THREE.Mesh[]
   trusses: THREE.Object3D[]
   ridgeBeam: THREE.Mesh | null
+  columns: THREE.Mesh[]
+  lights: THREE.Object3D[]
+  ducts: THREE.Object3D[]
+  ambient: THREE.Object3D[]  // pallets, cones, signs, extinguishers etc.
+  shutters: THREE.Object3D[]
+  floorMarkings: THREE.Object3D[]
 }
 
 function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: number): FactoryRefs {
-  const refs: FactoryRefs = { walls: [], roofPanels: [], trusses: [], ridgeBeam: null }
+  const refs: FactoryRefs = { walls: [], roofPanels: [], trusses: [], ridgeBeam: null, columns: [], lights: [], ducts: [], ambient: [], shutters: [], floorMarkings: [] }
   const HALF_W = W / 2
   const HALF_L = L / 2
+
+  // Helper to add + track objects by category
+  function track(cat: "columns" | "lights" | "ducts" | "ambient" | "shutters" | "floorMarkings", obj: THREE.Object3D) {
+    scene.add(obj);
+    (refs[cat] as THREE.Object3D[]).push(obj)
+    return obj
+  }
 
   // ── 1. CORRUGATED METAL WALLS ──
   const wallMat = new THREE.MeshStandardMaterial({ color: 0xaab0b5, metalness: 0.4, roughness: 0.6, side: THREE.DoubleSide })
@@ -178,12 +191,12 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
     const cw = new THREE.Mesh(columnGeo, columnMat)
     cw.position.set(-HALF_W + 0.08, WALL_H / 2, z)
     cw.castShadow = true
-    scene.add(cw)
+    scene.add(cw); refs.columns.push(cw)
     // East columns
     const ce = new THREE.Mesh(columnGeo, columnMat)
     ce.position.set(HALF_W - 0.08, WALL_H / 2, z)
     ce.castShadow = true
-    scene.add(ce)
+    scene.add(ce); refs.columns.push(ce)
   }
 
   // ── ROOF TRUSSES (LineSegments) ──
@@ -640,6 +653,41 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
     scene.add(stripe)
   }
 
+  // ── SHOT BLAST ENCLOSED ROOMS ──
+  // Shot blast 1 (x:4, z:-1, w:12, d:8, h:6) — enclosed with solid walls
+  const sbWallMat = new THREE.MeshStandardMaterial({ color: 0x555560, metalness: 0.3, roughness: 0.7, side: THREE.DoubleSide })
+  const sbWalls = [
+    // Back wall
+    { geo: new THREE.PlaneGeometry(12, 6), pos: [4, 3, -5] as [number,number,number], rot: [0, 0, 0] as [number,number,number] },
+    // Front wall (with door gap — smaller)
+    { geo: new THREE.PlaneGeometry(4, 6), pos: [0, 3, 3] as [number,number,number], rot: [0, 0, 0] as [number,number,number] },
+    { geo: new THREE.PlaneGeometry(4, 6), pos: [8, 3, 3] as [number,number,number], rot: [0, 0, 0] as [number,number,number] },
+    // Left wall
+    { geo: new THREE.PlaneGeometry(8, 6), pos: [-2, 3, -1] as [number,number,number], rot: [0, Math.PI/2, 0] as [number,number,number] },
+    // Right wall
+    { geo: new THREE.PlaneGeometry(8, 6), pos: [10, 3, -1] as [number,number,number], rot: [0, Math.PI/2, 0] as [number,number,number] },
+  ]
+  for (const sw of sbWalls) {
+    const m = new THREE.Mesh(sw.geo, sbWallMat)
+    m.position.set(...sw.pos)
+    m.rotation.set(...sw.rot)
+    scene.add(m); refs.walls.push(m)
+  }
+
+  // Shot blast 2 (external, x:2, z:-34, w:16, d:4, h:5) — also enclosed
+  const sb2Walls = [
+    { geo: new THREE.PlaneGeometry(16, 5), pos: [2, 2.5, -36] as [number,number,number], rot: [0, 0, 0] as [number,number,number] },
+    { geo: new THREE.PlaneGeometry(16, 5), pos: [2, 2.5, -32] as [number,number,number], rot: [0, 0, 0] as [number,number,number] },
+    { geo: new THREE.PlaneGeometry(4, 5), pos: [-6, 2.5, -34] as [number,number,number], rot: [0, Math.PI/2, 0] as [number,number,number] },
+    { geo: new THREE.PlaneGeometry(4, 5), pos: [10, 2.5, -34] as [number,number,number], rot: [0, Math.PI/2, 0] as [number,number,number] },
+  ]
+  for (const sw of sb2Walls) {
+    const m = new THREE.Mesh(sw.geo, sbWallMat)
+    m.position.set(...sw.pos)
+    m.rotation.set(...sw.rot)
+    scene.add(m); refs.walls.push(m)
+  }
+
   return refs
 }
 
@@ -647,8 +695,12 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
   const mountRef = useRef<HTMLDivElement>(null)
   const hoverRef = useRef<HTMLDivElement>(null)
   const [walkthroughMode, setWalkthroughMode] = useState(false)
-  const [viewMode, setViewMode] = useState<"realistic" | "no-roof" | "xray">("no-roof")
+  const [viewMode, setViewMode] = useState<"realistic" | "no-roof" | "clean" | "xray">("clean")
   const factoryRefsRef = useRef<FactoryRefs | null>(null)
+  const sceneRef = useRef<THREE.Scene | null>(null)
+  const groundRef = useRef<THREE.Mesh | null>(null)
+  const floorRef = useRef<THREE.Mesh | null>(null)
+  const gridRef = useRef<THREE.GridHelper | null>(null)
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
   const controlsRef = useRef<any>(null)
   const [hoverData, setHoverData] = useState<{
@@ -672,7 +724,10 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
 
     // ═══════ THREE SETUP ═══════
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color(0x101020)
+    // Default to "clean" mode: light background
+    scene.background = new THREE.Color(0xd0d0d8)
+    scene.fog = new THREE.Fog(0xd0d0d8, 100, 200)
+    sceneRef.current = scene
     scene.fog = new THREE.Fog(0x101020, 90, 160)
 
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 500)
@@ -711,22 +766,27 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
     // Ground
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(150, 150),
-      new THREE.MeshStandardMaterial({ color: 0x181828 })
+      new THREE.MeshStandardMaterial({ color: 0xc0c0c8 })
     )
     ground.rotation.x = -Math.PI / 2
     ground.receiveShadow = true
     scene.add(ground)
+    groundRef.current = ground
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(W + 2, L + 2),
-      new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.9 })
+      new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.9 })
     )
     floor.rotation.x = -Math.PI / 2
     floor.position.set(0, 0.03, 0)
     floor.receiveShadow = true
     scene.add(floor)
+    floorRef.current = floor
 
-    scene.add(new THREE.GridHelper(150, 75, 0x1e1e30, 0x16162a))
+    const grid = new THREE.GridHelper(150, 75, 0x1e1e30, 0x16162a)
+    grid.visible = false // hidden in default "clean" mode
+    scene.add(grid)
+    gridRef.current = grid
 
     // Building shell — replaced by realistic factory details
     const WALL_H = 7
@@ -887,10 +947,16 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
     const fRefs = addFactoryDetails(scene, W, L, WALL_H)
     factoryRefsRef.current = fRefs
 
-    // Apply initial view mode (no-roof by default — best overview)
+    // Apply initial "clean" view — only zones + floor markings, no structure
+    fRefs.walls.forEach(w => w.visible = false)
     fRefs.roofPanels.forEach(r => r.visible = false)
     fRefs.trusses.forEach(t => t.visible = false)
     if (fRefs.ridgeBeam) fRefs.ridgeBeam.visible = false
+    fRefs.columns.forEach(c => c.visible = false)
+    fRefs.lights.forEach(l => l.visible = false)
+    fRefs.ducts.forEach(d => d.visible = false)
+    fRefs.ambient.forEach(a => a.visible = false)
+    fRefs.shutters.forEach(s => s.visible = false)
 
     // Steel frame products in bays
     const prodPositions = [
@@ -1207,6 +1273,7 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
           {([
             { mode: "realistic" as const, label: "Solid" },
             { mode: "no-roof" as const, label: "No Roof" },
+            { mode: "clean" as const, label: "Clean" },
             { mode: "xray" as const, label: "X-Ray" },
           ]).map(({ mode, label }) => (
             <button
@@ -1220,24 +1287,84 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                 setViewMode(mode)
                 const fr = factoryRefsRef.current
                 if (!fr) return
+                const scn = mountRef.current?.querySelector("canvas")?.parentElement
+                // Scene background + ground color changes
+                // We'll use a simple approach: toggle visibility groups
+
+                const sc = sceneRef.current
+                const gnd = groundRef.current
+                const flr = floorRef.current
+                const grd = gridRef.current
+
                 if (mode === "realistic") {
-                  // Solid walls, roof visible
+                  // Full solid factory — walls opaque, roof visible, all details
+                  if (sc) sc.background = new THREE.Color(0x101020)
+                  if (sc) sc.fog = new THREE.Fog(0x101020, 90, 160)
+                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x181828)
+                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x555555)
+                  if (grd) grd.visible = true
                   fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).opacity = 1; (w.material as THREE.MeshStandardMaterial).transparent = false })
                   fr.roofPanels.forEach(r => { r.visible = true; (r.material as THREE.MeshStandardMaterial).opacity = 0.5; (r.material as THREE.MeshStandardMaterial).transparent = true })
                   fr.trusses.forEach(t => t.visible = true)
                   if (fr.ridgeBeam) fr.ridgeBeam.visible = true
+                  fr.columns.forEach(c => c.visible = true)
+                  fr.lights.forEach(l => l.visible = true)
+                  fr.ducts.forEach(d => d.visible = true)
+                  fr.ambient.forEach(a => a.visible = true)
+                  fr.shutters.forEach(s => s.visible = true)
+                  fr.floorMarkings.forEach(f => f.visible = true)
                 } else if (mode === "no-roof") {
-                  // Walls solid, no roof
+                  // Solid walls, no roof/trusses — good overview
+                  if (sc) sc.background = new THREE.Color(0x101020)
+                  if (sc) sc.fog = new THREE.Fog(0x101020, 90, 160)
+                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x181828)
+                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x555555)
+                  if (grd) grd.visible = true
                   fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).opacity = 1; (w.material as THREE.MeshStandardMaterial).transparent = false })
                   fr.roofPanels.forEach(r => r.visible = false)
                   fr.trusses.forEach(t => t.visible = false)
                   if (fr.ridgeBeam) fr.ridgeBeam.visible = false
+                  fr.columns.forEach(c => c.visible = true)
+                  fr.lights.forEach(l => l.visible = false)
+                  fr.ducts.forEach(d => d.visible = false)
+                  fr.ambient.forEach(a => a.visible = true)
+                  fr.shutters.forEach(s => s.visible = true)
+                  fr.floorMarkings.forEach(f => f.visible = true)
+                } else if (mode === "clean") {
+                  // Clean view — NO walls, NO roof, NO structure. Only zones + equipment.
+                  // White/light environment for clarity
+                  if (sc) sc.background = new THREE.Color(0xd0d0d8)
+                  if (sc) sc.fog = new THREE.Fog(0xd0d0d8, 100, 200)
+                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0xc0c0c8)
+                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0xeeeeee)
+                  if (grd) grd.visible = false
+                  fr.walls.forEach(w => w.visible = false)
+                  fr.roofPanels.forEach(r => r.visible = false)
+                  fr.trusses.forEach(t => t.visible = false)
+                  if (fr.ridgeBeam) fr.ridgeBeam.visible = false
+                  fr.columns.forEach(c => c.visible = false)
+                  fr.lights.forEach(l => l.visible = false)
+                  fr.ducts.forEach(d => d.visible = false)
+                  fr.ambient.forEach(a => a.visible = false)
+                  fr.shutters.forEach(s => s.visible = false)
+                  fr.floorMarkings.forEach(f => f.visible = true)
                 } else {
-                  // X-Ray: transparent walls, no roof
-                  fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).transparent = true; (w.material as THREE.MeshStandardMaterial).opacity = 0.08 })
+                  // X-Ray: transparent walls, trusses visible
+                  if (sc) sc.background = new THREE.Color(0x101020)
+                  if (sc) sc.fog = new THREE.Fog(0x101020, 90, 160)
+                  if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0x181828)
+                  if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0x555555)
+                  if (grd) grd.visible = true
+                  fr.walls.forEach(w => { w.visible = true; (w.material as THREE.MeshStandardMaterial).transparent = true; (w.material as THREE.MeshStandardMaterial).opacity = 0.06 })
                   fr.roofPanels.forEach(r => r.visible = false)
                   fr.trusses.forEach(t => t.visible = true)
                   if (fr.ridgeBeam) fr.ridgeBeam.visible = true
+                  fr.columns.forEach(c => { c.visible = true; (c.material as THREE.MeshStandardMaterial).transparent = true; (c.material as THREE.MeshStandardMaterial).opacity = 0.3 })
+                  fr.lights.forEach(l => l.visible = false)
+                  fr.ducts.forEach(d => d.visible = false)
+                  fr.ambient.forEach(a => a.visible = false)
+                  fr.shutters.forEach(s => s.visible = false)
+                  fr.floorMarkings.forEach(f => f.visible = true)
                 }
               }}
             >
