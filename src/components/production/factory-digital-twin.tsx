@@ -109,6 +109,8 @@ function StageBar({ label, active, pending, completed, color }: { label: string;
 export default function FactoryDigitalTwin({ tasksByStage, workers }: Props) {
   const [dashOpen, setDashOpen] = useState(true)
   const [fullscreen, setFullscreen] = useState(false)
+  const [dashWidth, setDashWidth] = useState(320)
+  const [resizing, setResizing] = useState(false)
 
   // Calculate KPIs from live data
   const kpis = useMemo(() => {
@@ -191,37 +193,61 @@ export default function FactoryDigitalTwin({ tasksByStage, workers }: Props) {
   }, [tasksByStage, workers])
 
   return (
-    <div className={cn(
-      "flex overflow-hidden transition-all duration-300",
-      fullscreen ? "fixed inset-0 z-[500] h-screen" : "h-screen"
-    )}>
-      {/* 3D Model */}
-      <div className="flex-1 min-w-0 relative">
+    <div
+      className={cn(
+        "flex overflow-hidden",
+        fullscreen ? "fixed inset-0 z-[500]" : "h-[calc(100vh-100px)]"
+      )}
+      onMouseMove={(e) => {
+        if (!resizing) return
+        const newW = Math.max(280, Math.min(600, window.innerWidth - e.clientX))
+        setDashWidth(newW)
+      }}
+      onMouseUp={() => setResizing(false)}
+      onMouseLeave={() => setResizing(false)}
+    >
+      {/* 3D Model — fills all remaining space */}
+      <div className="flex-1 min-w-0 bg-[#e8ecf0]">
         <FactoryTwinInner tasksByStage={tasksByStage} workers={workers} />
       </div>
 
       {/* Top-right control buttons */}
-      <div className="fixed top-14 right-2 z-[300] flex items-center gap-1">
+      <div className={cn(
+        "absolute top-2 z-[300] flex items-center gap-1",
+        dashOpen ? "right-[332px]" : "right-2"
+      )} style={dashOpen ? { right: dashWidth + 12 } : undefined}>
         <button
           onClick={() => setFullscreen(!fullscreen)}
-          className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-50 shadow-sm"
+          className="bg-white/90 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold text-gray-600 hover:bg-white shadow-sm backdrop-blur"
         >
           {fullscreen ? "Exit Fullscreen" : "Fullscreen"}
         </button>
         <button
           onClick={() => setDashOpen(!dashOpen)}
-          className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-50 shadow-sm"
+          className="bg-white/90 border border-gray-200 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold text-gray-600 hover:bg-white shadow-sm backdrop-blur"
         >
-        {dashOpen ? "Hide Dashboard →" : "← Dashboard"}
+          {dashOpen ? "→" : "← Dashboard"}
         </button>
       </div>
 
-      {/* KPI Dashboard Side Panel */}
-      <div className={cn(
-        "shrink-0 bg-white border-l border-gray-200 overflow-y-auto transition-all duration-300",
-        dashOpen ? "w-[320px]" : "w-0 overflow-hidden"
-      )}>
-        <div className="p-4 space-y-5 min-w-[320px]">
+      {/* KPI Dashboard Side Panel — resizable */}
+      {dashOpen && (
+        <>
+          {/* Resize handle */}
+          <div
+            className="w-1.5 shrink-0 bg-gray-100 hover:bg-blue-300 cursor-col-resize active:bg-blue-400 transition-colors"
+            onMouseDown={(e) => { e.preventDefault(); setResizing(true) }}
+          />
+        </>
+      )}
+      <div
+        className={cn(
+          "shrink-0 bg-white overflow-y-auto transition-all",
+          dashOpen ? "" : "w-0 overflow-hidden"
+        )}
+        style={dashOpen ? { width: dashWidth } : { width: 0 }}
+      >
+        <div className="p-4 space-y-5" style={{ minWidth: dashWidth }}>
           {/* Header */}
           <div>
             <h2 className="text-sm font-bold text-gray-900">Factory Dashboard</h2>
