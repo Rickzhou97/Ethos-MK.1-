@@ -1,430 +1,376 @@
+// @ts-nocheck — Three.js direct canvas mount (no R3F due to React 19 incompatibility)
 "use client"
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck — R3F JSX elements (mesh, group, etc.) need global type augmentation
-import { Canvas, useFrame } from "@react-three/fiber"
-import { OrbitControls, Html } from "@react-three/drei"
-import { useRef, useState, useMemo } from "react"
+import { useRef, useEffect, useCallback } from "react"
 import * as THREE from "three"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import type { SiteModelProps, InstallPoint } from "./site-model-viewer"
 
-// ── Status colors ──────────────────────────────────────────────
-const STATUS_COLORS: Record<InstallPoint["status"], string> = {
-  not_started: "#f97316", // orange
-  in_progress: "#3b82f6", // blue
-  completed: "#22c55e",   // green
-  ncr: "#ef4444",         // red
+const STATUS_COLORS: Record<string, number> = {
+  not_started: 0xf97316,
+  in_progress: 0x3b82f6,
+  completed: 0x22c55e,
+  ncr: 0xef4444,
 }
 
-const STATUS_LABELS: Record<InstallPoint["status"], string> = {
-  not_started: "Not Started",
-  in_progress: "In Progress",
-  completed: "Completed",
-  ncr: "NCR",
-}
+function createSubstation(scene: THREE.Scene) {
+  // Ground plane
+  const groundGeo = new THREE.PlaneGeometry(60, 60)
+  const groundMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb })
+  const ground = new THREE.Mesh(groundGeo, groundMat)
+  ground.rotation.x = -Math.PI / 2
+  ground.receiveShadow = true
+  scene.add(ground)
 
-// ── Substation Building ────────────────────────────────────────
-function SubstationBuilding() {
-  return (
-    <group>
-      {/* Main building body */}
-      <mesh position={[0, 3, 0]} castShadow receiveShadow>
-        <boxGeometry args={[20, 6, 8]} />
-        <meshStandardMaterial color="#d4d4d8" roughness={0.8} />
-      </mesh>
+  // Main building
+  const buildingGeo = new THREE.BoxGeometry(20, 6, 8)
+  const buildingMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8 })
+  const building = new THREE.Mesh(buildingGeo, buildingMat)
+  building.position.set(0, 3, 0)
+  building.castShadow = true
+  building.receiveShadow = true
+  scene.add(building)
 
-      {/* Roof – slightly wider overhang */}
-      <mesh position={[0, 6.15, 0]} castShadow receiveShadow>
-        <boxGeometry args={[21, 0.3, 9]} />
-        <meshStandardMaterial color="#a1a1aa" roughness={0.7} />
-      </mesh>
+  // Roof
+  const roofGeo = new THREE.BoxGeometry(21, 0.3, 9)
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0xa1a1aa })
+  const roof = new THREE.Mesh(roofGeo, roofMat)
+  roof.position.set(0, 6.15, 0)
+  roof.castShadow = true
+  scene.add(roof)
 
-      {/* Control room – attached to the right side */}
-      <mesh position={[13, 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[6, 4, 5]} />
-        <meshStandardMaterial color="#d4d4d8" roughness={0.8} />
-      </mesh>
-      <mesh position={[13, 4.15, 0]} castShadow receiveShadow>
-        <boxGeometry args={[6.5, 0.25, 5.5]} />
-        <meshStandardMaterial color="#a1a1aa" roughness={0.7} />
-      </mesh>
+  // Control room (smaller box attached)
+  const ctrlGeo = new THREE.BoxGeometry(6, 4, 5)
+  const ctrlMat = new THREE.MeshStandardMaterial({ color: 0xbfbfbf })
+  const ctrl = new THREE.Mesh(ctrlGeo, ctrlMat)
+  ctrl.position.set(-13, 2, 0)
+  ctrl.castShadow = true
+  scene.add(ctrl)
 
-      {/* Control room door */}
-      <mesh position={[13, 1.2, 2.51]} castShadow>
-        <boxGeometry args={[1.2, 2.2, 0.08]} />
-        <meshStandardMaterial color="#71717a" roughness={0.6} />
-      </mesh>
+  const ctrlRoof = new THREE.BoxGeometry(7, 0.2, 6)
+  const ctrlRoofMesh = new THREE.Mesh(ctrlRoof, roofMat)
+  ctrlRoofMesh.position.set(-13, 4.1, 0)
+  scene.add(ctrlRoofMesh)
 
-      {/* Ground plane */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
-        <planeGeometry args={[60, 60]} />
-        <meshStandardMaterial color="#e5e7eb" roughness={0.9} />
-      </mesh>
-    </group>
-  )
-}
+  // Transformers (3 units)
+  for (let i = 0; i < 3; i++) {
+    const txGeo = new THREE.BoxGeometry(2.5, 3, 2)
+    const txMat = new THREE.MeshStandardMaterial({ color: 0x3f3f46 })
+    const tx = new THREE.Mesh(txGeo, txMat)
+    tx.position.set(4 + i * 4, 1.5, -8)
+    tx.castShadow = true
+    scene.add(tx)
 
-// ── Transformer units ──────────────────────────────────────────
-function TransformerUnit({ position }: { position: [number, number, number] }) {
-  return (
-    <group position={position}>
-      {/* Main body */}
-      <mesh position={[0, 1.5, 0]} castShadow>
-        <boxGeometry args={[3, 3, 2.5]} />
-        <meshStandardMaterial color="#3f3f46" roughness={0.6} metalness={0.3} />
-      </mesh>
-      {/* Cooling fins – left side */}
-      {[-0.8, -0.3, 0.2, 0.7].map((z, i) => (
-        <mesh key={`fin-l-${i}`} position={[-1.6, 1.5, z]} castShadow>
-          <boxGeometry args={[0.1, 2.4, 0.35]} />
-          <meshStandardMaterial color="#52525b" roughness={0.5} metalness={0.4} />
-        </mesh>
-      ))}
-      {/* Cooling fins – right side */}
-      {[-0.8, -0.3, 0.2, 0.7].map((z, i) => (
-        <mesh key={`fin-r-${i}`} position={[1.6, 1.5, z]} castShadow>
-          <boxGeometry args={[0.1, 2.4, 0.35]} />
-          <meshStandardMaterial color="#52525b" roughness={0.5} metalness={0.4} />
-        </mesh>
-      ))}
-      {/* Bushings on top */}
-      {[-0.6, 0, 0.6].map((x, i) => (
-        <mesh key={`bush-${i}`} position={[x, 3.5, 0]} castShadow>
-          <cylinderGeometry args={[0.1, 0.15, 1, 8]} />
-          <meshStandardMaterial color="#78716c" roughness={0.4} metalness={0.5} />
-        </mesh>
-      ))}
-      {/* Base pad */}
-      <mesh position={[0, 0.05, 0]} receiveShadow>
-        <boxGeometry args={[3.6, 0.1, 3]} />
-        <meshStandardMaterial color="#a1a1aa" roughness={0.9} />
-      </mesh>
-    </group>
-  )
-}
+    // Cooling fins
+    for (let f = 0; f < 3; f++) {
+      const finGeo = new THREE.BoxGeometry(0.05, 2.5, 1.8)
+      const finMat = new THREE.MeshStandardMaterial({ color: 0x52525b })
+      const fin = new THREE.Mesh(finGeo, finMat)
+      fin.position.set(4 + i * 4 - 0.8 + f * 0.8, 1.5, -8)
+      scene.add(fin)
+    }
 
-function Transformers() {
-  return (
-    <group>
-      <TransformerUnit position={[-5, 0, -8]} />
-      <TransformerUnit position={[0, 0, -8]} />
-      <TransformerUnit position={[5, 0, -8]} />
-    </group>
-  )
-}
-
-// ── Cable trays ────────────────────────────────────────────────
-function CableTrays() {
-  const trays = [
-    { from: [-5, 3.2, -6.5], to: [-5, 3.2, -4] },
-    { from: [0, 3.2, -6.5], to: [0, 3.2, -4] },
-    { from: [5, 3.2, -6.5], to: [5, 3.2, -4] },
-    // Horizontal tray along building back
-    { from: [-6, 3.2, -4], to: [6, 3.2, -4] },
-  ]
-
-  return (
-    <group>
-      {trays.map((tray, i) => {
-        const start = new THREE.Vector3(...tray.from)
-        const end = new THREE.Vector3(...tray.to)
-        const mid = start.clone().add(end).multiplyScalar(0.5)
-        const length = start.distanceTo(end)
-        const dir = end.clone().sub(start).normalize()
-        const quat = new THREE.Quaternion()
-        quat.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir)
-
-        return (
-          <mesh key={i} position={[mid.x, mid.y, mid.z]} quaternion={quat} castShadow>
-            <cylinderGeometry args={[0.12, 0.12, length, 8]} />
-            <meshStandardMaterial color="#71717a" roughness={0.5} metalness={0.3} />
-          </mesh>
-        )
-      })}
-      {/* Tray supports */}
-      {[-5, 0, 5].map((x, i) => (
-        <mesh key={`sup-${i}`} position={[x, 1.6, -5.5]} castShadow>
-          <cylinderGeometry args={[0.06, 0.06, 3.2, 6]} />
-          <meshStandardMaterial color="#71717a" roughness={0.6} />
-        </mesh>
-      ))}
-    </group>
-  )
-}
-
-// ── Perimeter fence ────────────────────────────────────────────
-function PerimeterFence() {
-  const fencePoints: [number, number, number][] = [
-    [-18, 0, 14],
-    [20, 0, 14],
-    [20, 0, -14],
-    [-18, 0, -14],
-  ]
-
-  const segments: { from: [number, number, number]; to: [number, number, number] }[] = []
-  for (let i = 0; i < fencePoints.length; i++) {
-    segments.push({ from: fencePoints[i], to: fencePoints[(i + 1) % fencePoints.length] })
+    // Cable tray to building
+    const pipeGeo = new THREE.CylinderGeometry(0.1, 0.1, 4, 8)
+    const pipeMat = new THREE.MeshStandardMaterial({ color: 0x71717a })
+    const pipe = new THREE.Mesh(pipeGeo, pipeMat)
+    pipe.position.set(4 + i * 4, 4, -6)
+    pipe.rotation.x = Math.PI / 2
+    scene.add(pipe)
   }
 
-  return (
-    <group>
-      {/* Low concrete wall */}
-      {segments.map((seg, i) => {
-        const start = new THREE.Vector3(...seg.from)
-        const end = new THREE.Vector3(...seg.to)
-        const mid = start.clone().add(end).multiplyScalar(0.5)
-        const length = start.distanceTo(end)
-        const angle = Math.atan2(end.x - start.x, end.z - start.z)
-
-        return (
-          <group key={`fence-${i}`}>
-            {/* Concrete base wall */}
-            <mesh position={[mid.x, 0.3, mid.z]} rotation={[0, angle, 0]} castShadow receiveShadow>
-              <boxGeometry args={[0.2, 0.6, length]} />
-              <meshStandardMaterial color="#a8a29e" roughness={0.9} />
-            </mesh>
-            {/* Wireframe fence panels */}
-            <mesh position={[mid.x, 1.5, mid.z]} rotation={[0, angle, 0]}>
-              <boxGeometry args={[0.05, 1.8, length]} />
-              <meshStandardMaterial color="#78716c" wireframe transparent opacity={0.4} />
-            </mesh>
-          </group>
-        )
-      })}
-
-      {/* Fence posts */}
-      {fencePoints.map((p, i) => (
-        <mesh key={`post-${i}`} position={[p[0], 1.2, p[2]]} castShadow>
-          <cylinderGeometry args={[0.08, 0.08, 2.4, 6]} />
-          <meshStandardMaterial color="#71717a" roughness={0.6} />
-        </mesh>
-      ))}
-
-      {/* Gate opening marker on front */}
-      <mesh position={[1, 0.05, 14]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[4, 0.3]} />
-        <meshStandardMaterial color="#fbbf24" roughness={0.5} />
-      </mesh>
-    </group>
-  )
-}
-
-// ── North arrow ────────────────────────────────────────────────
-function NorthArrow() {
-  return (
-    <group position={[-16, 0.1, -12]}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <coneGeometry args={[0.5, 1.5, 3]} />
-        <meshStandardMaterial color="#ef4444" roughness={0.5} />
-      </mesh>
-      <Html position={[0, 0.5, -1.2]} center>
-        <span className="text-xs font-bold text-red-600 select-none">N</span>
-      </Html>
-    </group>
-  )
-}
-
-// ── Glowing frame around an opening ────────────────────────────
-function GlowingFrame({
-  width,
-  height,
-  color,
-  status,
-}: {
-  width: number
-  height: number
-  color: string
-  status: InstallPoint["status"]
-}) {
-  const matRef = useRef<THREE.MeshStandardMaterial>(null)
-
-  useFrame(({ clock }) => {
-    if (!matRef.current) return
-    const t = clock.getElapsedTime()
-
-    if (status === "in_progress") {
-      // Pulsing opacity
-      matRef.current.emissiveIntensity = 0.6 + 0.4 * Math.sin(t * 3)
-    } else if (status === "ncr") {
-      // Flashing
-      matRef.current.emissiveIntensity = Math.sin(t * 6) > 0 ? 1.2 : 0.2
-    } else {
-      matRef.current.emissiveIntensity = 0.5
-    }
-  })
-
-  const thickness = 0.08
-  const threeColor = new THREE.Color(color)
-
-  // Build frame from 4 thin boxes
-  const bars: { pos: [number, number, number]; size: [number, number, number] }[] = [
-    // top
-    { pos: [0, height / 2, 0], size: [width + thickness * 2, thickness, thickness] },
-    // bottom
-    { pos: [0, -height / 2, 0], size: [width + thickness * 2, thickness, thickness] },
-    // left
-    { pos: [-width / 2, 0, 0], size: [thickness, height, thickness] },
-    // right
-    { pos: [width / 2, 0, 0], size: [thickness, height, thickness] },
+  // Perimeter fence posts
+  const postPositions = [
+    [-18, 0, -15], [-18, 0, -8], [-18, 0, 0], [-18, 0, 8], [-18, 0, 15],
+    [18, 0, -15], [18, 0, -8], [18, 0, 0], [18, 0, 8], [18, 0, 15],
+    [-12, 0, -15], [-6, 0, -15], [0, 0, -15], [6, 0, -15], [12, 0, -15],
+    [-12, 0, 15], [-6, 0, 15], [0, 0, 15], [6, 0, 15], [12, 0, 15],
   ]
+  for (const [x, , z] of postPositions) {
+    const postGeo = new THREE.CylinderGeometry(0.08, 0.08, 2.5, 6)
+    const postMat = new THREE.MeshStandardMaterial({ color: 0x71717a })
+    const post = new THREE.Mesh(postGeo, postMat)
+    post.position.set(x, 1.25, z)
+    scene.add(post)
+  }
 
-  return (
-    <group>
-      {bars.map((bar, i) => (
-        <mesh key={i} position={bar.pos}>
-          <boxGeometry args={bar.size} />
-          <meshStandardMaterial
-            ref={i === 0 ? matRef : undefined}
-            color={color}
-            emissive={threeColor}
-            emissiveIntensity={0.5}
-            toneMapped={false}
-          />
-        </mesh>
-      ))}
-    </group>
-  )
+  // Fence wireframe
+  const fenceLines = [
+    [[-18, 2, -15], [18, 2, -15]],
+    [[-18, 2, 15], [18, 2, 15]],
+    [[-18, 2, -15], [-18, 2, 15]],
+    [[18, 2, -15], [18, 2, 15]],
+    [[-18, 1, -15], [18, 1, -15]],
+    [[-18, 1, 15], [18, 1, 15]],
+    [[-18, 1, -15], [-18, 1, 15]],
+    [[18, 1, -15], [18, 1, 15]],
+  ]
+  const lineMat = new THREE.LineBasicMaterial({ color: 0xa1a1aa })
+  for (const [start, end] of fenceLines) {
+    const geo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(...(start as [number, number, number])),
+      new THREE.Vector3(...(end as [number, number, number])),
+    ])
+    scene.add(new THREE.Line(geo, lineMat))
+  }
+
+  // Grid helper
+  const grid = new THREE.GridHelper(60, 30, 0xd4d4d8, 0xe5e7eb)
+  grid.position.y = 0.02
+  scene.add(grid)
 }
 
-// ── Installation Opening ───────────────────────────────────────
-function InstallationOpening({
-  point,
-  onClick,
-}: {
-  point: InstallPoint
-  onClick: () => void
-}) {
-  const [hovered, setHovered] = useState(false)
-  const color = STATUS_COLORS[point.status]
-  const statusLabel = STATUS_LABELS[point.status]
+function createInstallPoints(
+  scene: THREE.Scene,
+  points: InstallPoint[],
+  clickTargets: THREE.Mesh[]
+) {
+  for (const point of points) {
+    const [x, y, z] = point.position
+    const [w, h] = point.size
+    const color = STATUS_COLORS[point.status] ?? 0xf97316
 
-  const rotation = point.rotation
-    ? new THREE.Euler(point.rotation[0], point.rotation[1], point.rotation[2])
-    : new THREE.Euler(0, 0, 0)
+    // Dark opening (hole in wall)
+    const openingGeo = new THREE.PlaneGeometry(w, h)
+    const openingMat = new THREE.MeshStandardMaterial({
+      color: 0x1a1a1e,
+      side: THREE.DoubleSide,
+    })
+    const opening = new THREE.Mesh(openingGeo, openingMat)
+    opening.position.set(x, y, z)
+    if (point.rotation) {
+      opening.rotation.set(...point.rotation)
+    }
+    scene.add(opening)
 
-  return (
-    <group position={point.position} rotation={rotation}>
-      {/* Dark opening cutout */}
-      <mesh
-        onClick={(e) => {
-          e.stopPropagation()
-          onClick()
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation()
-          setHovered(true)
-          document.body.style.cursor = "pointer"
-        }}
-        onPointerOut={() => {
-          setHovered(false)
-          document.body.style.cursor = "auto"
-        }}
-      >
-        <planeGeometry args={[point.size[0], point.size[1]]} />
-        <meshStandardMaterial
-          color={hovered ? "#27272a" : "#18181b"}
-          roughness={0.95}
-        />
-      </mesh>
+    // Glowing frame around opening
+    const frameGeo = new THREE.EdgesGeometry(new THREE.PlaneGeometry(w + 0.2, h + 0.2))
+    const frameMat = new THREE.LineBasicMaterial({ color, linewidth: 2 })
+    const frame = new THREE.LineSegments(frameGeo, frameMat)
+    frame.position.set(x, y, z + (point.rotation?.[1] === Math.PI ? -0.02 : 0.02))
+    if (point.rotation) {
+      frame.rotation.set(...point.rotation)
+    }
+    scene.add(frame)
 
-      {/* Glowing frame */}
-      <group position={[0, 0, 0.02]}>
-        <GlowingFrame
-          width={point.size[0]}
-          height={point.size[1]}
-          color={color}
-          status={point.status}
-        />
-      </group>
+    // Glowing fill plane (semi-transparent)
+    const glowGeo = new THREE.PlaneGeometry(w, h)
+    const glowMat = new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity: point.status === "in_progress" ? 0.3 : point.status === "completed" ? 0.15 : 0.25,
+      side: THREE.DoubleSide,
+    })
+    const glow = new THREE.Mesh(glowGeo, glowMat)
+    glow.position.set(x, y, z + (point.rotation?.[1] === Math.PI ? -0.03 : 0.03))
+    if (point.rotation) {
+      glow.rotation.set(...point.rotation)
+    }
+    // Store reference for raycasting
+    glow.userData = { pointId: point.id }
+    scene.add(glow)
+    clickTargets.push(glow)
 
-      {/* Floating label */}
-      <Html
-        position={[0, point.size[1] / 2 + 0.6, 0.1]}
-        center
-        distanceFactor={15}
-        style={{ pointerEvents: "none" }}
-      >
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 px-3 py-2 min-w-[140px] text-center select-none">
-          <div className="text-xs font-semibold text-gray-900 truncate max-w-[160px]">
-            {point.productDescription}
-          </div>
-          <div className="flex items-center justify-center gap-1.5 mt-1">
-            <span
-              className="inline-block w-2 h-2 rounded-full"
-              style={{ backgroundColor: color }}
-            />
-            <span className="text-[10px] font-medium text-gray-600">
-              {statusLabel}
-            </span>
-          </div>
-          {point.crewName && (
-            <div className="text-[10px] text-gray-500 mt-0.5">
-              {point.crewName}
-            </div>
-          )}
-        </div>
-      </Html>
-    </group>
-  )
+    // Label sprite
+    const canvas = document.createElement("canvas")
+    canvas.width = 256
+    canvas.height = 80
+    const ctx = canvas.getContext("2d")!
+    ctx.fillStyle = "rgba(0,0,0,0.7)"
+    ctx.roundRect(0, 0, 256, 80, 8)
+    ctx.fill()
+    ctx.fillStyle = "#ffffff"
+    ctx.font = "bold 16px sans-serif"
+    const label = point.productDescription.length > 20
+      ? point.productDescription.substring(0, 20) + "..."
+      : point.productDescription
+    ctx.fillText(label, 10, 24)
+    ctx.font = "12px sans-serif"
+    ctx.fillStyle = "#aaaaaa"
+    ctx.fillText(point.label, 10, 44)
+
+    // Status dot
+    const dotColor = `#${color.toString(16).padStart(6, "0")}`
+    ctx.fillStyle = dotColor
+    ctx.beginPath()
+    ctx.arc(10, 64, 5, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = "#cccccc"
+    ctx.font = "11px sans-serif"
+    const statusText = point.status.replace("_", " ")
+    ctx.fillText(statusText.charAt(0).toUpperCase() + statusText.slice(1), 22, 68)
+
+    if (point.crewName) {
+      ctx.fillText("| " + point.crewName, 110, 68)
+    }
+
+    const tex = new THREE.CanvasTexture(canvas)
+    const spriteMat = new THREE.SpriteMaterial({ map: tex, transparent: true })
+    const sprite = new THREE.Sprite(spriteMat)
+    sprite.position.set(x, y + h / 2 + 1, z)
+    sprite.scale.set(4, 1.25, 1)
+    scene.add(sprite)
+  }
 }
 
-// ── Main Scene ─────────────────────────────────────────────────
 export default function SiteModelInner({ installPoints, onPointClick }: SiteModelProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
+  const animFrameRef = useRef<number>(0)
+
+  const handleClick = useCallback(
+    (event: MouseEvent, camera: THREE.Camera, scene: THREE.Scene, clickTargets: THREE.Mesh[]) => {
+      if (!containerRef.current || !onPointClick) return
+      const rect = containerRef.current.getBoundingClientRect()
+      const mouse = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      )
+      const raycaster = new THREE.Raycaster()
+      raycaster.setFromCamera(mouse, camera)
+      const hits = raycaster.intersectObjects(clickTargets)
+      if (hits.length > 0) {
+        const pointId = hits[0].object.userData.pointId
+        const point = installPoints.find((p) => p.id === pointId)
+        if (point) onPointClick(point)
+      }
+    },
+    [installPoints, onPointClick]
+  )
+
+  useEffect(() => {
+    if (!containerRef.current) return
+
+    const container = containerRef.current
+    const width = container.clientWidth
+    const height = container.clientHeight
+
+    // Scene
+    const scene = new THREE.Scene()
+    scene.background = new THREE.Color(0xf0f9ff) // sky-50
+    scene.fog = new THREE.Fog(0xf0f9ff, 40, 80)
+
+    // Camera
+    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 200)
+    camera.position.set(25, 18, 25)
+    camera.lookAt(0, 2, 0)
+
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true })
+    renderer.setSize(width, height)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.shadowMap.enabled = true
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    container.appendChild(renderer.domElement)
+    rendererRef.current = renderer
+
+    // Lights
+    const ambient = new THREE.AmbientLight(0xffffff, 0.6)
+    scene.add(ambient)
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0)
+    dirLight.position.set(15, 25, 15)
+    dirLight.castShadow = true
+    dirLight.shadow.mapSize.width = 2048
+    dirLight.shadow.mapSize.height = 2048
+    dirLight.shadow.camera.near = 0.5
+    dirLight.shadow.camera.far = 80
+    dirLight.shadow.camera.left = -30
+    dirLight.shadow.camera.right = 30
+    dirLight.shadow.camera.top = 30
+    dirLight.shadow.camera.bottom = -30
+    scene.add(dirLight)
+
+    // Controls
+    const controls = new OrbitControls(camera, renderer.domElement)
+    controls.enableDamping = true
+    controls.dampingFactor = 0.05
+    controls.maxPolarAngle = Math.PI / 2.1
+    controls.minDistance = 10
+    controls.maxDistance = 60
+    controls.target.set(0, 2, 0)
+
+    // Build scene
+    createSubstation(scene)
+
+    const clickTargets: THREE.Mesh[] = []
+    createInstallPoints(scene, installPoints, clickTargets)
+
+    // North arrow
+    const arrowGeo = new THREE.ConeGeometry(0.5, 2, 4)
+    const arrowMat = new THREE.MeshBasicMaterial({ color: 0xef4444 })
+    const arrow = new THREE.Mesh(arrowGeo, arrowMat)
+    arrow.position.set(-20, 1, -20)
+    arrow.rotation.x = 0
+    scene.add(arrow)
+
+    // "N" label
+    const nCanvas = document.createElement("canvas")
+    nCanvas.width = 64
+    nCanvas.height = 64
+    const nCtx = nCanvas.getContext("2d")!
+    nCtx.fillStyle = "#ef4444"
+    nCtx.font = "bold 48px sans-serif"
+    nCtx.textAlign = "center"
+    nCtx.fillText("N", 32, 48)
+    const nTex = new THREE.CanvasTexture(nCanvas)
+    const nSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: nTex }))
+    nSprite.position.set(-20, 3.5, -20)
+    nSprite.scale.set(2, 2, 1)
+    scene.add(nSprite)
+
+    // Click handler
+    const onClick = (e: MouseEvent) => handleClick(e, camera, scene, clickTargets)
+    renderer.domElement.addEventListener("click", onClick)
+
+    // Animation loop
+    let pulseTime = 0
+    function animate() {
+      animFrameRef.current = requestAnimationFrame(animate)
+      controls.update()
+      pulseTime += 0.02
+
+      // Pulse in_progress openings
+      clickTargets.forEach((mesh) => {
+        const point = installPoints.find((p) => p.id === mesh.userData.pointId)
+        if (point?.status === "in_progress") {
+          (mesh.material as THREE.MeshBasicMaterial).opacity = 0.2 + 0.15 * Math.sin(pulseTime * 3)
+        } else if (point?.status === "ncr") {
+          (mesh.material as THREE.MeshBasicMaterial).opacity = Math.sin(pulseTime * 6) > 0 ? 0.4 : 0.1
+        }
+      })
+
+      renderer.render(scene, camera)
+    }
+    animate()
+
+    // Resize handler
+    const onResize = () => {
+      const w = container.clientWidth
+      const h = container.clientHeight
+      camera.aspect = w / h
+      camera.updateProjectionMatrix()
+      renderer.setSize(w, h)
+    }
+    window.addEventListener("resize", onResize)
+
+    // Cleanup
+    return () => {
+      cancelAnimationFrame(animFrameRef.current)
+      window.removeEventListener("resize", onResize)
+      renderer.domElement.removeEventListener("click", onClick)
+      controls.dispose()
+      renderer.dispose()
+      if (container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement)
+      }
+    }
+  }, [installPoints, handleClick])
+
   return (
-    <div className="w-full h-[600px] rounded-xl overflow-hidden border border-gray-200 bg-gradient-to-b from-sky-100 to-sky-50">
-      <Canvas
-        shadows
-        camera={{ position: [25, 15, 25], fov: 50 }}
-        gl={{ antialias: true }}
-      >
-        {/* Sky background */}
-        <color attach="background" args={["#dbeafe"]} />
-        <fog attach="fog" args={["#dbeafe", 50, 120]} />
-
-        {/* Lighting */}
-        <ambientLight intensity={0.5} />
-        <directionalLight
-          position={[10, 20, 10]}
-          intensity={1}
-          castShadow
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
-          shadow-camera-far={60}
-          shadow-camera-left={-30}
-          shadow-camera-right={30}
-          shadow-camera-top={30}
-          shadow-camera-bottom={-30}
-        />
-        <directionalLight position={[-8, 10, -8]} intensity={0.3} />
-
-        {/* Scene objects */}
-        <SubstationBuilding />
-        <Transformers />
-        <CableTrays />
-        <PerimeterFence />
-        <NorthArrow />
-
-        {/* Installation openings */}
-        {installPoints.map((point) => (
-          <InstallationOpening
-            key={point.id}
-            point={point}
-            onClick={() => onPointClick?.(point)}
-          />
-        ))}
-
-        {/* Ground grid */}
-        <gridHelper args={[100, 50, "#d4d4d8", "#e5e7eb"]} position={[0, 0.01, 0]} />
-
-        {/* Camera controls */}
-        <OrbitControls
-          makeDefault
-          maxPolarAngle={Math.PI / 2.1}
-          minDistance={10}
-          maxDistance={60}
-          target={[0, 3, 0]}
-        />
-      </Canvas>
-    </div>
+    <div
+      ref={containerRef}
+      className="w-full h-[600px] rounded-xl overflow-hidden border border-gray-200 cursor-grab active:cursor-grabbing"
+    />
   )
 }
