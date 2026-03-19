@@ -671,6 +671,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
     const m = new THREE.Mesh(sw.geo, sbWallMat)
     m.position.set(...sw.pos)
     m.rotation.set(...sw.rot)
+    m.userData = { shotBlastWall: true }
     scene.add(m); refs.walls.push(m)
   }
 
@@ -685,6 +686,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
     const m = new THREE.Mesh(sw.geo, sbWallMat)
     m.position.set(...sw.pos)
     m.rotation.set(...sw.rot)
+    m.userData = { shotBlastWall: true }
     scene.add(m); refs.walls.push(m)
   }
 
@@ -701,6 +703,8 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
   const groundRef = useRef<THREE.Mesh | null>(null)
   const floorRef = useRef<THREE.Mesh | null>(null)
   const gridRef = useRef<THREE.GridHelper | null>(null)
+  const zoneBoxesRef = useRef<THREE.Mesh[]>([])
+  const zoneWireframesRef = useRef<THREE.LineSegments[]>([])
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
   const controlsRef = useRef<any>(null)
   const [hoverData, setHoverData] = useState<{
@@ -799,6 +803,8 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
     const clickables: THREE.Object3D[] = []
     const zoneFloors: THREE.Mesh[] = []
     const zonePadMap: Record<string, THREE.Mesh> = {}
+    const zoneBoxes: THREE.Mesh[] = []
+    const zoneWireframes: THREE.LineSegments[] = []
     const labels: THREE.Sprite[] = []
     let hoveredZoneId: string | null = null
 
@@ -827,7 +833,7 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
       zoneFloors.push(pad)
       zonePadMap[z.id] = pad
 
-      // Box
+      // Box (transparent zone volume — hidden in clean mode)
       if (z.h > 1) {
         const box = new THREE.Mesh(
           new THREE.BoxGeometry(z.w, z.h, z.d),
@@ -835,15 +841,19 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
         )
         box.position.set(z.x, z.h / 2, z.z)
         box.userData = { zone: z }
+        box.visible = false // hidden by default in clean mode
         scene.add(box)
         clickables.push(box)
+        zoneBoxes.push(box)
 
         const wireframe = new THREE.LineSegments(
           new THREE.EdgesGeometry(new THREE.BoxGeometry(z.w, z.h, z.d)),
           new THREE.LineBasicMaterial({ color: z.c, transparent: true, opacity: 0.35 })
         )
         wireframe.position.copy(box.position)
+        wireframe.visible = false // hidden by default in clean mode
         scene.add(wireframe)
+        zoneWireframes.push(wireframe)
       }
 
       // Label sprite
@@ -944,11 +954,15 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
     }
 
     // ═══════ ADD REALISTIC FACTORY DETAILS ═══════
+    zoneBoxesRef.current = zoneBoxes
+    zoneWireframesRef.current = zoneWireframes
+
     const fRefs = addFactoryDetails(scene, W, L, WALL_H)
     factoryRefsRef.current = fRefs
 
     // Apply initial "clean" view — only zones + floor markings, no structure
-    fRefs.walls.forEach(w => w.visible = false)
+    // But keep shot blast enclosed room walls visible
+    fRefs.walls.forEach(w => { w.visible = !!(w.userData?.shotBlastWall) })
     fRefs.roofPanels.forEach(r => r.visible = false)
     fRefs.trusses.forEach(t => t.visible = false)
     if (fRefs.ridgeBeam) fRefs.ridgeBeam.visible = false
@@ -1295,6 +1309,8 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                 const gnd = groundRef.current
                 const flr = floorRef.current
                 const grd = gridRef.current
+                const zb = zoneBoxesRef.current
+                const zw = zoneWireframesRef.current
 
                 if (mode === "realistic") {
                   // Full solid factory — walls opaque, roof visible, all details
@@ -1313,6 +1329,8 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                   fr.ambient.forEach(a => a.visible = true)
                   fr.shutters.forEach(s => s.visible = true)
                   fr.floorMarkings.forEach(f => f.visible = true)
+                  zb.forEach(b => b.visible = true)
+                  zw.forEach(w => w.visible = true)
                 } else if (mode === "no-roof") {
                   // Solid walls, no roof/trusses — good overview
                   if (sc) sc.background = new THREE.Color(0x101020)
@@ -1330,15 +1348,20 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                   fr.ambient.forEach(a => a.visible = true)
                   fr.shutters.forEach(s => s.visible = true)
                   fr.floorMarkings.forEach(f => f.visible = true)
+                  zb.forEach(b => b.visible = true)
+                  zw.forEach(w => w.visible = true)
                 } else if (mode === "clean") {
-                  // Clean view — NO walls, NO roof, NO structure. Only zones + equipment.
-                  // White/light environment for clarity
+                  // Clean view — NO walls, NO roof, NO structure, NO transparent boxes.
+                  // White/light environment — only floor pads, labels, equipment
                   if (sc) sc.background = new THREE.Color(0xd0d0d8)
                   if (sc) sc.fog = new THREE.Fog(0xd0d0d8, 100, 200)
                   if (gnd) (gnd.material as THREE.MeshStandardMaterial).color.set(0xc0c0c8)
                   if (flr) (flr.material as THREE.MeshStandardMaterial).color.set(0xeeeeee)
                   if (grd) grd.visible = false
-                  fr.walls.forEach(w => w.visible = false)
+                  fr.walls.forEach(w => {
+                    // Keep shot blast enclosed room walls visible
+                    w.visible = !!(w.userData?.shotBlastWall)
+                  })
                   fr.roofPanels.forEach(r => r.visible = false)
                   fr.trusses.forEach(t => t.visible = false)
                   if (fr.ridgeBeam) fr.ridgeBeam.visible = false
@@ -1348,6 +1371,8 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                   fr.ambient.forEach(a => a.visible = false)
                   fr.shutters.forEach(s => s.visible = false)
                   fr.floorMarkings.forEach(f => f.visible = true)
+                  zb.forEach(b => b.visible = false)
+                  zw.forEach(w => w.visible = false)
                 } else {
                   // X-Ray: transparent walls, trusses visible
                   if (sc) sc.background = new THREE.Color(0x101020)
@@ -1365,6 +1390,8 @@ export default function FactoryTwinInner({ tasksByStage, workers }: Props) {
                   fr.ambient.forEach(a => a.visible = false)
                   fr.shutters.forEach(s => s.visible = false)
                   fr.floorMarkings.forEach(f => f.visible = true)
+                  zb.forEach(b => b.visible = true)
+                  zw.forEach(w => w.visible = true)
                 }
               }}
             >
