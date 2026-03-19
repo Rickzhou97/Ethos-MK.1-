@@ -267,64 +267,7 @@ function addFactoryDetails(scene: THREE.Scene, W: number, L: number, WALL_H: num
   }
   scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(shutterLines2), new THREE.LineBasicMaterial({ color: 0x667788 })))
 
-  // ── 2. OVERHEAD CRANE ──
-  const craneMat = new THREE.MeshStandardMaterial({ color: 0xf5c518, metalness: 0.5, roughness: 0.3 })
-  const craneRailMat = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.6, roughness: 0.4 })
-  const craneH = 6.0
-
-  // Two rails running north-south (along Z)
-  const railGeo = new THREE.BoxGeometry(0.15, 0.15, L * 0.7)
-  const railL = new THREE.Mesh(railGeo, craneRailMat)
-  railL.position.set(-HALF_W + 3, craneH, 0)
-  scene.add(railL)
-  const railR = new THREE.Mesh(railGeo, craneRailMat)
-  railR.position.set(HALF_W - 3, craneH, 0)
-  scene.add(railR)
-
-  // Rail support brackets
-  const bracketGeo = new THREE.BoxGeometry(0.4, 0.08, 0.2)
-  for (let z = -HALF_L + 6; z <= HALF_L - 6; z += 6) {
-    const brL = new THREE.Mesh(bracketGeo, craneRailMat)
-    brL.position.set(-HALF_W + 3, craneH - 0.1, z)
-    scene.add(brL)
-    const brR = new THREE.Mesh(bracketGeo, craneRailMat)
-    brR.position.set(HALF_W - 3, craneH - 0.1, z)
-    scene.add(brR)
-  }
-
-  // Bridge beam crossing east-west
-  const bridgeSpan = (W - 6)
-  const bridgeGeo = new THREE.BoxGeometry(bridgeSpan, 0.5, 0.4)
-  const bridge = new THREE.Mesh(bridgeGeo, craneMat)
-  bridge.position.set(0, craneH + 0.2, 5)
-  bridge.castShadow = true
-  scene.add(bridge)
-
-  // End trucks on bridge
-  const truckGeo = new THREE.BoxGeometry(0.6, 0.4, 0.8)
-  const truckL = new THREE.Mesh(truckGeo, craneMat)
-  truckL.position.set(-bridgeSpan / 2, craneH + 0.2, 5)
-  scene.add(truckL)
-  const truckR = new THREE.Mesh(truckGeo, craneMat)
-  truckR.position.set(bridgeSpan / 2, craneH + 0.2, 5)
-  scene.add(truckR)
-
-  // Hoist trolley on bridge
-  const trolleyGeo = new THREE.BoxGeometry(0.6, 0.3, 0.5)
-  const trolley = new THREE.Mesh(trolleyGeo, new THREE.MeshStandardMaterial({ color: 0xdd9900, metalness: 0.5 }))
-  trolley.position.set(2, craneH - 0.05, 5)
-  scene.add(trolley)
-
-  // Hoist cable + hook
-  const cableGeo = new THREE.CylinderGeometry(0.02, 0.02, 2.5, 6)
-  const cable = new THREE.Mesh(cableGeo, new THREE.MeshBasicMaterial({ color: 0x333333 }))
-  cable.position.set(2, craneH - 1.3, 5)
-  scene.add(cable)
-  const hookGeo = new THREE.TorusGeometry(0.12, 0.03, 8, 12, Math.PI)
-  const hook = new THREE.Mesh(hookGeo, craneMat)
-  hook.position.set(2, craneH - 2.6, 5)
-  hook.rotation.z = Math.PI
-  scene.add(hook)
+  // ── 2. (No overhead crane — factory uses forklifts and HIAB for lifting) ──
 
   // ── 3. FLOOR MARKINGS ──
   const yellowLineMat = new THREE.MeshBasicMaterial({ color: 0xf5c518 })
