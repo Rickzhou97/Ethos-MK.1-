@@ -25,6 +25,16 @@ import { DashboardTabs } from "@/components/dashboard/dashboard-tabs"
 
 export const dynamic = 'force-dynamic'
 
+// Safe fallback returned when the DB is cold/slow on first load
+const EMPTY_DASHBOARD = {
+  totalProjects: 0, activeProjects: 0, totalProducts: 0, orderProjects: 0,
+  projectsByStatus: [], departmentCounts: [], recentProjects: [], overdueProducts: [],
+  pipeline: { opportunityValue: 0, quotedValue: 0, orderValue: 0, total: 0 },
+  quotes: { total: 0, draft: 0, submitted: 0, accepted: 0 },
+  icuProjects: [], criticalProjects: [], recentQuotes: [], openNcrs: 0,
+  charts: { projectsByStatus: [], departmentCounts: [], pipelineData: [], monthlyData: [] },
+}
+
 async function getDashboardData() {
   const sixMonthsAgo = new Date()
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
@@ -236,7 +246,13 @@ function getQuoteStatusColor(status: string) {
 }
 
 export default async function DashboardPage() {
-  const data = await getDashboardData()
+  let data = EMPTY_DASHBOARD
+  try {
+    data = await getDashboardData()
+  } catch (err) {
+    console.error("[Dashboard] Failed to load data — DB may be cold:", err)
+    // Render with empty data; user sees zeros instead of crash
+  }
 
   return (
     <div className="space-y-6">
