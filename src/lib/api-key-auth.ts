@@ -5,14 +5,14 @@ import { logAudit } from "@/lib/audit"
 
 export type NucleusScope =
   | "prospects:read" | "prospects:create"
-  | "opportunities:read" | "opportunities:create"
+  | "opportunities:read" | "opportunities:create" | "opportunities:update"
   | "customers:read"
   | "projects:read"
 
 /** All scopes available to NUCLEUS */
 export const NUCLEUS_SCOPES: NucleusScope[] = [
   "prospects:read", "prospects:create",
-  "opportunities:read", "opportunities:create",
+  "opportunities:read", "opportunities:create", "opportunities:update",
   "customers:read",
   "projects:read",
 ]
