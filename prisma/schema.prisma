@@ -36,6 +36,7 @@ model User {
   reviewedJobCards     DesignJobCard[]     @relation("JobCardReviewer")
   initiatedHandovers   DesignHandover[]    @relation("HandoverInitiator")
   receivedHandovers    DesignHandover[]    @relation("HandoverReceiver")
+  apiKeys              ApiKey[]
 
   @@map("users")
 }
@@ -1460,6 +1461,28 @@ model CustomerPortalToken {
   project  Project?  @relation(fields: [projectId], references: [id])
 
   @@map("customer_portal_tokens")
+}
+
+// ============================================================
+// API KEYS (for external agent integrations)
+// ============================================================
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  name        String                          // e.g. "NUCLEUS CRM Agent"
+  keyHash     String    @unique               // SHA-256 hash of the key
+  keyPrefix   String                          // First 8 chars for identification (e.g. "nuc_a1b2")
+  userId      String                          // Linked user account (determines role/permissions)
+  scopes      String[]                        // Allowed scopes: ["prospects:read", "prospects:create", ...]
+  active      Boolean   @default(true)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("api_keys")
 }
 
 // ============================================================
