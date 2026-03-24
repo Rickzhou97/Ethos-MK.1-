@@ -61,6 +61,7 @@ enum UserRole {
   SURVEYOR
   STAFF
   ADMIN
+  AI_AGENT
 }
 
 enum UserDepartment {

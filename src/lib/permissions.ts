@@ -253,6 +253,15 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "crm:create", "crm:edit",
   ],
   STAFF: [...BASE_READ],
+
+  // ── AI Agent — read-only + limited CRM create ──
+  AI_AGENT: [
+    ...BASE_READ,
+    "crm:create",
+    "crm:edit",
+    "quotes:create",
+    "dashboards:read",
+  ],
 }
 
 // Legacy role mapping — ensures old role strings still resolve to permissions
