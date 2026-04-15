@@ -13,7 +13,35 @@ import {
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { PROJECT_COLOR_PALETTE } from "@/lib/production-utils"
-import { Grid3X3, Loader2, Minus, Plus } from "lucide-react"
+import { Grid3X3, Loader2, Minus, Plus, RefreshCw, X, CheckCircle2, TrendingDown, TrendingUp, Minus as MinusIcon } from "lucide-react"
+
+// ─── Reschedule types ────────────────────────────────────────────────────────
+
+type RescheduleChange = {
+  projectId: string
+  projectNumber: string
+  projectName: string
+  isICU: boolean
+  deadline: string | null
+  currentEnd: string
+  optimisedEnd: string
+  deltaDays: number
+  meetsDeadline: boolean
+}
+
+type ReschedulePreview = {
+  applied: boolean
+  algorithm: string
+  totalProjects: number
+  improvedCount: number
+  degradedCount: number
+  changes: RescheduleChange[]
+}
+
+function fmtDate(iso: string | null | undefined) {
+  if (!iso) return "—"
+  return new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" })
+}
 
 // ─── Types ──────────────────────────────────────────────
 
@@ -87,6 +115,12 @@ export default function ProductionGridPage() {
   const [dragInfo, setDragInfo] = useState<DragInfo | null>(null)
   const [dropTarget, setDropTarget] = useState<{ date: string; stage: string; stationIdx: number } | null>(null)
   const todayRowRef = useRef<HTMLTableRowElement>(null)
+
+  // ─── Reschedule state ──────────────────────────────────────────
+  const [rescheduling, setRescheduling] = useState(false)
+  const [preview, setPreview] = useState<ReschedulePreview | null>(null)
+  const [applying, setApplying] = useState(false)
+  const [applySuccess, setApplySuccess] = useState(false)
 
   // Adjustable cell dimensions
   const [cellWidth, setCellWidth] = useState(90)
@@ -168,6 +202,40 @@ export default function ProductionGridPage() {
     setDropTarget(null)
   }
 
+  // ─── Reschedule handlers ────────────────────────────────────────
+
+  async function handleReschedule() {
+    setRescheduling(true)
+    setApplySuccess(false)
+    try {
+      const res = await fetch("/api/planning/aggregated/reschedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apply: false }),
+      })
+      const data: ReschedulePreview = await res.json()
+      setPreview(data)
+    } finally {
+      setRescheduling(false)
+    }
+  }
+
+  async function handleApplySchedule() {
+    setApplying(true)
+    try {
+      await fetch("/api/planning/aggregated/reschedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apply: true }),
+      })
+      setPreview(null)
+      setApplySuccess(true)
+      fetchData()   // reload grid with new anchors
+    } finally {
+      setApplying(false)
+    }
+  }
+
   // Total station columns
   const totalStationCols = data?.stages.reduce(
     (sum, s) => sum + s.stations.length, 0
@@ -241,6 +309,22 @@ export default function ProductionGridPage() {
               <SelectItem value="120">120 days</SelectItem>
             </SelectContent>
           </Select>
+
+          <Button
+            onClick={handleReschedule}
+            disabled={rescheduling || loading}
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 h-auto"
+            title="Re-optimise schedule using Minimum Slack First (MSF) algorithm"
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", rescheduling && "animate-spin")} />
+            {rescheduling ? "Optimising…" : "Reschedule"}
+          </Button>
+
+          {applySuccess && (
+            <span className="flex items-center gap-1 text-xs text-green-600 font-medium whitespace-nowrap">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Applied
+            </span>
+          )}
         </div>
       </div>
 
@@ -475,6 +559,125 @@ export default function ProductionGridPage() {
             </CardContent>
           </Card>
         </>
+      )}
+    </div>
+      {/* ─── Reschedule Preview Modal ───────────────────────────────────── */}
+      {preview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 overflow-hidden border border-gray-200">
+
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-start justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">Reschedule Preview</h2>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  Algorithm: <span className="font-medium text-blue-600">{preview.algorithm}</span>
+                  {" · "}sort by <em>slack = deadline − remaining work</em> (least slack first)
+                </p>
+              </div>
+              <button onClick={() => setPreview(null)} className="text-gray-400 hover:text-gray-700 transition-colors mt-0.5">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Summary strip */}
+            <div className="px-6 py-3 border-b border-gray-100 flex items-center gap-6 bg-white text-xs text-gray-600">
+              <span><strong className="text-gray-900">{preview.totalProjects}</strong> projects compared</span>
+              {preview.improvedCount > 0 && (
+                <span className="flex items-center gap-1 text-green-600">
+                  <TrendingDown className="h-3.5 w-3.5" />
+                  <strong>{preview.improvedCount}</strong> finish earlier
+                </span>
+              )}
+              {preview.degradedCount > 0 && (
+                <span className="flex items-center gap-1 text-red-500">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  <strong>{preview.degradedCount}</strong> finish later
+                </span>
+              )}
+              {preview.improvedCount === 0 && preview.degradedCount === 0 && (
+                <span className="flex items-center gap-1 text-gray-400">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Schedule is already optimal
+                </span>
+              )}
+            </div>
+
+            {/* Table */}
+            <div className="px-6 py-4 max-h-[55vh] overflow-y-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    {["Project", "Deadline", "Current End", "Optimised End", "Δ Days"].map(h => (
+                      <th key={h} className="text-left pb-2 pr-4 text-[10px] text-gray-400 uppercase font-semibold tracking-wider">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {preview.changes.map(c => (
+                    <tr key={c.projectId} className="hover:bg-gray-50/60">
+                      <td className="py-2.5 pr-4">
+                        <div className="flex items-center gap-1.5">
+                          {c.isICU && <span className="text-[8px] bg-red-100 text-red-700 px-1 py-px rounded font-bold">ICU</span>}
+                          <span className="font-semibold text-gray-900">{c.projectNumber}</span>
+                        </div>
+                        <div className="text-[10px] text-gray-400 truncate max-w-[140px]">{c.projectName}</div>
+                      </td>
+                      <td className={cn("py-2.5 pr-4 font-mono text-[11px]", !c.meetsDeadline ? "text-red-500" : "text-gray-500")}>
+                        {fmtDate(c.deadline)}
+                      </td>
+                      <td className="py-2.5 pr-4 font-mono text-[11px] text-gray-500">{fmtDate(c.currentEnd)}</td>
+                      <td className={cn(
+                        "py-2.5 pr-4 font-mono text-[11px] font-medium",
+                        c.deltaDays > 0 ? "text-green-600" : c.deltaDays < 0 ? "text-red-500" : "text-gray-400"
+                      )}>
+                        {fmtDate(c.optimisedEnd)}
+                      </td>
+                      <td className="py-2.5">
+                        {c.deltaDays === 0 ? (
+                          <span className="flex items-center gap-0.5 text-gray-300 text-[10px]">
+                            <MinusIcon className="h-3 w-3" /> same
+                          </span>
+                        ) : c.deltaDays > 0 ? (
+                          <span className="flex items-center gap-0.5 text-green-600 font-semibold text-[11px]">
+                            <TrendingDown className="h-3 w-3" /> -{c.deltaDays}d
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-0.5 text-red-500 font-semibold text-[11px]">
+                            <TrendingUp className="h-3 w-3" /> +{Math.abs(c.deltaDays)}d
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+              <p className="text-[10px] text-gray-400 max-w-[420px]">
+                Applying writes planned-start anchors to the database. The grid reloads using the optimised order.
+                Drag-and-drop overrides are preserved for individual products you manually adjusted.
+              </p>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => setPreview(null)} className="text-xs">
+                  Cancel
+                </Button>
+                {(preview.improvedCount > 0 || preview.degradedCount === 0) && (
+                  <Button
+                    onClick={handleApplySchedule}
+                    disabled={applying}
+                    className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 h-8"
+                  >
+                    <RefreshCw className={cn("h-3.5 w-3.5", applying && "animate-spin")} />
+                    {applying ? "Applying…" : "Apply Schedule"}
+                  </Button>
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>
       )}
     </div>
   )

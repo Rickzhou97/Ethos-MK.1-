@@ -12,6 +12,23 @@ import {
 
 const WORK_HOURS_PER_DAY = 8
 
+/**
+ * Convert a calendar date to working hours elapsed since today (weekends excluded).
+ * Used to translate stored planned-start dates into the scheduler's hour-offset space.
+ */
+function workingHoursSinceToday(target: Date, today: Date): number {
+  const t = startOfDay(target)
+  const s = startOfDay(today)
+  if (t <= s) return 0
+  let workDays = 0
+  let cur = s
+  while (cur < t) {
+    cur = addDays(cur, 1)
+    if (getDay(cur) !== 0 && getDay(cur) !== 6) workDays++
+  }
+  return workDays * WORK_HOURS_PER_DAY
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const horizonDays = parseInt(searchParams.get("days") || "60")
@@ -65,6 +82,8 @@ export async function GET(request: NextRequest) {
           productionEstimatedHours: true,
           designCompletionDate: true,
           productionCompletionDate: true,
+          designPlannedStart: true,
+          productionPlannedStart: true,
           allocatedDesignerId: true,
           designCard: {
             select: {
@@ -110,6 +129,8 @@ export async function GET(request: NextRequest) {
     designComplete: boolean
     productionComplete: boolean
     currentStageIndex: number
+    designPlannedStart: Date | null
+    productionPlannedStart: Date | null
   }
 
   const productEntries: ProductEntry[] = []
@@ -176,6 +197,8 @@ export async function GET(request: NextRequest) {
         designComplete: designDone,
         productionComplete: !!product.productionCompletionDate,
         currentStageIndex: currentStageIdx,
+        designPlannedStart: product.designPlannedStart ?? null,
+        productionPlannedStart: product.productionPlannedStart ?? null,
       })
     }
   }
@@ -246,7 +269,17 @@ export async function GET(request: NextRequest) {
       }
 
       const prevEnd = productPrevEnd[entry.productId] || 0
-      const startHour = Math.max(stations[bestStation], prevEnd)
+
+      // Respect planned start anchor written by drag-and-drop or the reschedule optimiser
+      let plannedAnchorHour = 0
+      if (stage === "DESIGN" && entry.designPlannedStart) {
+        plannedAnchorHour = workingHoursSinceToday(entry.designPlannedStart, today)
+      } else if (stage !== "DESIGN" && entry.productionPlannedStart && (productPrevEnd[entry.productId] === undefined)) {
+        // Only apply the production anchor at the first production stage (not mid-stream)
+        plannedAnchorHour = workingHoursSinceToday(entry.productionPlannedStart, today)
+      }
+
+      const startHour = Math.max(stations[bestStation], prevEnd, plannedAnchorHour)
       const endHour = startHour + durationHours
 
       scheduledSlots.push({
