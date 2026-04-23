@@ -214,6 +214,8 @@ export async function GET(request: NextRequest) {
   })
 
   // ── 4. Forward Scheduling (in working HOURS) ──
+  const today = startOfDay(new Date())
+
   // Station availability: next free working hour per station
   const stageStationHours: Record<string, number[]> = {}
   for (const stage of GRID_STAGES) {
@@ -297,7 +299,6 @@ export async function GET(request: NextRequest) {
   }
 
   // ── 5. Map working hours → calendar dates & build grid ──
-  const today = startOfDay(new Date())
 
   // Build working-day-index → calendar-date mapping
   const maxWorkDay = Math.ceil(
